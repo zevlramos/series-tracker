@@ -30,7 +30,13 @@ export async function initShell(root, seriesPath) {
   const series = result.series;
 
   if (themeResult && themeResult.ok) {
-    applyTheme(JSON.parse(themeResult.text));
+    const theme = JSON.parse(themeResult.text);
+    const layoutMode = theme.layoutMode || 'paged';
+    if (layoutMode !== 'paged') {
+      root.innerHTML = `<div class="error"><h2>Unsupported layout mode</h2><p>"${esc(layoutMode)}" is not supported. Only "paged" is available.</p></div>`;
+      return;
+    }
+    applyTheme(theme);
   }
 
   const sorts = availableSorts(series);
@@ -81,11 +87,21 @@ export async function initShell(root, seriesPath) {
     if (bar) updateBookmarkBar(bar, pager);
     updateProgress(progressEl, series);
 
-    if (pager.state.mode === 'toc') {
-      renderTOC(viewport, series, pager, orderedEntries);
-    } else {
-      renderPage(viewport, pager, series.slug);
-    }
+    viewport.classList.remove('flip-ready');
+    viewport.classList.add('flipping');
+
+    requestAnimationFrame(() => {
+      if (pager.state.mode === 'toc') {
+        renderTOC(viewport, series, pager, orderedEntries);
+      } else {
+        renderPage(viewport, pager, series.slug);
+      }
+
+      requestAnimationFrame(() => {
+        viewport.classList.remove('flipping');
+        viewport.classList.add('flip-ready');
+      });
+    });
   }
 
   rebuildBookmarkBar();

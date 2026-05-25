@@ -154,6 +154,22 @@ body {
   line-height: 1.6;
 }
 
+/* Page-flip transition */
+.viewport {
+  position: relative;
+}
+
+.viewport.flipping {
+  opacity: 0;
+  transform: translateX(12px);
+}
+
+.viewport.flip-ready {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  opacity: 1;
+  transform: translateX(0);
+}
+
 /* Page navigation */
 .page-nav {
   display: flex;
