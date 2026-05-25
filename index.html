@@ -9,6 +9,12 @@
 <body>
   <div id="app"></div>
   <script type="module">
+    function escapeHtml(str) {
+      const el = document.createElement('span');
+      el.textContent = str;
+      return el.innerHTML;
+    }
+
     const root = document.getElementById('app');
     root.innerHTML = '<p class="loading">Loading…</p>';
 
@@ -26,29 +32,22 @@
 
       if (seriesList.length === 0) {
         root.innerHTML += '<p class="landing-empty">No series registered yet.</p>';
-        return;
+      } else {
+        const grid = document.createElement('div');
+        grid.className = 'landing-grid';
+
+        for (const s of seriesList) {
+          const card = document.createElement('a');
+          card.className = 'landing-card';
+          card.href = `series/${s.slug}/`;
+          card.innerHTML = `<span class="landing-card-name">${escapeHtml(s.name)}</span>`;
+          grid.appendChild(card);
+        }
+
+        root.appendChild(grid);
       }
-
-      const grid = document.createElement('div');
-      grid.className = 'landing-grid';
-
-      for (const s of seriesList) {
-        const card = document.createElement('a');
-        card.className = 'landing-card';
-        card.href = `series/${s.slug}/`;
-        card.innerHTML = `<span class="landing-card-name">${escapeHtml(s.name)}</span>`;
-        grid.appendChild(card);
-      }
-
-      root.appendChild(grid);
     } catch (err) {
       root.innerHTML = `<div class="error"><h2>Failed to load series list</h2><p>${err.message}</p></div>`;
-    }
-
-    function escapeHtml(str) {
-      const el = document.createElement('span');
-      el.textContent = str;
-      return el.innerHTML;
     }
   </script>
 </body>
