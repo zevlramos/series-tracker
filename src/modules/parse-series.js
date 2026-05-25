@@ -1,0 +1,107 @@
+const VALID_MEDIA = ['game', 'novel', 'comic', 'film', 'show', 'stagePlay', 'podcast', 'audio', 'video'];
+const VALID_BRANCHES = ['mainline', 'spinoff'];
+
+export function parseSeries(jsonString) {
+  let data;
+  try {
+    data = JSON.parse(jsonString);
+  } catch {
+    return { ok: false, error: 'Invalid JSON' };
+  }
+
+  if (typeof data.slug !== 'string' || !data.slug) {
+    return { ok: false, error: 'Missing or invalid "slug"' };
+  }
+  if (typeof data.name !== 'string' || !data.name) {
+    return { ok: false, error: 'Missing or invalid "name"' };
+  }
+  if (!Array.isArray(data.entries)) {
+    return { ok: false, error: 'Missing or invalid "entries" — must be an array' };
+  }
+  if (data.entries.length === 0) {
+    return { ok: false, error: '"entries" must not be empty' };
+  }
+
+  const seenIds = new Set();
+  const entries = [];
+
+  for (let i = 0; i < data.entries.length; i++) {
+    const raw = data.entries[i];
+    const prefix = `Entry[${i}]`;
+    const err = validateEntry(raw, prefix, seenIds);
+    if (err) return { ok: false, error: err };
+    seenIds.add(raw.id);
+    entries.push(normalizeEntry(raw));
+  }
+
+  entries.sort((a, b) => a.recommendedOrder - b.recommendedOrder);
+
+  return {
+    ok: true,
+    series: {
+      slug: data.slug,
+      name: data.name,
+      entries
+    }
+  };
+}
+
+function validateEntry(e, prefix, seenIds) {
+  if (typeof e !== 'object' || e === null) return `${prefix}: not an object`;
+
+  const requiredStrings = ['id', 'title', 'medium', 'branch', 'recommendedReason', 'summary'];
+  for (const field of requiredStrings) {
+    if (typeof e[field] !== 'string' || !e[field]) {
+      return `${prefix}: missing or invalid "${field}"`;
+    }
+  }
+
+  if (typeof e.recommendedOrder !== 'number' || !Number.isInteger(e.recommendedOrder)) {
+    return `${prefix}: missing or invalid "recommendedOrder" — must be an integer`;
+  }
+
+  if (!Array.isArray(e.sources)) {
+    return `${prefix}: missing or invalid "sources" — must be an array`;
+  }
+
+  if (!VALID_MEDIA.includes(e.medium)) {
+    return `${prefix}: invalid "medium" "${e.medium}" — must be one of: ${VALID_MEDIA.join(', ')}`;
+  }
+
+  if (!VALID_BRANCHES.includes(e.branch)) {
+    return `${prefix}: invalid "branch" "${e.branch}" — must be one of: ${VALID_BRANCHES.join(', ')}`;
+  }
+
+  if (typeof e.status !== 'boolean') {
+    return `${prefix}: invalid "status" — must be a boolean`;
+  }
+
+  if (seenIds.has(e.id)) {
+    return `${prefix}: duplicate "id" "${e.id}"`;
+  }
+
+  if (e.chronologicalOrder !== null && e.chronologicalOrder !== undefined &&
+      (typeof e.chronologicalOrder !== 'number' || !Number.isInteger(e.chronologicalOrder))) {
+    return `${prefix}: invalid "chronologicalOrder" — must be an integer or null`;
+  }
+
+  return null;
+}
+
+function normalizeEntry(raw) {
+  return {
+    id: raw.id,
+    title: raw.title,
+    medium: raw.medium,
+    branch: raw.branch,
+    releaseDate: raw.releaseDate ?? null,
+    recommendedOrder: raw.recommendedOrder,
+    recommendedReason: raw.recommendedReason,
+    chronologicalOrder: raw.chronologicalOrder ?? null,
+    summary: raw.summary,
+    image: raw.image ?? null,
+    imageUrl: raw.imageUrl ?? null,
+    status: raw.status,
+    sources: raw.sources
+  };
+}
