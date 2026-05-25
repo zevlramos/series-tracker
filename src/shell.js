@@ -1,9 +1,7 @@
 import { parseSeries } from './modules/parse-series.js';
 import { Pager } from './modules/pager.js';
 import { availableSorts, sortEntries } from './modules/sort-engine.js';
-import { verbFor } from './modules/status.js';
-import { buildEditUrl } from './modules/edit-url.js';
-import { resolveImage } from './modules/resolve-image.js';
+import { presentEntry } from './modules/present-entry.js';
 import { themeToCssVars } from './modules/theme-mapper.js';
 import { esc } from './modules/escape.js';
 
@@ -203,21 +201,21 @@ function renderTOC(container, series, pager, orderedEntries) {
   list.className = 'toc-list';
 
   for (const entry of orderedEntries) {
-    const statusLabel = verbFor(entry.medium, entry.status);
+    const view = presentEntry(entry, REPO_COORDS, series.slug);
     const li = document.createElement('li');
-    li.className = 'toc-entry' + (entry.status ? ' done' : '');
-    li.dataset.entryId = entry.id;
+    li.className = 'toc-entry' + (view.statusDone ? ' done' : '');
+    li.dataset.entryId = view.id;
     li.innerHTML = `
       <div class="toc-entry-main">
-        <span class="toc-title">${esc(entry.title)}</span>
-        <span class="toc-reason">${esc(entry.recommendedReason)}</span>
+        <span class="toc-title">${esc(view.title)}</span>
+        <span class="toc-reason">${esc(view.recommendedReason)}</span>
       </div>
       <div class="toc-entry-meta">
-        <span class="toc-medium">${esc(entry.medium)}</span>
-        <span class="toc-status ${entry.status ? 'status-done' : 'status-pending'}">${esc(statusLabel)}</span>
+        <span class="toc-medium">${esc(view.medium)}</span>
+        <span class="toc-status ${view.statusDone ? 'status-done' : 'status-pending'}">${esc(view.statusLabel)}</span>
       </div>
     `;
-    li.addEventListener('click', () => pager.jumpTo(entry.id));
+    li.addEventListener('click', () => pager.jumpTo(view.id));
     list.appendChild(li);
   }
 
@@ -229,9 +227,7 @@ function renderPage(container, pager, seriesSlug) {
   const entry = pager.current();
   if (!entry) return;
 
-  const imageSrc = resolveImage(entry);
-  const statusLabel = verbFor(entry.medium, entry.status);
-  const editUrl = buildEditUrl(REPO_COORDS, seriesSlug);
+  const view = presentEntry(entry, REPO_COORDS, seriesSlug);
 
   const page = document.createElement('article');
   page.className = 'entry-page';
@@ -239,17 +235,17 @@ function renderPage(container, pager, seriesSlug) {
   page.innerHTML = `
     <div class="entry-layout">
       <div class="entry-cover">
-        <img src="${esc(imageSrc)}" alt="${esc(entry.title)}" class="entry-cover-img" />
+        <img src="${esc(view.imageSrc)}" alt="${esc(view.title)}" class="entry-cover-img" />
       </div>
       <div class="entry-details">
-        <h2 class="entry-title">${esc(entry.title)}</h2>
+        <h2 class="entry-title">${esc(view.title)}</h2>
         <div class="entry-badges">
-          <span class="entry-medium badge">${esc(entry.medium)}</span>
-          <span class="entry-branch badge badge-${esc(entry.branch)}">${esc(entry.branch)}</span>
-          <span class="entry-status badge ${entry.status ? 'status-done' : 'status-pending'}">${esc(statusLabel)}</span>
+          <span class="entry-medium badge">${esc(view.medium)}</span>
+          <span class="entry-branch badge badge-${esc(view.branch)}">${esc(view.branch)}</span>
+          <span class="entry-status badge ${view.statusDone ? 'status-done' : 'status-pending'}">${esc(view.statusLabel)}</span>
         </div>
-        <p class="entry-summary">${esc(entry.summary)}</p>
-        <a class="edit-link" href="${esc(editUrl)}" target="_blank" rel="noopener">Edit on GitHub</a>
+        <p class="entry-summary">${esc(view.summary)}</p>
+        <a class="edit-link" href="${esc(view.editUrl)}" target="_blank" rel="noopener">Edit on GitHub</a>
       </div>
     </div>
   `;
