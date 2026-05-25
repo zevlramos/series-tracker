@@ -9,7 +9,7 @@ One tracked franchise as a whole (e.g. Resident Evil). Each Series has its own d
 _Avoid_: Space, Franchise, Collection, Directory.
 
 **Entry**:
-A single piece of media within a Series — one game, novel, film, comic, show, podcast episode-set, etc.
+A single piece of media within a Series — one game, novel, film, comic, show, podcast episode-set, etc. A remake or remaster is its **own** Entry, not a variant of the original; the recommended order is curated to feature one canonical version per slot (Resident Evil includes the 2002 remake and omits the 1996 original). See [[0007-remakes-are-curation-not-schema]].
 _Avoid_: Title (reserved for an Entry's name), Work, Item.
 
 **Medium**:
@@ -26,10 +26,14 @@ _Avoid_: Consumed, Experienced (as field names — these describe the concept, n
 The single shared static front-end that renders every Series from its data and theme. A Series never has its own app code; it plugs into the Shell. See [[0001-shared-shell-with-overrides]].
 
 **Theme**:
-The per-Series config (`theme.json`) that makes the Shell look like that Series: a **Layout Mode** selector plus visual tokens (palette, fonts, background art, hero image, covers). It does **not** hold arbitrary CSS — that's what the optional per-series `theme.css`/partials **override** is for, used only when a token can't express something.
+The per-Series config (`theme.json`) that makes the Shell look like that Series: a **Layout Mode** selector plus **Visual tokens** (palette, fonts, background art, hero image). It does **not** hold arbitrary CSS — that's what the optional per-series `theme.css`/partials **override** is for, used only when a token can't express something.
 
 **Layout Mode**:
-One of the Shell's curated, enumerated page structures, chosen in a Series' Theme — e.g. *Paged* (TOC landing, one Entry per page, flip navigation, bookmark-tab jump-index). The mode owns structure and navigation (including which jump-index style is used); visual tokens skin it. Layout is a theming axis, not just colors/fonts. Launch ships the *Paged* mode only. See [[0006-layout-mode-theme-dimension]].
+One of the Shell's curated, enumerated page structures, chosen in a Series' Theme — e.g. *Paged* (TOC landing, one Entry per page, flip navigation, bookmark-tab jump-index). The mode owns structure and navigation (including which jump-index style is used); Visual tokens skin it. Layout is a theming axis, not just colors/fonts. Launch ships the *Paged* mode only. See [[0006-layout-mode-theme-dimension]].
+
+**Visual token**:
+A single named styling value in a Series' Theme (`theme.json`) that the Shell maps to its rendering — the palette colors (`bg`, `surface`, `text`, `accent`), the heading/body `fonts`, the `heroImage`, and the `background`. Tokens are a **closed, enumerated vocabulary**: a Series skins its **Layout Mode** by setting tokens and only tokens; anything a token can't express must go through the `theme.css`/partials override. Covers are **not** tokens — they live per-Entry in `data.json` (`image`/`imageUrl`). See [[0006-layout-mode-theme-dimension]].
+_Avoid_: Style, CSS variable, setting.
 
 **Timeline**:
 The ordered display of a Series' Entries. Its default spine is the **Recommended order**; the Shell offers only the sorts a Series declares it supports — Recommended always, release date when Entries carry dates, and an optional in-universe **Chronological order** when defined — so no empty sort toggle is ever shown.
