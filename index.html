@@ -47,7 +47,7 @@
         root.appendChild(grid);
       }
     } catch (err) {
-      root.innerHTML = `<div class="error"><h2>Failed to load series list</h2><p>${err.message}</p></div>`;
+      root.innerHTML = `<div class="error"><h2>Failed to load series list</h2><p>${escapeHtml(err.message)}</p></div>`;
     }
   </script>
 </body>

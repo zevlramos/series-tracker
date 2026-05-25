@@ -17,26 +17,30 @@ export async function initShell(root, seriesPath) {
   ]);
 
   if (!dataResult.ok) {
-    root.innerHTML = `<div class="error"><h2>Failed to load series data</h2><p>${dataResult.error}</p></div>`;
+    root.innerHTML = `<div class="error"><h2>Failed to load series data</h2><p>${esc(dataResult.error)}</p></div>`;
     return;
   }
 
   const result = parseSeries(dataResult.text);
   if (!result.ok) {
-    root.innerHTML = `<div class="error"><h2>Invalid series data</h2><p>${result.error}</p></div>`;
+    root.innerHTML = `<div class="error"><h2>Invalid series data</h2><p>${esc(result.error)}</p></div>`;
     return;
   }
 
   const series = result.series;
 
   if (themeResult && themeResult.ok) {
-    const theme = JSON.parse(themeResult.text);
-    const layoutMode = theme.layoutMode || 'paged';
-    if (layoutMode !== 'paged') {
-      root.innerHTML = `<div class="error"><h2>Unsupported layout mode</h2><p>"${esc(layoutMode)}" is not supported. Only "paged" is available.</p></div>`;
-      return;
+    try {
+      const theme = JSON.parse(themeResult.text);
+      const layoutMode = theme.layoutMode || 'paged';
+      if (layoutMode !== 'paged') {
+        root.innerHTML = `<div class="error"><h2>Unsupported layout mode</h2><p>"${esc(layoutMode)}" is not supported. Only "paged" is available.</p></div>`;
+        return;
+      }
+      applyTheme(theme);
+    } catch (e) {
+      console.warn('Invalid theme.json, using defaults:', e.message);
     }
-    applyTheme(theme);
   }
 
   const sorts = availableSorts(series);
@@ -187,7 +191,7 @@ function updateBookmarkBar(bar, pager) {
   } else {
     const entry = pager.current();
     if (entry) {
-      const tab = bar.querySelector(`[data-entry-id="${entry.id}"]`);
+      const tab = bar.querySelector(`[data-entry-id="${CSS.escape(entry.id)}"]`);
       if (tab) tab.classList.add('active');
     }
   }
@@ -281,5 +285,5 @@ function renderPage(container, pager, seriesSlug) {
 function esc(str) {
   const el = document.createElement('span');
   el.textContent = str;
-  return el.innerHTML;
+  return el.innerHTML.replace(/"/g, '&quot;');
 }

@@ -14,7 +14,8 @@ export function themeToCssVars(theme) {
   }
 
   if (tokens.heroImage != null) {
-    vars['--hero-image'] = `url(${tokens.heroImage})`;
+    const safe = tokens.heroImage.replace(/[\\"()]/g, '\\$&');
+    vars['--hero-image'] = `url("${safe}")`;
   }
 
   if (tokens.background != null) {

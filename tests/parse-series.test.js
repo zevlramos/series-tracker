@@ -201,5 +201,28 @@ describe('parseSeries', () => {
       assert.equal(result.ok, false);
       assert.ok(result.error.includes('sources'));
     });
+
+    it('returns error for JSON null', () => {
+      const result = parseSeries('null');
+      assert.equal(result.ok, false);
+    });
+
+    it('returns error for JSON array', () => {
+      const result = parseSeries('[]');
+      assert.equal(result.ok, false);
+    });
+
+    it('returns error for JSON primitive', () => {
+      const result = parseSeries('"hello"');
+      assert.equal(result.ok, false);
+    });
+
+    it('returns error for non-string releaseDate', () => {
+      const entry = { ...validEntry, releaseDate: 2002 };
+      const series = { ...validSeries, entries: [entry] };
+      const result = parseSeries(JSON.stringify(series));
+      assert.equal(result.ok, false);
+      assert.ok(result.error.includes('releaseDate'));
+    });
   });
 });

@@ -9,6 +9,9 @@ export function parseSeries(jsonString) {
     return { ok: false, error: 'Invalid JSON' };
   }
 
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    return { ok: false, error: 'Expected a JSON object' };
+  }
   if (typeof data.slug !== 'string' || !data.slug) {
     return { ok: false, error: 'Missing or invalid "slug"' };
   }
@@ -78,6 +81,10 @@ function validateEntry(e, prefix, seenIds) {
 
   if (seenIds.has(e.id)) {
     return `${prefix}: duplicate "id" "${e.id}"`;
+  }
+
+  if (e.releaseDate != null && typeof e.releaseDate !== 'string') {
+    return `${prefix}: "releaseDate" must be a string or null`;
   }
 
   if (e.chronologicalOrder !== null && e.chronologicalOrder !== undefined &&

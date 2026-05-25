@@ -35,7 +35,7 @@ describe('themeToCssVars', () => {
       }
     };
     const vars = themeToCssVars(theme);
-    assert.equal(vars['--hero-image'], 'url(assets/hero.jpg)');
+    assert.equal(vars['--hero-image'], 'url("assets/hero.jpg")');
     assert.equal(vars['--background'], 'linear-gradient(#000, #111)');
   });
 
