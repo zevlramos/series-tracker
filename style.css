@@ -1,0 +1,390 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #121212;
+  --surface: #1e1e1e;
+  --text: #e0e0e0;
+  --accent: #bb86fc;
+  --font-heading: system-ui, sans-serif;
+  --font-body: system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+#app {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.loading {
+  text-align: center;
+  padding: 4rem 0;
+  opacity: 0.6;
+}
+
+.error {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: #ef5350;
+}
+
+.error h2 {
+  margin-bottom: 0.5rem;
+}
+
+.series-header h1 {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: var(--accent);
+}
+
+.toc-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.toc-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.toc-entry:hover {
+  background: #2a2a2a;
+}
+
+.toc-title {
+  font-weight: 500;
+}
+
+.toc-medium {
+  font-size: 0.85rem;
+  opacity: 0.6;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Bookmark bar */
+.bookmark-bar {
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  scrollbar-width: thin;
+}
+
+.bookmark-tab {
+  flex-shrink: 0;
+  padding: 0.4rem 0.75rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 0.25rem 0.25rem 0 0;
+  cursor: pointer;
+  font-size: 0.8rem;
+  opacity: 0.6;
+  transition: opacity 0.15s, background 0.15s;
+  white-space: nowrap;
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bookmark-tab:hover {
+  opacity: 0.9;
+}
+
+.bookmark-tab.active {
+  opacity: 1;
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 600;
+}
+
+.bookmark-toc {
+  font-weight: 600;
+}
+
+/* Entry page */
+.entry-page {
+  background: var(--surface);
+  border-radius: 0.5rem;
+  padding: 2rem;
+  min-height: 20rem;
+}
+
+.entry-title {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--accent);
+}
+
+.entry-medium {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+  margin-bottom: 1.5rem;
+}
+
+.entry-summary {
+  line-height: 1.6;
+}
+
+/* Page-flip transition */
+.viewport {
+  position: relative;
+}
+
+.viewport.flipping {
+  opacity: 0;
+  transform: translateX(12px);
+}
+
+.viewport.flip-ready {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Page navigation */
+.page-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  gap: 0.5rem;
+}
+
+.page-nav-btn {
+  padding: 0.5rem 1rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--accent);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.15s;
+}
+
+.page-nav-btn:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.page-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  border-color: transparent;
+}
+
+/* Landing page */
+.landing-header h1 {
+  font-family: var(--font-heading);
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 2rem;
+  color: var(--accent);
+}
+
+.landing-empty {
+  text-align: center;
+  opacity: 0.6;
+}
+
+.landing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 1rem;
+}
+
+.landing-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: var(--surface);
+  border-radius: 0.5rem;
+  text-decoration: none;
+  color: var(--text);
+  transition: background 0.15s, transform 0.15s;
+}
+
+.landing-card:hover {
+  background: #2a2a2a;
+  transform: translateY(-2px);
+}
+
+.landing-card-name {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* Sort bar */
+.sort-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.sort-btn {
+  padding: 0.4rem 0.75rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+
+.sort-btn:hover {
+  opacity: 0.9;
+}
+
+.sort-btn.active {
+  opacity: 1;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Progress indicator */
+.series-progress {
+  font-size: 0.85rem;
+  opacity: 0.6;
+  margin-top: 0.25rem;
+}
+
+/* TOC enhancements */
+.toc-entry-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.toc-reason {
+  display: block;
+  font-size: 0.8rem;
+  opacity: 0.5;
+  margin-top: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toc-entry-meta {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.toc-entry.done {
+  opacity: 0.6;
+}
+
+/* Status badges */
+.status-done {
+  color: #66bb6a;
+}
+
+.status-pending {
+  opacity: 0.5;
+}
+
+/* Entry page layout */
+.entry-layout {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.entry-cover {
+  flex-shrink: 0;
+  width: 140px;
+}
+
+.entry-cover-img {
+  width: 100%;
+  height: auto;
+  border-radius: 0.25rem;
+  background: #2a2a2a;
+}
+
+.entry-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.entry-badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.badge-mainline {
+  background: rgba(102, 187, 106, 0.2);
+  color: #66bb6a;
+}
+
+.badge-spinoff {
+  background: rgba(255, 183, 77, 0.2);
+  color: #ffb74d;
+}
+
+.edit-link {
+  display: inline-block;
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: var(--accent);
+  opacity: 0.7;
+  text-decoration: none;
+}
+
+.edit-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .entry-layout {
+    flex-direction: column;
+  }
+  .entry-cover {
+    width: 100px;
+  }
+}
