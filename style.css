@@ -83,3 +83,104 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+
+/* Bookmark bar */
+.bookmark-bar {
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  scrollbar-width: thin;
+}
+
+.bookmark-tab {
+  flex-shrink: 0;
+  padding: 0.4rem 0.75rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 0.25rem 0.25rem 0 0;
+  cursor: pointer;
+  font-size: 0.8rem;
+  opacity: 0.6;
+  transition: opacity 0.15s, background 0.15s;
+  white-space: nowrap;
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bookmark-tab:hover {
+  opacity: 0.9;
+}
+
+.bookmark-tab.active {
+  opacity: 1;
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 600;
+}
+
+.bookmark-toc {
+  font-weight: 600;
+}
+
+/* Entry page */
+.entry-page {
+  background: var(--surface);
+  border-radius: 0.5rem;
+  padding: 2rem;
+  min-height: 20rem;
+}
+
+.entry-title {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--accent);
+}
+
+.entry-medium {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+  margin-bottom: 1.5rem;
+}
+
+.entry-summary {
+  line-height: 1.6;
+}
+
+/* Page navigation */
+.page-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  gap: 0.5rem;
+}
+
+.page-nav-btn {
+  padding: 0.5rem 1rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--accent);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.15s;
+}
+
+.page-nav-btn:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.page-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  border-color: transparent;
+}
