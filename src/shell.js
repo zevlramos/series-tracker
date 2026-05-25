@@ -5,6 +5,7 @@ import { verbFor } from './modules/status.js';
 import { buildEditUrl } from './modules/edit-url.js';
 import { resolveImage } from './modules/resolve-image.js';
 import { themeToCssVars } from './modules/theme-mapper.js';
+import { esc } from './modules/escape.js';
 
 const REPO_COORDS = { owner: 'zevlramos', repo: 'series-tracker', branch: 'main' };
 
@@ -282,8 +283,3 @@ function renderPage(container, pager, seriesSlug) {
   container.appendChild(nav);
 }
 
-function esc(str) {
-  const el = document.createElement('span');
-  el.textContent = str;
-  return el.innerHTML.replace(/"/g, '&quot;');
-}
