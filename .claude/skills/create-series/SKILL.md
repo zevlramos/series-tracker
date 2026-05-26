@@ -68,7 +68,7 @@ import { parseSeries } from './src/modules/parse-series.js';
 4. Write `series/<slug>/data.json`
 5. `appendToRegistry(registry, { slug, name })` — write updated `series.json`
 6. `renderSeriesIndex(name)` — write `series/<slug>/index.html`
-7. Copy a default or proposed `theme.json` to `series/<slug>/theme.json`
+7. Copy a hand-provided `theme.json` to `series/<slug>/theme.json` (until slice #18 lands `buildTheme`, the maintainer supplies this manually or copies from an existing Series)
 
 ### 7. Theme track (deferred to slice #18)
 

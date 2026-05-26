@@ -5,6 +5,7 @@ import { validateDraft } from '../pipeline/validate-draft.js';
 import { draftToSeriesData } from '../pipeline/draft-to-series-data.js';
 import { appendToRegistry } from '../pipeline/append-to-registry.js';
 import { renderSeriesIndex } from '../pipeline/render-series-index.js';
+import { checkPrecondition } from '../pipeline/check-precondition.js';
 import { parseSeries } from '../src/modules/parse-series.js';
 
 const fixturePath = new URL('./fixtures/resident-evil-draft.json', import.meta.url);
@@ -53,9 +54,16 @@ describe('pipeline integration (Draft → Shell-ready output)', () => {
     assert.equal(parseResult.ok, false);
   });
 
-  it('precondition: existing slug in registry signals conflict', () => {
+  it('precondition: create-series refuses if slug already in registry', () => {
     const registry = [{ slug: 'resident-evil', name: 'Resident Evil' }];
-    const slugExists = registry.some(e => e.slug === validDraft.slug);
-    assert.equal(slugExists, true);
+    const conflict = checkPrecondition(registry, validDraft.slug);
+    assert.equal(conflict.ok, false);
+    assert.ok(conflict.error.includes('update-series'));
+  });
+
+  it('precondition: create-series proceeds if slug is new', () => {
+    const registry = [{ slug: 'resident-evil', name: 'Resident Evil' }];
+    const result = checkPrecondition(registry, 'silent-hill');
+    assert.equal(result.ok, true);
   });
 });

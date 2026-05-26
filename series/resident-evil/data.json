@@ -3,22 +3,7 @@
   "name": "Resident Evil",
   "entries": [
     {
-      "id": "re0",
-      "title": "Resident Evil 0",
-      "medium": "game",
-      "branch": "mainline",
-      "releaseDate": "2002-11-12",
-      "recommendedOrder": 2,
-      "recommendedReason": "Prequel best appreciated after the original — context enriches Rebecca's backstory without spoiling RE1's mystery.",
-      "chronologicalOrder": 1,
-      "summary": "S.T.A.R.S. Bravo Team member Rebecca Chambers and convicted ex-Marine Billy Coen investigate a derailed train and an abandoned training facility in the Arklay Mountains.",
-      "image": null,
-      "imageUrl": null,
-      "status": false,
-      "sources": ["https://en.wikipedia.org/wiki/Resident_Evil_Zero"]
-    },
-    {
-      "id": "re1-remake",
+      "id": "resident-evil-2002",
       "title": "Resident Evil (2002)",
       "medium": "game",
       "branch": "mainline",
@@ -30,10 +15,29 @@
       "image": null,
       "imageUrl": null,
       "status": false,
-      "sources": ["https://en.wikipedia.org/wiki/Resident_Evil_(2002_video_game)"]
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil_(2002_video_game)"
+      ]
     },
     {
-      "id": "re2-remake",
+      "id": "resident-evil-0",
+      "title": "Resident Evil 0",
+      "medium": "game",
+      "branch": "mainline",
+      "releaseDate": "2002-11-12",
+      "recommendedOrder": 2,
+      "recommendedReason": "Prequel best appreciated after the original — context enriches Rebecca's backstory without spoiling RE1's mystery.",
+      "chronologicalOrder": 1,
+      "summary": "S.T.A.R.S. Bravo Team member Rebecca Chambers and convicted ex-Marine Billy Coen investigate a derailed train and an abandoned training facility in the Arklay Mountains.",
+      "image": null,
+      "imageUrl": null,
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil_Zero"
+      ]
+    },
+    {
+      "id": "resident-evil-2-2019",
       "title": "Resident Evil 2 (2019)",
       "medium": "game",
       "branch": "mainline",
@@ -45,10 +49,12 @@
       "image": null,
       "imageUrl": null,
       "status": false,
-      "sources": ["https://en.wikipedia.org/wiki/Resident_Evil_2_(2019_video_game)"]
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil_2_(2019_video_game)"
+      ]
     },
     {
-      "id": "re3-remake",
+      "id": "resident-evil-3-2020",
       "title": "Resident Evil 3 (2020)",
       "medium": "game",
       "branch": "mainline",
@@ -60,10 +66,12 @@
       "image": null,
       "imageUrl": null,
       "status": false,
-      "sources": ["https://en.wikipedia.org/wiki/Resident_Evil_3_(2020_video_game)"]
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil_3_(2020_video_game)"
+      ]
     },
     {
-      "id": "re4-remake",
+      "id": "resident-evil-4-2023",
       "title": "Resident Evil 4 (2023)",
       "medium": "game",
       "branch": "mainline",
@@ -75,10 +83,12 @@
       "image": null,
       "imageUrl": null,
       "status": false,
-      "sources": ["https://en.wikipedia.org/wiki/Resident_Evil_4_(2023_video_game)"]
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil_4_(2023_video_game)"
+      ]
     },
     {
-      "id": "marhawa-desire",
+      "id": "resident-evil-the-marhawa-desire",
       "title": "Resident Evil: The Marhawa Desire",
       "medium": "comic",
       "branch": "spinoff",
@@ -90,10 +100,12 @@
       "image": null,
       "imageUrl": null,
       "status": false,
-      "sources": ["https://en.wikipedia.org/wiki/Resident_Evil:_The_Marhawa_Desire"]
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil:_The_Marhawa_Desire"
+      ]
     },
     {
-      "id": "degeneration",
+      "id": "resident-evil-degeneration",
       "title": "Resident Evil: Degeneration",
       "medium": "film",
       "branch": "mainline",
@@ -105,7 +117,9 @@
       "image": null,
       "imageUrl": null,
       "status": false,
-      "sources": ["https://en.wikipedia.org/wiki/Resident_Evil:_Degeneration"]
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil:_Degeneration"
+      ]
     }
   ]
 }
