@@ -1,6 +1,8 @@
 {
   "slug": "resident-evil",
   "name": "Resident Evil",
+  "orderRationale": "Recommended order prioritizes the modern remakes as definitive versions, follows narrative chronology where it enriches context, and defers spinoff media until after the mainline arc is established.",
+  "incompleteMedia": [],
   "entries": [
     {
       "id": "resident-evil-2002",
@@ -15,9 +17,11 @@
       "image": null,
       "imageUrl": null,
       "status": false,
-      "sources": [
-        "https://en.wikipedia.org/wiki/Resident_Evil_(2002_video_game)"
-      ]
+      "sources": ["https://en.wikipedia.org/wiki/Resident_Evil_(2002_video_game)"],
+      "confidence": "high",
+      "confidenceReason": null,
+      "versionNote": "2002 remake of the 1996 original; the definitive version per community consensus.",
+      "sourceNotes": "Wikipedia corroborates release date and platform details."
     },
     {
       "id": "resident-evil-0",
@@ -32,9 +36,11 @@
       "image": null,
       "imageUrl": null,
       "status": false,
-      "sources": [
-        "https://en.wikipedia.org/wiki/Resident_Evil_Zero"
-      ]
+      "sources": ["https://en.wikipedia.org/wiki/Resident_Evil_Zero"],
+      "confidence": "high",
+      "confidenceReason": null,
+      "versionNote": null,
+      "sourceNotes": null
     },
     {
       "id": "resident-evil-2-2019",
@@ -49,9 +55,11 @@
       "image": null,
       "imageUrl": null,
       "status": false,
-      "sources": [
-        "https://en.wikipedia.org/wiki/Resident_Evil_2_(2019_video_game)"
-      ]
+      "sources": ["https://en.wikipedia.org/wiki/Resident_Evil_2_(2019_video_game)"],
+      "confidence": "high",
+      "confidenceReason": null,
+      "versionNote": "2019 remake of the 1998 original.",
+      "sourceNotes": null
     },
     {
       "id": "resident-evil-3-2020",
@@ -66,9 +74,11 @@
       "image": null,
       "imageUrl": null,
       "status": false,
-      "sources": [
-        "https://en.wikipedia.org/wiki/Resident_Evil_3_(2020_video_game)"
-      ]
+      "sources": ["https://en.wikipedia.org/wiki/Resident_Evil_3_(2020_video_game)"],
+      "confidence": "high",
+      "confidenceReason": null,
+      "versionNote": "2020 remake of the 1999 original.",
+      "sourceNotes": null
     },
     {
       "id": "resident-evil-4-2023",
@@ -83,9 +93,11 @@
       "image": null,
       "imageUrl": null,
       "status": false,
-      "sources": [
-        "https://en.wikipedia.org/wiki/Resident_Evil_4_(2023_video_game)"
-      ]
+      "sources": ["https://en.wikipedia.org/wiki/Resident_Evil_4_(2023_video_game)"],
+      "confidence": "high",
+      "confidenceReason": null,
+      "versionNote": "2023 remake of the 2005 original.",
+      "sourceNotes": null
     },
     {
       "id": "resident-evil-the-marhawa-desire",
@@ -100,9 +112,11 @@
       "image": null,
       "imageUrl": null,
       "status": false,
-      "sources": [
-        "https://en.wikipedia.org/wiki/Resident_Evil:_The_Marhawa_Desire"
-      ]
+      "sources": ["https://en.wikipedia.org/wiki/Resident_Evil:_The_Marhawa_Desire"],
+      "confidence": "high",
+      "confidenceReason": null,
+      "versionNote": null,
+      "sourceNotes": "Wikipedia confirms serialization dates and volume count."
     },
     {
       "id": "resident-evil-degeneration",
@@ -117,9 +131,11 @@
       "image": null,
       "imageUrl": null,
       "status": false,
-      "sources": [
-        "https://en.wikipedia.org/wiki/Resident_Evil:_Degeneration"
-      ]
+      "sources": ["https://en.wikipedia.org/wiki/Resident_Evil:_Degeneration"],
+      "confidence": "high",
+      "confidenceReason": null,
+      "versionNote": null,
+      "sourceNotes": null
     }
   ]
 }
