@@ -82,4 +82,11 @@ describe('renderDraftMarkdown', () => {
     assert.ok(md.includes('### 1. Resident Evil (2002)'));
     assert.ok(md.includes('### 3. Resident Evil 2 (2019)'));
   });
+
+  it('shows sourceNotes on non-flagged entries', () => {
+    const md = renderDraftMarkdown(validDraft);
+    const entryWithNotes = validDraft.entries.find(e => e.sourceNotes && e.confidence === 'high');
+    assert.ok(entryWithNotes, 'fixture should have a high-confidence entry with sourceNotes');
+    assert.ok(md.includes(`**Source notes:** ${entryWithNotes.sourceNotes}`));
+  });
 });

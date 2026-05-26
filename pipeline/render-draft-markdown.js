@@ -56,6 +56,9 @@ function renderEntry(lines, entry, showFlags) {
     lines.push(`- **Version note:** ${entry.versionNote}`);
   }
   lines.push(`- **Sources:** ${entry.sources.join(', ')}`);
+  if (entry.sourceNotes) {
+    lines.push(`- **Source notes:** ${entry.sourceNotes}`);
+  }
 
   if (showFlags) {
     const reasons = [];
@@ -64,9 +67,6 @@ function renderEntry(lines, entry, showFlags) {
     }
     if (hasOnlyLowTrustSources(entry.sources)) {
       reasons.push('only low-trust sources');
-    }
-    if (entry.sourceNotes) {
-      reasons.push(entry.sourceNotes);
     }
     lines.push(`- **⚠ Flagged:** ${reasons.join('; ')}`);
   }

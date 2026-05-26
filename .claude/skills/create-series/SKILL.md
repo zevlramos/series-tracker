@@ -92,7 +92,7 @@ Merge all subagent results into the Draft structure. This is done by you (the or
 
 **Step by step:**
 
-1. Parse each subagent's JSON response. If a response is malformed, treat that medium as incomplete.
+1. Parse each subagent's JSON response. Strip surrounding code fences (` ```json ... ``` `) and any leading/trailing prose before `JSON.parse`. Only treat a medium as incomplete if extraction still fails after cleanup.
 
 2. Mint stable ids for every Entry:
 ```js
