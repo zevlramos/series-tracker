@@ -61,4 +61,22 @@ describe('hasOnlyLowTrustSources', () => {
       'https://www.residentevil.com/re4/'
     ]), false);
   });
+
+  it('flags the live GameFAQs host (gamefaqs.gamespot.com)', () => {
+    assert.equal(hasOnlyLowTrustSources([
+      'https://gamefaqs.gamespot.com/ps/198530-resident-evil'
+    ]), true);
+  });
+
+  it('flags the real Yahoo Answers host (answers.yahoo.com)', () => {
+    assert.equal(hasOnlyLowTrustSources([
+      'https://answers.yahoo.com/question/index?qid=123'
+    ]), true);
+  });
+
+  it('does not flag a high-trust source whose path mentions "forum"', () => {
+    assert.equal(hasOnlyLowTrustSources([
+      'https://en.wikipedia.org/wiki/Roman_Forum'
+    ]), false);
+  });
 });

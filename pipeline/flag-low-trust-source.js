@@ -1,15 +1,26 @@
-const LOW_TRUST_PATTERNS = [
-  /\breddit\.com\b/i,
-  /\bforums?\b/i,
-  /\bgamefaqs\.com\b/i,
-  /\bblogspot\b/i,
-  /\bwordpress\.com\b/i,
-  /\btumblr\.com\b/i,
-  /\bquora\.com\b/i,
-  /\byahoo\.com\/answers\b/i,
+const LOW_TRUST_HOSTS = [
+  'reddit.com',
+  'gamefaqs.gamespot.com',
+  'gamefaqs.com',
+  'blogspot.com',
+  'wordpress.com',
+  'tumblr.com',
+  'quora.com',
+  'answers.yahoo.com',
 ];
+
+function isLowTrust(url) {
+  let host;
+  try {
+    host = new URL(url).hostname.toLowerCase().replace(/^www\./, '');
+  } catch {
+    return true;
+  }
+  if (host.includes('forum')) return true;
+  return LOW_TRUST_HOSTS.some(h => host === h || host.endsWith(`.${h}`));
+}
 
 export function hasOnlyLowTrustSources(sources) {
   if (!Array.isArray(sources) || sources.length === 0) return true;
-  return sources.every(url => LOW_TRUST_PATTERNS.some(p => p.test(url)));
+  return sources.every(isLowTrust);
 }

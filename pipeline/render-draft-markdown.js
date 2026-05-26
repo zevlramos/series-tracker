@@ -16,7 +16,7 @@ export function renderDraftMarkdown(draft) {
   const flagged = [];
   const clean = [];
   for (const entry of draft.entries) {
-    if (entry.confidence === 'low' || hasOnlyLowTrustSources(entry.sources)) {
+    if (flagReasons(entry).length > 0) {
       flagged.push(entry);
     } else {
       clean.push(entry);
@@ -27,20 +27,31 @@ export function renderDraftMarkdown(draft) {
     lines.push(`## Needs review (${flagged.length})`);
     lines.push('');
     for (const entry of flagged) {
-      renderEntry(lines, entry, true);
+      renderEntry(lines, entry);
     }
   }
 
   lines.push(`## Entries (${clean.length})`);
   lines.push('');
   for (const entry of clean) {
-    renderEntry(lines, entry, false);
+    renderEntry(lines, entry);
   }
 
   return lines.join('\n');
 }
 
-function renderEntry(lines, entry, showFlags) {
+function flagReasons(entry) {
+  const reasons = [];
+  if (entry.confidence === 'low') {
+    reasons.push(`low confidence${entry.confidenceReason ? ` — ${entry.confidenceReason}` : ''}`);
+  }
+  if (hasOnlyLowTrustSources(entry.sources)) {
+    reasons.push('only low-trust sources');
+  }
+  return reasons;
+}
+
+function renderEntry(lines, entry) {
   lines.push(`### ${entry.recommendedOrder}. ${entry.title}`);
   lines.push('');
   lines.push(`- **Medium:** ${entry.medium} | **Branch:** ${entry.branch}`);
@@ -60,14 +71,8 @@ function renderEntry(lines, entry, showFlags) {
     lines.push(`- **Source notes:** ${entry.sourceNotes}`);
   }
 
-  if (showFlags) {
-    const reasons = [];
-    if (entry.confidence === 'low') {
-      reasons.push(`low confidence${entry.confidenceReason ? ` — ${entry.confidenceReason}` : ''}`);
-    }
-    if (hasOnlyLowTrustSources(entry.sources)) {
-      reasons.push('only low-trust sources');
-    }
+  const reasons = flagReasons(entry);
+  if (reasons.length > 0) {
     lines.push(`- **⚠ Flagged:** ${reasons.join('; ')}`);
   }
 

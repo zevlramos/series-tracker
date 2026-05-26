@@ -13,13 +13,14 @@ User names a franchise → you discover media, research Entries, build a Draft, 
 
 ### 0. Precondition + resumability check
 
-Derive the slug from the franchise name (lowercase, hyphenated). Then check two things:
+Derive the slug from the franchise name with `deriveEntryId` — the same rule used to mint Entry ids, so the series slug, the registry key, and every Entry id stay consistent (handles accents and punctuation, e.g. `Pokémon` → `pokemon`). Then check two things:
 
 ```js
 import { checkPrecondition } from '../../pipeline/check-precondition.js';
+import { deriveEntryId } from '../../pipeline/derive-entry-id.js';
 import { readFileSync, existsSync } from 'node:fs';
 
-const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const slug = deriveEntryId(name);
 const registry = JSON.parse(readFileSync('series.json', 'utf8'));
 const check = checkPrecondition(registry, slug);
 // If check.ok === false → abort, tell user to run update-series
@@ -37,6 +38,10 @@ if (existsSync(draftPath)) {
   if (result.ok) {
     // Skip to Stage 4 (Review) — research is already done
     // Tell the user: "Found a saved Draft with N entries. Jumping to review."
+  } else {
+    // Saved Draft is stale or invalid (result.error). Warn the user and proceed
+    // with fresh research as if no Draft existed — recovering a broken Draft is
+    // human work, not worth auto-repairing. Do not jump to review.
   }
 }
 ```
@@ -118,7 +123,9 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 const draft = { slug, name, orderRationale, incompleteMedia, entries };
 const validation = validateDraft(draft);
 if (!validation.ok) {
-  // Fix the issue — examine validation.error, correct the entry, re-validate
+  // Examine validation.error, correct the offending entry, and re-run validateDraft.
+  // Never fall through to the write while invalid — fix and re-validate first.
+  throw new Error(`Draft invalid — not persisting: ${validation.error}`);
 }
 mkdirSync('.drafts', { recursive: true });
 writeFileSync(`.drafts/${slug}.json`, JSON.stringify(draft, null, 2));
