@@ -1,0 +1,551 @@
+/* Dossier theme.css override — transforms the Shell's existing DOM
+   into a leather-bound classified dossier. */
+
+body {
+  background: #3a3028 !important;
+  font-family: 'Special Elite', 'Courier New', Courier, monospace !important;
+  overflow-x: hidden;
+}
+
+/* --- Book container (the #app becomes the book) --- */
+#app {
+  position: relative;
+  max-width: min(700px, 92vw) !important;
+  min-height: min(80vh, 860px);
+  margin: 2rem auto !important;
+  padding: 0 !important;
+  background: #d8ccaa;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 26px,
+      rgba(139,119,80,0.06) 26px,
+      rgba(139,119,80,0.06) 27px
+    );
+  border-radius: 0 6px 6px 0;
+  box-shadow: inset -1px 0 3px rgba(0,0,0,0.05);
+  color: #2c2416 !important;
+}
+
+/* Leather cover edges */
+#app::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  background: #2a2218;
+  border-radius: 4px 12px 12px 4px;
+  box-shadow:
+    2px 2px 12px rgba(0,0,0,0.5),
+    inset 0 0 20px rgba(0,0,0,0.3);
+  z-index: -1;
+}
+
+/* Spine */
+#app::after {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: -6px;
+  bottom: -6px;
+  width: 20px;
+  background: linear-gradient(90deg, #1e1a12, #2a2218, #2a2218);
+  border-radius: 4px 0 0 4px;
+  z-index: -1;
+}
+
+/* Paper edge shadow (left gutter) */
+#app > *:first-child::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 28px;
+  background: linear-gradient(90deg, rgba(0,0,0,0.04), transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* --- Inner padding (since #app lost its padding) --- */
+.series-header,
+.sort-bar,
+.viewport,
+#app > div:has(.bookmark-bar) {
+  padding-left: clamp(28px, 4vw, 50px);
+  padding-right: clamp(28px, 4vw, 50px);
+}
+
+.series-header {
+  padding-top: clamp(24px, 3vh, 40px);
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(139,119,80,0.25);
+  margin-bottom: 0;
+  position: relative;
+}
+
+.series-header::before {
+  content: 'CONFIDENTIAL';
+  display: block;
+  text-align: center;
+  font-size: 0.6rem;
+  color: rgba(180,0,0,0.35);
+  border: 2px solid rgba(180,0,0,0.2);
+  padding: 2px 12px;
+  transform: rotate(-3deg);
+  width: fit-content;
+  margin: 0 auto 12px;
+  letter-spacing: 0.15em;
+  font-family: 'Special Elite', monospace;
+}
+
+/* --- Series title → dossier title --- */
+.series-header h1 {
+  font-family: 'Special Elite', 'Courier New', monospace !important;
+  color: #1a1208 !important;
+  text-align: center;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: clamp(1.6rem, 4vw, 2.2rem) !important;
+}
+
+.series-progress {
+  text-align: center;
+  font-size: 0.7rem;
+  color: #8b7750 !important;
+  opacity: 1 !important;
+  letter-spacing: 0.06em;
+  font-family: 'Special Elite', monospace;
+}
+
+/* --- Sort bar → dossier sort controls --- */
+.sort-bar {
+  justify-content: center;
+  padding-top: 8px;
+  padding-bottom: 12px;
+  gap: 0.25rem !important;
+  border-bottom: 2px double #8b7750;
+  margin-bottom: 0 !important;
+}
+
+.sort-bar::before {
+  content: 'Sorted by:';
+  font-size: 0.7rem;
+  color: #8b7750;
+  font-family: 'Special Elite', monospace;
+  display: flex;
+  align-items: center;
+  margin-right: 4px;
+}
+
+.sort-btn {
+  background: none !important;
+  border: none !important;
+  font-family: 'Special Elite', monospace !important;
+  color: #6b5d45 !important;
+  opacity: 1 !important;
+  font-size: 0.75rem !important;
+  padding: 0.25rem 0.5rem !important;
+  transition: color 0.15s;
+}
+
+.sort-btn:hover {
+  color: #8b0000 !important;
+}
+
+.sort-btn.active {
+  color: #1a1208 !important;
+  border-bottom: 1px solid #1a1208 !important;
+}
+
+/* --- Bookmark bar → right-edge vertical tabs --- */
+#app > div:has(.bookmark-bar) {
+  padding: 0 !important;
+}
+
+.bookmark-bar {
+  position: absolute;
+  right: -28px;
+  top: 80px;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 5;
+  overflow: visible;
+  padding: 0;
+  margin: 0;
+  scrollbar-width: none;
+}
+
+.bookmark-tab {
+  width: 28px !important;
+  max-width: 28px !important;
+  height: 22px;
+  padding: 0 !important;
+  background: #c4b088 !important;
+  border-radius: 0 4px 4px 0 !important;
+  border: 1px solid rgba(139,119,80,0.2) !important;
+  border-left: none !important;
+  font-size: 0 !important;
+  color: transparent !important;
+  cursor: pointer;
+  transition: width 0.15s, background 0.15s, margin-right 0.15s !important;
+  opacity: 1 !important;
+  overflow: hidden;
+  text-overflow: clip;
+  position: relative;
+}
+
+.bookmark-tab::after {
+  content: attr(data-short-label);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.45rem;
+  color: #6b5d45;
+  font-family: 'Special Elite', monospace;
+}
+
+.bookmark-toc::after {
+  content: 'TOC';
+}
+
+.bookmark-tab:hover {
+  width: 120px !important;
+  max-width: 120px !important;
+  background: #b8a478 !important;
+  margin-right: -92px;
+  opacity: 1 !important;
+  font-size: 0.45rem !important;
+  color: #3a3028 !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 6px !important;
+  text-align: left;
+}
+
+.bookmark-tab:hover::after {
+  display: none;
+}
+
+.bookmark-tab.active {
+  width: 32px !important;
+  max-width: 32px !important;
+  background: #d8ccaa !important;
+  color: transparent !important;
+  font-weight: bold;
+  border-right-color: transparent !important;
+}
+
+.bookmark-tab.active::after {
+  color: #3a3028;
+  font-weight: bold;
+}
+
+/* --- TOC list → dossier table of contents --- */
+.toc-list {
+  gap: 0 !important;
+  padding: 16px 0;
+}
+
+.toc-list::before {
+  content: 'CONTENTS';
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: #8b7750;
+  margin-bottom: 12px;
+  font-family: 'Special Elite', monospace;
+}
+
+.toc-entry {
+  background: transparent !important;
+  border-radius: 0 !important;
+  padding: 5px 0 !important;
+  color: #3d3220;
+  font-size: 0.8rem;
+  font-family: 'Special Elite', monospace;
+  border-bottom: none;
+  transition: color 0.15s;
+}
+
+.toc-entry:hover {
+  background: transparent !important;
+  color: #8b0000;
+}
+
+.toc-entry.done {
+  opacity: 0.5 !important;
+}
+
+.toc-entry-main {
+  position: relative;
+}
+
+.toc-title {
+  color: #3d3220;
+  font-family: 'Special Elite', monospace !important;
+  font-weight: normal !important;
+}
+
+.toc-reason {
+  display: none !important;
+}
+
+.toc-entry-meta {
+  flex-shrink: 0;
+}
+
+.toc-medium {
+  font-size: 0.6rem !important;
+  color: #8b7750 !important;
+  opacity: 1 !important;
+  font-family: 'Special Elite', monospace !important;
+}
+
+.toc-status {
+  font-size: 0.5rem !important;
+  letter-spacing: 0.08em;
+}
+
+.status-done {
+  color: #4a6a3a !important;
+}
+
+.status-pending {
+  color: #8b7750 !important;
+  opacity: 0.6 !important;
+}
+
+/* --- Entry page → dossier file page --- */
+.entry-page {
+  background: transparent !important;
+  border-radius: 0 !important;
+  padding: 16px 0 50px !important;
+  min-height: auto !important;
+  font-family: 'Special Elite', monospace;
+}
+
+/* File number is injected by prototype JS as a .ds-file-label element */
+
+/* File number label (injected by JS) */
+.ds-file-label {
+  font-size: 0.65rem;
+  color: #8b7750;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  margin-bottom: 6px;
+  font-family: 'Special Elite', monospace;
+}
+
+.entry-layout {
+  flex-direction: row-reverse !important;
+  gap: 20px !important;
+}
+
+.entry-cover {
+  width: 130px !important;
+  flex-shrink: 0;
+}
+
+.entry-cover-img {
+  border-radius: 0 !important;
+  border: 1px solid rgba(139,119,80,0.25);
+  background: linear-gradient(135deg, #c4b99a, #b0a580) !important;
+}
+
+.entry-title {
+  font-family: 'Special Elite', 'Courier New', monospace !important;
+  color: #1a1208 !important;
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem) !important;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.entry-badges {
+  margin-bottom: 0.75rem !important;
+  gap: 0.4rem !important;
+  align-items: center;
+}
+
+.badge {
+  font-family: 'Special Elite', monospace !important;
+  background: transparent !important;
+  border: 1px solid rgba(139,119,80,0.3);
+  color: #8b7750 !important;
+  font-size: 0.6rem !important;
+  letter-spacing: 0.08em;
+  padding: 0.15rem 0.4rem !important;
+  line-height: 1.2;
+}
+
+.badge-mainline {
+  background: transparent !important;
+  color: #4a6a3a !important;
+  border-color: #4a6a3a !important;
+}
+
+.badge-spinoff {
+  background: transparent !important;
+  color: #8b6914 !important;
+  border-color: #8b6914 !important;
+}
+
+/* Status badge as a rotated stamp */
+.entry-status {
+  transform: rotate(3deg);
+  border-width: 2px !important;
+  font-weight: bold;
+}
+
+.entry-status.status-done {
+  color: #2a6a22 !important;
+  border-color: #2a6a22 !important;
+}
+
+.entry-status.status-pending {
+  color: #8b7750 !important;
+  border-color: #8b7750 !important;
+}
+
+.entry-summary {
+  font-family: 'Special Elite', monospace !important;
+  color: #3d3220 !important;
+  line-height: 1.75 !important;
+  font-size: 0.85rem;
+}
+
+.entry-summary::before {
+  content: 'SUMMARY';
+  display: block;
+  font-size: 0.6rem;
+  color: #8b7750;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  margin-bottom: 6px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid rgba(139,119,80,0.15);
+}
+
+.edit-link {
+  color: #6b5d45 !important;
+  font-family: 'Special Elite', monospace !important;
+  font-size: 0.6rem !important;
+  letter-spacing: 0.04em;
+  opacity: 0.5 !important;
+}
+
+.edit-link:hover {
+  color: #8b0000 !important;
+  opacity: 1 !important;
+}
+
+/* --- Page navigation → dossier nav --- */
+.page-nav {
+  padding-bottom: 16px;
+  margin-top: 1rem !important;
+}
+
+.page-nav-btn {
+  background: transparent !important;
+  border: 1px solid rgba(139,119,80,0.3) !important;
+  font-family: 'Special Elite', monospace !important;
+  font-size: 0.7rem !important;
+  color: #6b5d45 !important;
+  padding: 5px 16px !important;
+  border-radius: 3px !important;
+  letter-spacing: 0.08em;
+}
+
+.page-nav-btn:hover:not(:disabled) {
+  background: rgba(139,119,80,0.1) !important;
+  border-color: rgba(139,119,80,0.5) !important;
+  color: #3a3028 !important;
+}
+
+.page-nav-btn:disabled {
+  opacity: 0.3 !important;
+  border-color: transparent !important;
+}
+
+/* --- Page-flip animation (clone-overlay, ported from prototype-E "Dossier") ---
+   A clone of the page is pinned over the live content and flipped, so the real
+   content never distorts. Both directions rotate around the left spine with
+   inline perspective; box-shadow ramps mid-flip to fake page depth. */
+.viewport {
+  padding-bottom: 2rem;
+}
+
+/* The Shell's built-in fade/slide is replaced by the clone flip — neutralize it
+   so the base content is simply present (the clone does all the motion). */
+.viewport.flipping,
+.viewport.flip-ready {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+.viewport.flipping > *,
+.viewport.flip-ready > * {
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+/* The flipping clone, pinned position:fixed over the page (see index.html JS).
+   Reproduces the viewport's padding so cloned content stays aligned. */
+.ds-flip-overlay {
+  pointer-events: none !important;
+  overflow: hidden !important;
+  padding: 0 clamp(28px, 4vw, 50px) 2rem !important;
+  background: #d8ccaa !important;
+  background-image: repeating-linear-gradient(
+    0deg, transparent, transparent 26px,
+    rgba(139,119,80,0.06) 26px, rgba(139,119,80,0.06) 27px) !important;
+  border-radius: 0 6px 6px 0 !important;
+  backface-visibility: hidden;
+}
+
+/* Forward: outgoing page rotates away past flat */
+@keyframes ds-flip-forward {
+  0%   { transform: perspective(1800px) rotateY(0deg);    box-shadow: 0 0 0 rgba(0,0,0,0); }
+  20%  { box-shadow: -8px 4px 24px rgba(0,0,0,0.25); }
+  80%  { box-shadow: -4px 2px 12px rgba(0,0,0,0.1); }
+  100% { transform: perspective(1800px) rotateY(-105deg); box-shadow: 0 0 0 rgba(0,0,0,0); opacity: 0; }
+}
+
+/* Backward: incoming page rotates in from past flat */
+@keyframes ds-flip-backward {
+  0%   { transform: perspective(1800px) rotateY(-105deg); opacity: 0; box-shadow: 0 0 0 rgba(0,0,0,0); }
+  15%  { opacity: 1; }
+  40%  { box-shadow: 8px 4px 24px rgba(0,0,0,0.25); }
+  100% { transform: perspective(1800px) rotateY(0deg);    box-shadow: 0 0 0 rgba(0,0,0,0); opacity: 1; }
+}
+
+/* --- Page number footer --- */
+.viewport::after {
+  content: '';
+  display: block;
+  text-align: center;
+  font-size: 0.7rem;
+  color: #6b5d45;
+  letter-spacing: 0.1em;
+  font-family: 'Special Elite', monospace;
+  padding-top: 12px;
+}
+
+/* --- Responsive --- */
+@media (max-width: 600px) {
+  #app {
+    max-width: 96vw !important;
+    min-height: 85vh;
+  }
+  #app::before { inset: -3px; }
+  #app::after { width: 10px; left: -3px; top: -3px; bottom: -3px; }
+  .bookmark-bar { right: -20px; }
+  .bookmark-tab { width: 20px !important; max-width: 20px !important; height: 18px; }
+  .bookmark-tab::after { font-size: 0.4rem; }
+  .entry-cover { width: 90px !important; }
+  .entry-layout { flex-direction: column-reverse !important; }
+}

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PROTOTYPE — Theme Aesthetic Spike (Issue #16)</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Oswald:wght@400;500;600&family=Share+Tech+Mono&family=Space+Grotesk:wght@400;500;600&family=Special+Elite&display=swap" rel="stylesheet">
+  <style>
+    /* Prototype-only: activate --hero-image and --background tokens (dead in production CSS) */
+    body {
+      background-image: var(--hero-image, none);
+      background-repeat: no-repeat;
+      background-position: center top;
+      background-size: cover;
+    }
+    :root { --background: none; }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: var(--background);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* Prototype banner */
+    .proto-banner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #ff6b00;
+      color: #000;
+      text-align: center;
+      padding: 0.3rem 1rem;
+      font: bold 0.75rem/1.4 system-ui, sans-serif;
+      z-index: 9999;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    body { padding-top: 2rem; }
+
+    /* Floating theme switcher */
+    .theme-switcher {
+      position: fixed;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 0.35rem;
+      padding: 0.5rem 0.75rem;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      border-radius: 0.5rem;
+      z-index: 9998;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      max-width: 95vw;
+      overflow-x: auto;
+    }
+    .theme-switcher button {
+      padding: 0.4rem 0.75rem;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 0.3rem;
+      background: transparent;
+      color: #ccc;
+      font: 0.75rem/1.3 system-ui, sans-serif;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .theme-switcher button:hover {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+    .theme-switcher button.active {
+      background: #fff;
+      color: #000;
+      font-weight: 600;
+      border-color: #fff;
+    }
+
+    /* Strategy tooltip */
+    .theme-strategy {
+      position: fixed;
+      bottom: 4.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 36rem;
+      padding: 0.75rem 1rem;
+      background: rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(8px);
+      color: #aaa;
+      font: 0.8rem/1.5 system-ui, sans-serif;
+      border-radius: 0.4rem;
+      z-index: 9997;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+      transition: opacity 0.2s;
+    }
+    .theme-strategy strong {
+      color: #fff;
+      display: block;
+      margin-bottom: 0.25rem;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="proto-banner">Prototype — Theme Aesthetic Spike (Issue #16) — THROWAWAY</div>
+  <div id="app"></div>
+
+  <script type="module">
+    import { initShell } from '../src/shell.js';
+    import { themeToCssVars } from '../src/modules/theme-mapper.js';
+    import { VARIANTS } from './themes.js';
+
+    const params = new URLSearchParams(location.search);
+    let currentId = params.get('theme') || 'baseline';
+    let current = VARIANTS.find(v => v.id === currentId) ?? VARIANTS[0];
+
+    await initShell(document.getElementById('app'), '../series/resident-evil');
+
+    // --- Prototype-only DOM enhancements for dossier variant ---
+    // Patch bookmark tabs: add short numeric labels + title for hover
+    function patchBookmarkLabels() {
+      const tabs = document.querySelectorAll('.bookmark-tab:not(.bookmark-toc)');
+      tabs.forEach((tab, i) => {
+        tab.dataset.shortLabel = String(i + 1).padStart(2, '0');
+      });
+    }
+    patchBookmarkLabels();
+
+    // --- Clone-overlay page-flip (ported from prototype-E "Dossier") ---
+    // The Shell swaps viewport content on navigation. We animate a CLONE pinned
+    // over the page so the live content never distorts. Forward: clone the
+    // OUTGOING page and sweep it away. Backward: clone the INCOMING page and
+    // sweep it in. Both rotate around the left spine.
+    const viewport = document.querySelector('.viewport');
+
+    function getCurrentPageIndex() {
+      if (document.querySelector('.bookmark-toc.active')) return -1;
+      const allTabs = [...document.querySelectorAll('.bookmark-tab:not(.bookmark-toc)')];
+      return allTabs.findIndex(t => t.classList.contains('active'));
+    }
+
+    function getContentEl() {
+      return viewport?.querySelector('.entry-page, .toc-list');
+    }
+
+    function pinAndFlip(cloneEl, rect, animName) {
+      // Strip structural classes (viewport/flipping/flip-ready) so their
+      // !important rules can't clobber the animation's transform — only the
+      // .ds-flip-overlay styling applies.
+      cloneEl.className = 'ds-flip-overlay';
+      cloneEl.style.cssText += `
+        position: fixed; top: ${rect.top}px; left: ${rect.left}px;
+        width: ${rect.width}px; height: ${rect.height}px;
+        margin: 0; z-index: 10000; transform-origin: left center;
+        animation: ${animName} 0.5s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+      `;
+      document.body.appendChild(cloneEl);
+      cloneEl.addEventListener('animationend', () => cloneEl.remove());
+    }
+
+    // pendingFlip is set in capture phase (before the Shell swaps content),
+    // then consumed by the MutationObserver once the new content is in the DOM.
+    let pendingFlip = null;
+
+    function planFlip(dir) {
+      // Re-entry guard: ignore navigation while a flip is mid-flight
+      if (document.querySelector('.ds-flip-overlay')) return;
+      if (dir === 'forward') {
+        // Clone the whole viewport (everything under the sort bar) as the
+        // outgoing page, captured BEFORE the Shell swaps in new content.
+        if (getContentEl()) {
+          pendingFlip = { dir, clone: viewport.cloneNode(true), rect: viewport.getBoundingClientRect() };
+        }
+      } else {
+        pendingFlip = { dir: 'backward' };
+      }
+    }
+
+    // Capture-phase click: determine direction BEFORE the Shell handles the click
+    document.addEventListener('click', (e) => {
+      if (!viewport) return;
+      const oldIndex = getCurrentPageIndex();
+
+      const prevBtn = e.target.closest('.page-nav-btn.prev');
+      if (prevBtn && !prevBtn.disabled) return planFlip('backward');
+
+      const nextBtn = e.target.closest('.page-nav-btn.next');
+      if (nextBtn && !nextBtn.disabled) return planFlip('forward');
+
+      if (e.target.closest('.page-nav-btn.toc')) return planFlip('backward');
+
+      if (e.target.closest('.bookmark-toc')) {
+        return planFlip(oldIndex >= 0 ? 'backward' : 'forward');
+      }
+
+      const bookmark = e.target.closest('.bookmark-tab');
+      if (bookmark) {
+        const allTabs = [...document.querySelectorAll('.bookmark-tab:not(.bookmark-toc)')];
+        const targetIndex = allTabs.indexOf(bookmark);
+        return planFlip(targetIndex < oldIndex ? 'backward' : 'forward');
+      }
+
+      if (e.target.closest('.toc-entry')) return planFlip('forward');
+    }, true);
+
+    // After the Shell swaps content: inject file label + fire the pending flip
+    if (viewport) {
+      new MutationObserver(() => {
+        const content = getContentEl();
+        if (!content) return;
+
+        // Inject file number label on entry pages
+        const page = viewport.querySelector('.entry-page');
+        if (page && !page.querySelector('.ds-file-label')) {
+          const activeTab = document.querySelector('.bookmark-tab.active:not(.bookmark-toc)');
+          const num = activeTab ? activeTab.dataset.shortLabel : '??';
+          const label = document.createElement('div');
+          label.className = 'ds-file-label';
+          label.textContent = `File No. ${num}`;
+          page.prepend(label);
+        }
+
+        // Fire the flip overlay (once) now that new content is painted
+        if (pendingFlip) {
+          const fp = pendingFlip;
+          pendingFlip = null;
+          if (fp.dir === 'forward' && fp.clone) {
+            // outgoing page sweeps away, revealing the new content underneath
+            pinAndFlip(fp.clone, fp.rect, 'ds-flip-forward');
+          } else if (fp.dir === 'backward') {
+            // incoming page (whole viewport) sweeps in over the new base
+            pinAndFlip(viewport.cloneNode(true), viewport.getBoundingClientRect(), 'ds-flip-backward');
+          }
+        }
+      }).observe(viewport, { childList: true, subtree: true });
+    }
+
+    // Re-patch bookmarks when sort order changes (Shell rebuilds them)
+    const bookmarkContainer = document.querySelector('#app > div:has(.bookmark-bar)') ||
+      document.querySelector('.bookmark-bar')?.parentElement;
+    if (bookmarkContainer) {
+      new MutationObserver(() => patchBookmarkLabels())
+        .observe(bookmarkContainer, { childList: true, subtree: true });
+    }
+
+    let overrideLink = null;
+
+    function applyVariant(variant) {
+      current = variant;
+      currentId = variant.id;
+
+      // Remove any active CSS override
+      if (overrideLink) {
+        overrideLink.remove();
+        overrideLink = null;
+      }
+
+      // Reset all theme CSS vars to defaults before applying new variant
+      const defaults = {
+        '--bg': '#121212', '--surface': '#1e1e1e', '--text': '#e0e0e0',
+        '--accent': '#bb86fc', '--font-heading': 'system-ui, sans-serif',
+        '--font-body': 'system-ui, sans-serif', '--hero-image': 'none',
+        '--background': 'none'
+      };
+      for (const [k, v] of Object.entries(defaults)) {
+        document.documentElement.style.setProperty(k, v);
+      }
+
+      const vars = themeToCssVars({ tokens: variant.tokens });
+      for (const [k, v] of Object.entries(vars)) {
+        document.documentElement.style.setProperty(k, v);
+      }
+
+      // Load CSS override if variant has one
+      if (variant.cssOverride) {
+        overrideLink = document.createElement('link');
+        overrideLink.rel = 'stylesheet';
+        overrideLink.href = variant.cssOverride;
+        document.head.appendChild(overrideLink);
+      }
+
+      // Update URL without reload
+      const url = new URL(location);
+      url.searchParams.set('theme', variant.id);
+      history.replaceState(null, '', url);
+
+      updateSwitcher();
+      updateStrategy();
+    }
+
+    // --- Floating switcher ---
+    const switcher = document.createElement('div');
+    switcher.className = 'theme-switcher';
+    for (const v of VARIANTS) {
+      const btn = document.createElement('button');
+      btn.textContent = v.name;
+      btn.dataset.themeId = v.id;
+      btn.addEventListener('click', () => applyVariant(v));
+      switcher.appendChild(btn);
+    }
+    document.body.appendChild(switcher);
+
+    // --- Strategy display ---
+    const strategyEl = document.createElement('div');
+    strategyEl.className = 'theme-strategy';
+    document.body.appendChild(strategyEl);
+
+    function updateSwitcher() {
+      for (const btn of switcher.querySelectorAll('button')) {
+        btn.classList.toggle('active', btn.dataset.themeId === currentId);
+      }
+    }
+
+    function updateStrategy() {
+      strategyEl.innerHTML = `<strong>${current.name}</strong>${current.strategy}`;
+    }
+
+    // --- Keyboard nav: left/right arrows ---
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      const idx = VARIANTS.findIndex(v => v.id === currentId);
+      if (e.key === '[' && idx > 0) {
+        applyVariant(VARIANTS[idx - 1]);
+      } else if (e.key === ']' && idx < VARIANTS.length - 1) {
+        applyVariant(VARIANTS[idx + 1]);
+      }
+    });
+
+    // Apply initial variant
+    applyVariant(current);
+  </script>
+</body>
+</html>
