@@ -44,6 +44,8 @@ The Draft is pipeline-internal JSON persisted at `.drafts/<slug>.json`. Review-o
 | `draft-to-series-data.js` | `draftToSeriesData(draft) → dataJsonObject` | Strip review fields → data.json |
 | `append-to-registry.js` | `appendToRegistry(registry, {slug, name}) → registry` | Idempotent series.json append |
 | `render-series-index.js` | `renderSeriesIndex(name) → htmlString` | Template substitution for index.html |
+| `flag-low-trust-source.js` | `hasOnlyLowTrustSources(sources) → boolean` | True if all sources match low-trust domains |
+| `render-draft-markdown.js` | `renderDraftMarkdown(draft) → string` | Draft → review Markdown, flagged Entries first |
 
 ## Output files
 
