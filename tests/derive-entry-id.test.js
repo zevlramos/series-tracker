@@ -50,4 +50,26 @@ describe('deriveEntryId', () => {
       'resident-evil-2002'
     );
   });
+
+  it('normalizes accented characters via NFD decomposition', () => {
+    assert.equal(deriveEntryId('Pokémon Legends: Arceus'), 'pokemon-legends-arceus');
+    assert.equal(deriveEntryId('Café'), 'cafe');
+    assert.equal(deriveEntryId('Naïve'), 'naive');
+  });
+
+  it('strips curly apostrophes (U+2018, U+2019)', () => {
+    assert.equal(deriveEntryId('Director’s Cut'), 'directors-cut');
+    assert.equal(deriveEntryId('Director‘s Cut'), 'directors-cut');
+  });
+
+  it('strips underscores', () => {
+    assert.equal(deriveEntryId('__test__'), 'test');
+  });
+
+  it('disambiguator checks segment boundary, not bare suffix', () => {
+    assert.equal(
+      deriveEntryId('Game 12002', { disambiguator: '2002' }),
+      'game-12002-2002'
+    );
+  });
 });

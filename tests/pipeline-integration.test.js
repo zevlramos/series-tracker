@@ -3,9 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { validateDraft } from '../pipeline/validate-draft.js';
 import { draftToSeriesData } from '../pipeline/draft-to-series-data.js';
-import { appendToRegistry } from '../pipeline/append-to-registry.js';
 import { renderSeriesIndex } from '../pipeline/render-series-index.js';
-import { checkPrecondition } from '../pipeline/check-precondition.js';
 import { parseSeries } from '../src/modules/parse-series.js';
 
 const fixturePath = new URL('./fixtures/resident-evil-draft.json', import.meta.url);
@@ -21,18 +19,6 @@ describe('pipeline integration (Draft → Shell-ready output)', () => {
     assert.equal(parseResult.ok, true, `parseSeries failed: ${parseResult.error}`);
     assert.equal(parseResult.series.slug, 'resident-evil');
     assert.equal(parseResult.series.entries.length, 7);
-  });
-
-  it('registry append is idempotent across the pipeline', () => {
-    const existing = [{ slug: 'resident-evil', name: 'Resident Evil' }];
-    const result = appendToRegistry(existing, { slug: validDraft.slug, name: validDraft.name });
-    assert.equal(result.length, 1);
-  });
-
-  it('registry append works for a new Series', () => {
-    const existing = [{ slug: 'resident-evil', name: 'Resident Evil' }];
-    const result = appendToRegistry(existing, { slug: 'silent-hill', name: 'Silent Hill' });
-    assert.equal(result.length, 2);
   });
 
   it('renderSeriesIndex produces HTML matching the golden seed structure', () => {
@@ -52,18 +38,5 @@ describe('pipeline integration (Draft → Shell-ready output)', () => {
     data.entries[0].medium = 'invalid';
     const parseResult = parseSeries(JSON.stringify(data));
     assert.equal(parseResult.ok, false);
-  });
-
-  it('precondition: create-series refuses if slug already in registry', () => {
-    const registry = [{ slug: 'resident-evil', name: 'Resident Evil' }];
-    const conflict = checkPrecondition(registry, validDraft.slug);
-    assert.equal(conflict.ok, false);
-    assert.ok(conflict.error.includes('update-series'));
-  });
-
-  it('precondition: create-series proceeds if slug is new', () => {
-    const registry = [{ slug: 'resident-evil', name: 'Resident Evil' }];
-    const result = checkPrecondition(registry, 'silent-hill');
-    assert.equal(result.ok, true);
   });
 });

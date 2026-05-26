@@ -7,6 +7,11 @@ const fixturePath = new URL('./fixtures/resident-evil-draft.json', import.meta.u
 const validDraft = JSON.parse(readFileSync(fixturePath, 'utf8'));
 
 describe('validateDraft', () => {
+  function withEntry(overrides) {
+    const entries = [{ ...validDraft.entries[0], ...overrides }];
+    return { ...validDraft, entries };
+  }
+
   describe('valid input', () => {
     it('accepts the RE golden fixture draft', () => {
       const result = validateDraft(validDraft);
@@ -81,11 +86,6 @@ describe('validateDraft', () => {
   });
 
   describe('entry data fields', () => {
-    function withEntry(overrides) {
-      const entries = [{ ...validDraft.entries[0], ...overrides }];
-      return { ...validDraft, entries };
-    }
-
     it('rejects missing id', () => {
       const { id, ...entry } = validDraft.entries[0];
       const result = validateDraft({ ...validDraft, entries: [entry] });
@@ -135,6 +135,18 @@ describe('validateDraft', () => {
       assert.ok(result.error.includes('sources'));
     });
 
+    it('rejects empty sources array', () => {
+      const result = validateDraft(withEntry({ sources: [] }));
+      assert.equal(result.ok, false);
+      assert.ok(result.error.includes('sources'));
+    });
+
+    it('rejects non-string source items', () => {
+      const result = validateDraft(withEntry({ sources: [123] }));
+      assert.equal(result.ok, false);
+      assert.ok(result.error.includes('sources'));
+    });
+
     it('rejects non-boolean status', () => {
       const result = validateDraft(withEntry({ status: 'done' }));
       assert.equal(result.ok, false);
@@ -163,11 +175,6 @@ describe('validateDraft', () => {
   });
 
   describe('review-only fields', () => {
-    function withEntry(overrides) {
-      const entries = [{ ...validDraft.entries[0], ...overrides }];
-      return { ...validDraft, entries };
-    }
-
     it('rejects invalid confidence value', () => {
       const result = validateDraft(withEntry({ confidence: 'medium' }));
       assert.equal(result.ok, false);

@@ -1,5 +1,7 @@
+import { esc } from '../src/modules/escape.js';
+
 export function renderSeriesIndex(name) {
-  const safe = escapeHtml(name);
+  const safe = esc(name);
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,12 +19,4 @@ export function renderSeriesIndex(name) {
 </body>
 </html>
 `;
-}
-
-function escapeHtml(str) {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
 }

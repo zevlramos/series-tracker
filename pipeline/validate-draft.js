@@ -56,6 +56,14 @@ function validateDraftEntry(e, prefix, seenIds) {
   if (!Array.isArray(e.sources)) {
     return `${prefix}: missing or invalid "sources" — must be an array`;
   }
+  if (e.sources.length === 0) {
+    return `${prefix}: "sources" must have at least one entry`;
+  }
+  for (let j = 0; j < e.sources.length; j++) {
+    if (typeof e.sources[j] !== 'string' || !e.sources[j]) {
+      return `${prefix}: sources[${j}] must be a non-empty string`;
+    }
+  }
 
   if (!VALID_MEDIA.includes(e.medium)) {
     return `${prefix}: invalid "medium" "${e.medium}" — must be one of: ${VALID_MEDIA.join(', ')}`;

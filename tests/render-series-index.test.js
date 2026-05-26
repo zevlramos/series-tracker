@@ -3,29 +3,12 @@ import assert from 'node:assert/strict';
 import { renderSeriesIndex } from '../pipeline/render-series-index.js';
 
 describe('renderSeriesIndex', () => {
-  it('produces valid HTML with the series name in the title', () => {
+  it('produces HTML with correct title and shell bootstrap', () => {
     const html = renderSeriesIndex('Resident Evil');
-    assert.ok(html.includes('<title>Resident Evil — Series Tracker</title>'));
-  });
-
-  it('includes the doctype', () => {
-    const html = renderSeriesIndex('Silent Hill');
     assert.ok(html.startsWith('<!DOCTYPE html>'));
-  });
-
-  it('includes the shell script import', () => {
-    const html = renderSeriesIndex('Resident Evil');
-    assert.ok(html.includes("import { initShell } from '../../src/shell.js'"));
-  });
-
-  it('includes the stylesheet link', () => {
-    const html = renderSeriesIndex('Resident Evil');
+    assert.ok(html.includes('<title>Resident Evil — Series Tracker</title>'));
+    assert.ok(html.includes("initShell(document.getElementById('app'), '.')"));
     assert.ok(html.includes('href="../../style.css"'));
-  });
-
-  it('includes the app mount point', () => {
-    const html = renderSeriesIndex('Resident Evil');
-    assert.ok(html.includes('id="app"'));
   });
 
   it('escapes HTML entities in the name', () => {
