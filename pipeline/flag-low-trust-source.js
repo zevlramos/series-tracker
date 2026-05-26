@@ -1,7 +1,6 @@
 const LOW_TRUST_PATTERNS = [
   /\breddit\.com\b/i,
-  /\bforum\b/i,
-  /\bforums\b/i,
+  /\bforums?\b/i,
   /\bgamefaqs\.com\b/i,
   /\bblogspot\b/i,
   /\bwordpress\.com\b/i,
