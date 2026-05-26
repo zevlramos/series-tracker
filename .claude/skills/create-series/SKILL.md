@@ -1,90 +1,74 @@
+---
+name: create-series
+description: Create a new Series from a franchise name. Discovers media, researches Entries via per-medium subagents, consolidates into a reviewable Draft, and generates Shell-ready output after human approval. Use when user wants to add a new franchise tracker (e.g. "create a Silent Hill series", "add a new series for Zelda").
+---
+
 # create-series
 
-Create a new Series from a franchise name. Discovers media, researches Entries across parallel per-medium subagents, consolidates into a reviewable Draft, then generates Shell-ready output after human approval.
+## Quick start
 
-## When to use
+User names a franchise → you discover media, research Entries, build a Draft, get approval, generate files.
 
-The user wants to add a new franchise tracker (e.g. "create a Silent Hill series").
+## Workflow
 
-## Pipeline stages
+### 0. Precondition
 
-### 0. Precondition check
-
-Read `series.json`. If the slug already exists, **abort** and tell the user to run `update-series` instead — never overwrite a curated Series.
+```js
+import { checkPrecondition } from '../../pipeline/check-precondition.js';
+const registry = JSON.parse(readFileSync('series.json', 'utf8'));
+const check = checkPrecondition(registry, slug);
+// If check.ok === false → abort, tell user to run update-series
+```
 
 ### 1. Discovery
 
-Ask the user which franchise. Identify which media the franchise spans (games, films, novels, comics, shows, etc.). Confirm the media list with the user.
+Identify which media the franchise spans (games, films, novels, comics, shows, …). Confirm the list with the user.
 
-### 2. Per-medium research
+### 2. Research
 
-Fan out research per medium. For each medium, find:
-- Title, medium, branch (mainline/spinoff), releaseDate, summary, cover URL, sources (at least one)
-- Self-assign `confidence: "high" | "low"` per Entry
-- Note remakes/remasters as distinct candidates with a `versionNote`
+Fan out **per-medium subagents**. Each finds Entries with: title, medium, branch (`mainline`/`spinoff`), releaseDate, summary, cover URL, sources (≥1). Each Entry self-assigns `confidence: "high" | "low"` and notes remakes via `versionNote`. Failed/timed-out media → record in `incompleteMedia`, don't drop silently.
 
-If a medium's research fails or times out, record it in `incompleteMedia` rather than silently dropping it.
+### 3. Consolidate Draft
 
-### 3. Consolidate into Draft
+Merge results into a structured Draft (see [REFERENCE.md](REFERENCE.md) for schema):
+- Mint ids via `deriveEntryId(title)` from `pipeline/derive-entry-id.js`
+- Propose `recommendedOrder` + per-Entry `recommendedReason`
+- Write `orderRationale`; set `status: false` for all Entries
+- Persist to `.drafts/<slug>.json` (gitignored, resumable)
 
-Merge all medium results into a single structured Draft:
-- Mint `id` per Entry using `deriveEntryId(title)` from `pipeline/derive-entry-id.js`
-- Propose a `recommendedOrder` with a per-Entry `recommendedReason`
-- Write `orderRationale` explaining the overall ordering philosophy
-- Set `status: false` for all Entries (nothing consumed yet)
+### 4. Review
 
-Write the Draft to `.drafts/<slug>.json` (gitignored scratch — resumable if interrupted).
+Render Draft as Markdown (low-confidence Entries first). User approves or revises conversationally — reorder, drop, add, rewrite. Update `.drafts/<slug>.json` after each revision.
 
-### 4. Render for review
+### 5. Generate (fail-closed)
 
-Present the Draft to the user as readable Markdown:
-- Low-confidence Entries surfaced first
-- Each Entry shows: title, medium, branch, release date, recommended position + reason, sources
-- Version notes and source notes visible
+Once approved — **no partial writes if any step fails**:
 
-### 5. Human review/approval loop
-
-The user approves or revises conversationally:
-- Reorder, drop, add, rewrite reasons, change branches
-- Iterate until the user approves
-
-Update `.drafts/<slug>.json` after each revision.
-
-### 6. Generate content outputs
-
-Once approved, generate deterministically — **fail closed** (no partial writes if any step fails):
-
-```javascript
-import { validateDraft } from './pipeline/validate-draft.js';
-import { draftToSeriesData } from './pipeline/draft-to-series-data.js';
-import { appendToRegistry } from './pipeline/append-to-registry.js';
-import { renderSeriesIndex } from './pipeline/render-series-index.js';
-import { parseSeries } from './src/modules/parse-series.js';
+```js
+import { validateDraft } from '../../pipeline/validate-draft.js';
+import { draftToSeriesData } from '../../pipeline/draft-to-series-data.js';
+import { appendToRegistry } from '../../pipeline/append-to-registry.js';
+import { renderSeriesIndex } from '../../pipeline/render-series-index.js';
+import { parseSeries } from '../../src/modules/parse-series.js';
 ```
 
-1. `validateDraft(draft)` — abort if not ok
-2. `draftToSeriesData(draft)` — project to data.json shape
-3. `parseSeries(JSON.stringify(data))` — **fail-closed gate**: abort if not ok, write nothing
+1. `validateDraft(draft)` — abort if `!ok`
+2. `draftToSeriesData(draft)` → data object
+3. `parseSeries(JSON.stringify(data))` — **fail-closed gate**: abort if `!ok`
 4. Write `series/<slug>/data.json`
-5. `appendToRegistry(registry, { slug, name })` — write updated `series.json`
-6. `renderSeriesIndex(name)` — write `series/<slug>/index.html`
-7. Copy a hand-provided `theme.json` to `series/<slug>/theme.json` (until slice #18 lands `buildTheme`, the maintainer supplies this manually or copies from an existing Series)
+5. `appendToRegistry(registry, { slug, name })` → write `series.json`
+6. `renderSeriesIndex(name)` → write `series/<slug>/index.html`
+7. Copy user-provided `theme.json` to `series/<slug>/theme.json` (auto-derivation deferred to #18)
 
-### 7. Theme track (deferred to slice #18)
+### 6. Verify
 
-Propose theme tokens from franchise visual identity via `buildTheme`. Preview in the real Shell at `/series/<slug>/`. Iterate with the user until approved.
+Open `/series/<slug>/` in the real Shell via the dev server. Confirm TOC + Entry pages render.
 
-## Key constraints
+## Constraints
 
-- **Fail closed**: if `parseSeries` rejects the projected data, abort generation entirely — no partial files on disk.
-- **Idempotent registry**: `appendToRegistry` never duplicates a slug.
-- **Stable ids**: use `deriveEntryId` — never positional, so reordering never churns.
-- **Draft is gitignored**: `.drafts/` is scratch, never committed.
-- **No schema changes**: output must conform to existing `data.json` / `theme.json` shapes exactly.
-- **Layout mode**: always `"paged"` (ADR-0006).
-
-## References
-
-- PRD: issue #14
-- ADRs: 0004 (pipeline), 0006 (layout mode), 0008 (Draft), 0009 (stable ids)
-- Domain vocabulary: CONTEXT.md
+- **Fail closed** — if `parseSeries` rejects the projection, write nothing
+- **Idempotent registry** — `appendToRegistry` never duplicates a slug
+- **Stable ids** — `deriveEntryId`, never positional (ADR-0009)
+- **Draft is gitignored** — `.drafts/` is scratch, never committed
+- **No schema changes** — output conforms to existing `data.json` / `theme.json`
+- **Layout mode** — always `"paged"` (ADR-0006)
