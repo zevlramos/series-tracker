@@ -19,6 +19,7 @@ export function mergeCuration(existingEntries, approvedDiff) {
     merged.status = existing.status;
     merged.recommendedOrder = existing.recommendedOrder;
     merged.recommendedReason = existing.recommendedReason;
+    merged.chronologicalOrder = existing.chronologicalOrder;
 
     result.push(merged);
   }

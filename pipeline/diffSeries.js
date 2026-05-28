@@ -1,10 +1,3 @@
-const CURATION_FIELDS = new Set([
-  'status',
-  'recommendedOrder',
-  'recommendedReason',
-  'chronologicalOrder'
-]);
-
 const DIFF_FIELDS = [
   'title',
   'medium',
