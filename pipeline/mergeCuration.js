@@ -1,3 +1,5 @@
+import { CURATION_FIELDS } from './curation-fields.js';
+
 export function mergeCuration(existingEntries, approvedDiff) {
   const existingById = new Map(existingEntries.map(e => [e.id, e]));
   const result = [];
@@ -16,16 +18,15 @@ export function mergeCuration(existingEntries, approvedDiff) {
       }
     }
 
-    merged.status = existing.status;
-    merged.recommendedOrder = existing.recommendedOrder;
-    merged.recommendedReason = existing.recommendedReason;
-    merged.chronologicalOrder = existing.chronologicalOrder;
+    for (const field of CURATION_FIELDS) {
+      merged[field] = existing[field];
+    }
 
     result.push(merged);
   }
 
   for (const entry of approvedDiff.new) {
-    result.push({ ...entry });
+    result.push({ ...entry, status: false });
   }
 
   return result;

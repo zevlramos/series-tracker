@@ -205,6 +205,29 @@ describe('mergeCuration', () => {
     }
   });
 
+  it('forces status to false on new entries even if input has status true', () => {
+    const existing = [mkEntry()];
+    const newEntry = {
+      id: 'resident-evil-5',
+      title: 'Resident Evil 5',
+      medium: 'game',
+      branch: 'mainline',
+      releaseDate: '2009-03-05',
+      recommendedOrder: 2,
+      recommendedReason: 'After RE4.',
+      chronologicalOrder: null,
+      summary: 'Chris in Africa.',
+      image: null,
+      imageUrl: null,
+      status: true,
+      sources: ['https://en.wikipedia.org/wiki/Resident_Evil_5']
+    };
+    const diff = { new: [newEntry], changed: [], unchanged: ['resident-evil-2002'] };
+    const result = mergeCuration(existing, diff);
+    const re5 = result.find(e => e.id === 'resident-evil-5');
+    assert.equal(re5.status, false);
+  });
+
   describe('resident-evil fixture', () => {
     const reData = JSON.parse(readFileSync(
       new URL('../series/resident-evil/data.json', import.meta.url), 'utf8'

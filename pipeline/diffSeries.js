@@ -1,3 +1,5 @@
+import { CURATION_FIELDS } from './curation-fields.js';
+
 const DIFF_FIELDS = [
   'title',
   'medium',
@@ -20,6 +22,7 @@ export function diffSeries(existingEntries, alignment) {
     const fields = {};
 
     for (const field of DIFF_FIELDS) {
+      if (CURATION_FIELDS.has(field)) continue;
       if (!(field in freshEntry)) continue;
       const oldVal = existing[field];
       const newVal = freshEntry[field];
