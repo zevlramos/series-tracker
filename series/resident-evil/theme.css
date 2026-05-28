@@ -9,6 +9,8 @@ body {
 
 #app {
   position: relative;
+  display: flex;
+  flex-direction: column;
   max-width: min(700px, 92vw);
   min-height: min(80vh, 860px);
   margin: 2rem auto;
@@ -88,10 +90,10 @@ body {
   content: 'CONFIDENTIAL';
   order: -1;
   text-align: center;
-  font-size: 0.6rem;
-  color: rgba(180,0,0,0.35);
-  border: 2px solid rgba(180,0,0,0.2);
-  padding: 2px 12px;
+  font-size: 0.8rem;
+  color: rgba(160,0,0,0.55);
+  border: 2px solid rgba(160,0,0,0.4);
+  padding: 3px 14px;
   transform: rotate(-3deg);
   width: fit-content;
   margin: 0 auto 12px;
@@ -357,9 +359,9 @@ body {
   background: transparent;
   border: 1px solid rgba(139,119,80,0.3);
   color: #8b7750;
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   letter-spacing: 0.08em;
-  padding: 0.15rem 0.4rem;
+  padding: 0.2rem 0.5rem;
   line-height: 1.2;
 }
 
@@ -451,7 +453,22 @@ body {
 
 /* Viewport */
 .viewport {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   padding-bottom: 2rem;
+}
+
+.page-nav {
+  margin-top: auto;
+}
+
+.ds-flip-overlay {
+  background: #d8ccaa;
+  background-image: repeating-linear-gradient(0deg, transparent, transparent 26px,
+    rgba(139,119,80,0.06) 26px, rgba(139,119,80,0.06) 27px);
+  border-radius: 0 6px 6px 0;
+  padding: 0 clamp(28px, 4vw, 50px) 2rem;
 }
 
 .viewport::after {

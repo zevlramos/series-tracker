@@ -29,6 +29,7 @@ export async function initShell(root, seriesPath) {
 
   const series = result.series;
 
+  let pageTurn3d = false;
   if (themeResult && themeResult.ok) {
     try {
       const theme = JSON.parse(themeResult.text);
@@ -38,10 +39,12 @@ export async function initShell(root, seriesPath) {
         return;
       }
       applyTheme(theme);
+      pageTurn3d = theme.pageTurn === '3d';
     } catch (e) {
       console.warn('Invalid theme.json, using defaults:', e.message);
     }
   }
+  if (pageTurn3d) root.classList.add('page-turn-3d');
 
   const sorts = availableSorts(series);
   let currentSort = 'recommended';
@@ -80,37 +83,103 @@ export async function initShell(root, seriesPath) {
   viewport.className = 'viewport';
   root.appendChild(viewport);
 
+  let prevPagerState = null;
+  let flipping = false;
+
   function rebuildBookmarkBar() {
     bookmarkContainer.innerHTML = '';
     const bar = buildBookmarkBar(pager);
     bookmarkContainer.appendChild(bar);
   }
 
+  function flipDir(prev, cur) {
+    if (!prev || (prev.mode === cur.mode && prev.index === cur.index)) return null;
+    if (cur.mode === 'toc') return 'backward';
+    if (prev.mode === 'toc') return 'forward';
+    return cur.index > prev.index ? 'forward' : 'backward';
+  }
+
+  function renderContent() {
+    if (pager.state.mode === 'toc') {
+      renderTOC(viewport, series, pager, orderedEntries);
+    } else {
+      renderPage(viewport, pager, series.slug);
+    }
+  }
+
   function render() {
-    const bar = bookmarkContainer.firstElementChild;
-    if (bar) updateBookmarkBar(bar, pager);
     updateProgress(progressEl, series);
 
-    viewport.classList.remove('flip-ready');
-    viewport.classList.add('flipping');
+    const curState = pager.state;
+    const dir = pageTurn3d ? flipDir(prevPagerState, curState) : null;
+    prevPagerState = curState;
 
-    requestAnimationFrame(() => {
-      if (pager.state.mode === 'toc') {
-        renderTOC(viewport, series, pager, orderedEntries);
+    if (dir && !flipping) {
+      if (dir === 'forward') {
+        const clone = viewport.cloneNode(true);
+        const rect = flipRect();
+        renderContent();
+        startFlip(clone, rect, 'ds-flip-forward');
       } else {
-        renderPage(viewport, pager, series.slug);
+        renderContent();
+        startFlip(viewport.cloneNode(true), flipRect(), 'ds-flip-backward');
       }
-
+    } else if (pageTurn3d) {
+      renderContent();
+      const bar = bookmarkContainer.firstElementChild;
+      if (bar) updateBookmarkBar(bar, pager);
+    } else {
+      const bar = bookmarkContainer.firstElementChild;
+      if (bar) updateBookmarkBar(bar, pager);
+      viewport.classList.remove('flip-ready');
+      viewport.classList.add('flipping');
       requestAnimationFrame(() => {
-        viewport.classList.remove('flipping');
-        viewport.classList.add('flip-ready');
+        renderContent();
+        requestAnimationFrame(() => {
+          viewport.classList.remove('flipping');
+          viewport.classList.add('flip-ready');
+        });
       });
+    }
+  }
+
+  function flipRect() {
+    const vr = viewport.getBoundingClientRect();
+    const ar = root.getBoundingClientRect();
+    return { top: vr.top, left: vr.left, width: vr.width, height: ar.bottom - vr.top };
+  }
+
+  function startFlip(clone, rect, animName) {
+    flipping = true;
+    pinAndFlip(clone, rect, animName, () => {
+      flipping = false;
+      const bar = bookmarkContainer.firstElementChild;
+      if (bar) updateBookmarkBar(bar, pager);
     });
   }
 
   rebuildBookmarkBar();
   pager.onChange(render);
   render();
+}
+
+function pinAndFlip(cloneEl, rect, animName, onComplete) {
+  cloneEl.classList.add('ds-flip-overlay');
+  cloneEl.style.top = rect.top + 'px';
+  cloneEl.style.left = rect.left + 'px';
+  cloneEl.style.width = rect.width + 'px';
+  cloneEl.style.height = rect.height + 'px';
+  cloneEl.style.animation = `${animName} 0.5s cubic-bezier(0.4, 0.0, 0.2, 1) forwards`;
+  document.body.appendChild(cloneEl);
+  let done = false;
+  function finish() {
+    if (done) return;
+    done = true;
+    cloneEl.remove();
+    onComplete();
+  }
+  cloneEl.addEventListener('animationend', finish);
+  setTimeout(finish, 600);
 }
 
 async function fetchJson(url) {

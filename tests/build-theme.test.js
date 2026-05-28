@@ -12,6 +12,7 @@ describe('buildTheme', () => {
   it('assembles RE golden tokens into a valid theme', () => {
     const theme = buildTheme({
       layoutMode: 'paged',
+      pageTurn: goldenTheme.pageTurn,
       tokens: goldenTheme.tokens
     });
     const result = validateTheme(theme);

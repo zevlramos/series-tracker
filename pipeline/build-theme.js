@@ -1,6 +1,6 @@
-export function buildTheme({ layoutMode, tokens } = {}) {
+export function buildTheme({ layoutMode, pageTurn, tokens } = {}) {
   const t = tokens || {};
-  return {
+  const theme = {
     layoutMode: layoutMode || 'paged',
     tokens: {
       palette: { ...t.palette },
@@ -9,4 +9,6 @@ export function buildTheme({ layoutMode, tokens } = {}) {
       background: t.background ?? null
     }
   };
+  if (pageTurn != null) theme.pageTurn = pageTurn;
+  return theme;
 }
