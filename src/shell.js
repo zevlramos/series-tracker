@@ -3,6 +3,7 @@ import { Pager } from './modules/pager.js';
 import { availableSorts, sortEntries } from './modules/sort-engine.js';
 import { presentEntry } from './modules/present-entry.js';
 import { themeToCssVars } from './modules/theme-mapper.js';
+import { validateTheme } from '../pipeline/validate-theme.js';
 import { esc } from './modules/escape.js';
 
 const REPO_COORDS = { owner: 'zevlramos', repo: 'series-tracker', branch: 'main' };
@@ -31,9 +32,9 @@ export async function initShell(root, seriesPath) {
   if (themeResult && themeResult.ok) {
     try {
       const theme = JSON.parse(themeResult.text);
-      const layoutMode = theme.layoutMode || 'paged';
-      if (layoutMode !== 'paged') {
-        root.innerHTML = `<div class="error"><h2>Unsupported layout mode</h2><p>"${esc(layoutMode)}" is not supported. Only "paged" is available.</p></div>`;
+      const valid = validateTheme(theme);
+      if (!valid.ok) {
+        root.innerHTML = `<div class="error"><h2>Invalid theme</h2><p>${esc(valid.error)}</p></div>`;
         return;
       }
       applyTheme(theme);
@@ -128,6 +129,9 @@ function applyTheme(theme) {
   for (const [prop, value] of Object.entries(vars)) {
     document.documentElement.style.setProperty(prop, value);
   }
+  if (vars['--hero-image']) {
+    document.documentElement.style.setProperty('--hero-display', 'block');
+  }
 }
 
 function updateProgress(el, series) {
@@ -197,6 +201,12 @@ function updateBookmarkBar(bar, pager) {
 }
 
 function renderTOC(container, series, pager, orderedEntries) {
+  container.innerHTML = '';
+
+  const hero = document.createElement('div');
+  hero.className = 'toc-hero';
+  container.appendChild(hero);
+
   const list = document.createElement('ol');
   list.className = 'toc-list';
 
@@ -219,7 +229,6 @@ function renderTOC(container, series, pager, orderedEntries) {
     list.appendChild(li);
   }
 
-  container.innerHTML = '';
   container.appendChild(list);
 }
 

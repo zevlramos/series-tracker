@@ -13,38 +13,7 @@ User names a franchise → you discover media, research Entries, build a Draft, 
 
 ### 0. Precondition + resumability check
 
-Derive the slug from the franchise name with `deriveEntryId` — the same rule used to mint Entry ids, so the series slug, the registry key, and every Entry id stay consistent (handles accents and punctuation, e.g. `Pokémon` → `pokemon`). Then check two things:
-
-```js
-import { checkPrecondition } from '../../pipeline/check-precondition.js';
-import { deriveEntryId } from '../../pipeline/derive-entry-id.js';
-import { readFileSync, existsSync } from 'node:fs';
-
-const slug = deriveEntryId(name);
-const registry = JSON.parse(readFileSync('series.json', 'utf8'));
-const check = checkPrecondition(registry, slug);
-// If check.ok === false → abort, tell user to run update-series
-```
-
-**Resumability:** before doing any research, check if a Draft already exists:
-
-```js
-import { validateDraft } from '../../pipeline/validate-draft.js';
-
-const draftPath = `.drafts/${slug}.json`;
-if (existsSync(draftPath)) {
-  const saved = JSON.parse(readFileSync(draftPath, 'utf8'));
-  const result = validateDraft(saved);
-  if (result.ok) {
-    // Skip to Stage 4 (Review) — research is already done
-    // Tell the user: "Found a saved Draft with N entries. Jumping to review."
-  } else {
-    // Saved Draft is stale or invalid (result.error). Warn the user and proceed
-    // with fresh research as if no Draft existed — recovering a broken Draft is
-    // human work, not worth auto-repairing. Do not jump to review.
-  }
-}
-```
+Derive the slug with `deriveEntryId(name)`. Run `checkPrecondition(registry, slug)` — abort if slug exists. Then check for an existing Draft at `.drafts/${slug}.json` — if valid, skip to Stage 4 (Review). See [REFERENCE.md](REFERENCE.md) for code.
 
 ### 1. Discovery
 
@@ -58,125 +27,60 @@ Proceed after the user confirms. If they add a medium, include it. If they narro
 
 ### 2. Research (per-medium subagent fan-out)
 
-Dispatch one `Agent` call per confirmed medium. Run all subagents **in parallel** (multiple Agent tool calls in one message). Each subagent searches the web for Entries in its assigned medium.
+Dispatch one `Agent` call per confirmed medium, all **in parallel**. Use `subagent_type: "general-purpose"`, named descriptively (e.g. `"research-games"`). See [REFERENCE.md](REFERENCE.md) for the subagent prompt template.
 
-**Subagent prompt template** — adapt the franchise name and medium:
-
-```
-Research all [MEDIUM] entries in the [FRANCHISE NAME] franchise.
-
-For each entry found, return a JSON array of objects with these fields:
-- title: string — the official title. For remakes/remasters, include the year in parentheses to disambiguate (e.g. "Resident Evil 2 (2019)")
-- medium: "[MEDIUM]"
-- branch: "mainline" or "spinoff" — mainline if it's part of the core narrative, spinoff otherwise
-- releaseDate: "YYYY-MM-DD" or null if unknown
-- summary: 2-3 sentence plot/content summary
-- imageUrl: a URL to official cover art or a reliable image, or null if not confidently found. Never download images.
-- sources: array of 1+ URLs you used to verify this entry exists and get its details. Prefer authoritative sources (Wikipedia, official sites, established databases like IGDB/TMDB/GoodReads). Every entry MUST have at least one source URL.
-- confidence: "high" or "low" — use "low" if: only one weak source exists, the entry's existence is ambiguous, sources disagree on key facts, or the entry is obscure with limited coverage
-- confidenceReason: string explaining why confidence is low, or null if high
-- versionNote: if this is a remake, remaster, or alternate version, describe its relationship to the original (e.g. "2019 remake of the 1998 original"). null if standalone.
-- sourceNotes: brief note on source corroboration (e.g. "Wikipedia + IGDB corroborate"), or null
-
-Important:
-- Remakes and remasters are DISTINCT entries — never collapse them with the original
-- Include the disambiguating year in the title for any remake/remaster
-- Be thorough: find everything, including lesser-known entries
-- If you cannot complete research (e.g. too many results, unclear scope), return what you have and note the limitation
-
-Return ONLY the JSON array, no other text.
-```
-
-Use `subagent_type: "general-purpose"` for each. Name them descriptively (e.g. `"research-games"`, `"research-films"`).
-
-**Handling failures:** if a subagent errors, times out, or returns unparseable results, record that medium in `incompleteMedia`. Do not retry automatically — the user will decide whether to re-run or proceed.
+If a subagent errors or returns unparseable results, record that medium in `incompleteMedia` — don't retry automatically.
 
 ### 3. Consolidate Draft
 
-Merge all subagent results into the Draft structure. This is done by you (the orchestrator), not a subagent.
+Merge all subagent results into the Draft structure (you, the orchestrator — not a subagent).
 
-**Step by step:**
-
-1. Parse each subagent's JSON response. Strip surrounding code fences (` ```json ... ``` `) and any leading/trailing prose before `JSON.parse`. Only treat a medium as incomplete if extraction still fails after cleanup.
-
-2. Mint stable ids for every Entry:
-```js
-import { deriveEntryId } from '../../pipeline/derive-entry-id.js';
-// For each entry:
-entry.id = deriveEntryId(entry.title);
-// deriveEntryId handles the year-in-parens naturally — "Resident Evil 2 (2019)" → "resident-evil-2-2019"
-```
-
-3. Assign `recommendedOrder` (1-based) across all Entries. Propose an ordering that makes sense for experiencing the franchise — typically: mainline entries in narrative/release order first, then spinoffs. Write a `recommendedReason` per Entry explaining its placement.
-
-4. Write an `orderRationale` summarizing the overall ordering philosophy.
-
-5. Set every Entry's `status` to `false`, `image` to `null`, and `chronologicalOrder` to `null` (or assign if you're confident of an in-universe timeline).
-
-6. Collect any media that failed into `incompleteMedia`.
-
-7. Validate and persist:
-```js
-import { validateDraft } from '../../pipeline/validate-draft.js';
-import { writeFileSync, mkdirSync } from 'node:fs';
-
-const draft = { slug, name, orderRationale, incompleteMedia, entries };
-const validation = validateDraft(draft);
-if (!validation.ok) {
-  // Examine validation.error, correct the offending entry, and re-run validateDraft.
-  // Never fall through to the write while invalid — fix and re-validate first.
-  throw new Error(`Draft invalid — not persisting: ${validation.error}`);
-}
-mkdirSync('.drafts', { recursive: true });
-writeFileSync(`.drafts/${slug}.json`, JSON.stringify(draft, null, 2));
-```
+1. Parse each subagent's JSON (strip code fences/prose first). Failed media → `incompleteMedia`.
+2. Mint ids with `deriveEntryId(title)` for every Entry.
+3. Assign `recommendedOrder` (1-based) — mainline first, then spinoffs. Write a `recommendedReason` per Entry and an `orderRationale` for the overall philosophy.
+4. Set `status: false`, `image: null`, `chronologicalOrder: null` on each Entry.
+5. Validate with `validateDraft` and persist to `.drafts/${slug}.json`. Never write while invalid — fix and re-validate first.
 
 ### 4. Review
 
-Render the Draft as Markdown for the user to review. Low-confidence Entries and Entries with only low-trust sources appear first under a "Needs review" heading.
+Render with `renderDraftMarkdown(draft)` — low-confidence and low-trust-source Entries surface first. Tell the user:
 
-```js
-import { renderDraftMarkdown } from '../../pipeline/render-draft-markdown.js';
-const md = renderDraftMarkdown(draft);
-// Output the markdown to the user
-```
+> "Here's the Draft. You can ask me to: reorder entries, drop entries, add entries you think are missing, rewrite reasons or summaries, change branch assignments, or approve as-is."
 
-Tell the user what they can do:
-
-> "Here's the Draft. You can ask me to: reorder entries, drop entries, add entries you think are missing, rewrite reasons or summaries, change branch assignments, or approve as-is. I'll update the Draft after each change."
-
-**Conversational revision loop:** the user makes requests in natural language. For each:
-1. Edit the in-memory draft object accordingly
-2. Re-validate with `validateDraft`
-3. Re-persist to `.drafts/<slug>.json`
-4. Re-render and show the updated section (not the full Draft unless asked)
-
-Continue until the user approves (says something like "looks good", "approved", "ship it").
+**Conversational revision loop:** edit → re-validate → re-persist → show updated section. Continue until approved.
 
 ### 5. Generate (fail-closed)
 
 Once approved — **no partial writes if any step fails**:
 
-```js
-import { validateDraft } from '../../pipeline/validate-draft.js';
-import { draftToSeriesData } from '../../pipeline/draft-to-series-data.js';
-import { appendToRegistry } from '../../pipeline/append-to-registry.js';
-import { renderSeriesIndex } from '../../pipeline/render-series-index.js';
-import { parseSeries } from '../../src/modules/parse-series.js';
-import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
-```
-
 1. `validateDraft(draft)` — abort if `!ok`
 2. `draftToSeriesData(draft)` → data object
 3. `parseSeries(JSON.stringify(data))` — **fail-closed gate**: abort if `!ok`
-4. `mkdirSync(`series/${slug}`, { recursive: true })` then write `series/<slug>/data.json`
-5. `appendToRegistry(registry, { slug, name })` → write `series.json`
-6. `renderSeriesIndex(name)` → write `series/<slug>/index.html`
-7. Copy user-provided `theme.json` to `series/<slug>/theme.json` (auto-derivation deferred to #18)
+4. Write `series/<slug>/data.json`
+5. `appendToRegistry` → write `series.json`
+6. `renderSeriesIndex` → write `series/<slug>/index.html`
+7. Skip `theme.json` — Shell falls back to defaults. Stage 7 derives proper tokens after content is verified.
+
+See [REFERENCE.md](REFERENCE.md) for imports and code.
 
 ### 6. Verify
 
-Open `/series/<slug>/` in the real Shell via the dev server. Confirm TOC + Entry pages render.
+Open `/series/<slug>/` in the real Shell via the dev server. Confirm TOC + Entry pages render with default styling.
+
+### 7. Theme (derive Visual tokens)
+
+After the Series renders in the Shell, derive franchise-appropriate Visual tokens.
+
+1. Web-search the franchise's visual identity — palette, fonts, key art, hero imagery.
+2. Assemble with `buildTheme({ layoutMode: 'paged', tokens: { ... } })`, validate with `validateTheme`, write `series/<slug>/theme.json`. See [REFERENCE.md](REFERENCE.md) for code.
+3. Open `/series/<slug>/` in the Shell to preview.
+4. **Iterate.** Present the proposed tokens and ask:
+
+> "Here's the theme I derived. You can ask me to: adjust colors, change fonts, add/remove the hero image, tweak the background, or approve as-is."
+
+Rebuild → re-validate → write → refresh preview. Continue until approved.
+
+**Structural feedback (ADR-0010):** if the maintainer asks for something tokens can't express — texture, motion, custom layout, navigation changes — stop and surface the choice: "That's beyond what Visual tokens can do. It belongs in either a Layout Mode (shared structure) or a per-Series `theme.css` (experiential layer). Which feels right?" Do not silently encode structural asks as token hacks.
 
 ## Constraints
 
