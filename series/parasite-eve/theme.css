@@ -1,0 +1,313 @@
+/* Parasite Eve — Bio-horror clinical skin (experiential layer, ADR-0010) */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;500;600&display=swap');
+
+body {
+  background: #060810;
+  font-family: 'Inter', 'Helvetica Neue', sans-serif;
+}
+
+#app {
+  position: relative;
+  max-width: min(700px, 94vw);
+  margin: 1.5rem auto;
+  padding: 0 clamp(20px, 3vw, 40px);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(232,114,42,0.04) 0%, transparent 60%),
+    linear-gradient(180deg, #0c0f1a 0%, #0a0c14 100%);
+  border: 1px solid rgba(232,114,42,0.08);
+  border-radius: 2px;
+  box-shadow:
+    0 0 40px rgba(232,114,42,0.03),
+    0 2px 20px rgba(0,0,0,0.5);
+}
+
+/* Faint scanline texture */
+#app::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(212,216,228,0.008) 2px,
+    rgba(212,216,228,0.008) 3px
+  );
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 2px;
+}
+
+/* Header */
+.series-header {
+  position: relative;
+  z-index: 1;
+  padding-top: clamp(20px, 3vh, 36px);
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(232,114,42,0.12);
+}
+
+.series-header h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  color: #e8722a;
+  font-size: clamp(1.8rem, 4.5vw, 2.4rem);
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 30px rgba(232,114,42,0.2);
+}
+
+.series-progress {
+  color: rgba(212,216,228,0.4);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+}
+
+/* Hero banner */
+.toc-hero {
+  position: relative;
+  z-index: 1;
+  border-radius: 2px;
+  border: 1px solid rgba(232,114,42,0.1);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+.toc-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 40%,
+    rgba(10,12,20,0.7) 100%
+  );
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* Sort bar */
+.sort-bar {
+  position: relative;
+  z-index: 1;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(232,114,42,0.06);
+  margin-bottom: 0;
+}
+
+.sort-btn {
+  background: none;
+  border: 1px solid transparent;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  color: rgba(212,216,228,0.4);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.sort-btn:hover {
+  color: rgba(212,216,228,0.7);
+}
+
+.sort-btn.active {
+  color: #e8722a;
+  border-color: rgba(232,114,42,0.3);
+}
+
+/* Bookmark bar */
+.bookmark-bar {
+  position: relative;
+  z-index: 1;
+  gap: 2px;
+  padding-bottom: 0;
+  margin-bottom: 0.75rem;
+  scrollbar-width: none;
+}
+
+.bookmark-tab {
+  background: rgba(20,24,37,0.8);
+  border: 1px solid rgba(232,114,42,0.06);
+  border-bottom: none;
+  border-radius: 2px 2px 0 0;
+  color: rgba(212,216,228,0.4);
+  font-size: 0.7rem;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.02em;
+  opacity: 1;
+  transition: color 0.2s, background 0.2s, border-color 0.2s;
+}
+
+.bookmark-tab:hover {
+  color: rgba(212,216,228,0.8);
+  background: rgba(232,114,42,0.06);
+  border-color: rgba(232,114,42,0.12);
+  opacity: 1;
+}
+
+.bookmark-tab.active {
+  background: rgba(232,114,42,0.9);
+  color: #0a0c14;
+  font-weight: 600;
+  border-color: #e8722a;
+}
+
+/* TOC list */
+.toc-list {
+  position: relative;
+  z-index: 1;
+  gap: 3px;
+  padding: 12px 0;
+}
+
+.toc-entry {
+  background: rgba(20,24,37,0.5);
+  border: 1px solid rgba(232,114,42,0.04);
+  border-radius: 2px;
+  padding: 10px 14px;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.toc-entry:hover {
+  background: rgba(232,114,42,0.06);
+  border-color: rgba(232,114,42,0.12);
+}
+
+.toc-title {
+  color: rgba(212,216,228,0.9);
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.toc-reason {
+  color: rgba(212,216,228,0.3);
+  font-size: 0.7rem;
+}
+
+.toc-medium {
+  font-size: 0.65rem;
+  color: rgba(232,114,42,0.5);
+  letter-spacing: 0.08em;
+}
+
+.toc-entry.done {
+  opacity: 0.45;
+}
+
+/* Entry page */
+.entry-page {
+  position: relative;
+  z-index: 1;
+  background: rgba(20,24,37,0.3);
+  border: 1px solid rgba(232,114,42,0.06);
+  border-radius: 2px;
+  padding: 24px 20px 40px;
+}
+
+.entry-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  color: #e8722a;
+  font-size: clamp(1.2rem, 3vw, 1.6rem);
+  text-shadow: 0 0 20px rgba(232,114,42,0.15);
+  letter-spacing: 0.02em;
+}
+
+.entry-badges {
+  gap: 0.4rem;
+}
+
+.badge {
+  background: rgba(232,114,42,0.06);
+  border: 1px solid rgba(232,114,42,0.12);
+  color: rgba(212,216,228,0.5);
+  font-size: 0.65rem;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.1em;
+  border-radius: 1px;
+}
+
+.badge-mainline {
+  background: rgba(102,187,106,0.06);
+  border-color: rgba(102,187,106,0.15);
+  color: rgba(102,187,106,0.7);
+}
+
+.badge-spinoff {
+  background: rgba(255,183,77,0.06);
+  border-color: rgba(255,183,77,0.15);
+  color: rgba(255,183,77,0.7);
+}
+
+.entry-cover-img {
+  border-radius: 1px;
+  border: 1px solid rgba(232,114,42,0.08);
+  background: #0f1220;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+
+.entry-summary {
+  color: rgba(212,216,228,0.7);
+  line-height: 1.75;
+  font-size: 0.88rem;
+}
+
+.edit-link {
+  color: rgba(232,114,42,0.4);
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+}
+
+.edit-link:hover {
+  color: #e8722a;
+}
+
+/* Page navigation */
+.page-nav {
+  position: relative;
+  z-index: 1;
+  margin-top: 1.5rem;
+}
+
+.page-nav-btn {
+  background: transparent;
+  border: 1px solid rgba(232,114,42,0.15);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  color: rgba(212,216,228,0.5);
+  padding: 6px 18px;
+  border-radius: 2px;
+  letter-spacing: 0.03em;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.page-nav-btn:hover:not(:disabled) {
+  background: rgba(232,114,42,0.08);
+  border-color: rgba(232,114,42,0.3);
+  color: #e8722a;
+}
+
+.page-nav-btn:disabled {
+  opacity: 0.2;
+  border-color: transparent;
+}
+
+/* 3D flip overlay */
+.ds-flip-overlay {
+  background: #0c0f1a;
+  border: 1px solid rgba(232,114,42,0.06);
+}
+
+/* Viewport */
+.viewport {
+  position: relative;
+  z-index: 1;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  #app {
+    max-width: 98vw;
+    margin: 0.5rem auto;
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+  }
+}
