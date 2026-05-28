@@ -282,12 +282,12 @@ describe('mergeCuration', () => {
 
       const result = mergeCuration(reData.entries, diff);
 
-      assert.equal(result.length, 8);
+      assert.equal(result.length, reData.entries.length + 1);
 
       const degen = result.find(e => e.id === 'resident-evil-degeneration');
       assert.equal(degen.summary, 'Updated Degeneration summary.');
       assert.equal(degen.status, false);
-      assert.equal(degen.recommendedOrder, 7);
+      assert.equal(degen.recommendedOrder, reData.entries.find(e => e.id === 'resident-evil-degeneration').recommendedOrder);
       assert.equal(degen.recommendedReason, reData.entries.find(e => e.id === 'resident-evil-degeneration').recommendedReason);
 
       const re5 = result.find(e => e.id === 'resident-evil-5');
