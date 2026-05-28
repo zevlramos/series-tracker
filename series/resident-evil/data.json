@@ -3,35 +3,35 @@
   "name": "Resident Evil",
   "entries": [
     {
-      "id": "resident-evil-2002",
-      "title": "Resident Evil (2002)",
+      "id": "resident-evil-hd-remaster-2015",
+      "title": "Resident Evil HD Remaster (2015)",
       "medium": "game",
       "branch": "mainline",
-      "releaseDate": "2002-03-22",
+      "releaseDate": "2015-01-20",
       "recommendedOrder": 1,
-      "recommendedReason": "The definitive starting point — the remake that set the standard for survival horror.",
-      "chronologicalOrder": 2,
-      "summary": "S.T.A.R.S. Alpha Team investigates a mansion in the Arklay Mountains and uncovers Umbrella Corporation's biological weapon experiments.",
+      "recommendedReason": "The most accessible way to play the original mansion incident today.",
+      "chronologicalOrder": null,
+      "summary": "S.T.A.R.S. Alpha Team is trapped in an isolated mansion in the Arklay Mountains, where Chris Redfield and Jill Valentine confront the aftermath of Umbrella Corporation's T-virus experiments and the zombies, monsters, and traps that fill its halls. They piece together the conspiracy as they fight to escape alive.",
       "image": null,
-      "imageUrl": null,
-      "status": false,
+      "imageUrl": "https://cdn.cloudflare.steamstatic.com/steam/apps/304240/header.jpg",
+      "status": true,
       "sources": [
         "https://en.wikipedia.org/wiki/Resident_Evil_(2002_video_game)"
       ]
     },
     {
-      "id": "resident-evil-0",
-      "title": "Resident Evil 0",
+      "id": "resident-evil-zero-hd-remaster-2016",
+      "title": "Resident Evil Zero HD Remaster (2016)",
       "medium": "game",
       "branch": "mainline",
-      "releaseDate": "2002-11-12",
+      "releaseDate": "2016-01-19",
       "recommendedOrder": 2,
-      "recommendedReason": "Prequel best appreciated after the original — context enriches Rebecca's backstory without spoiling RE1's mystery.",
-      "chronologicalOrder": 1,
-      "summary": "S.T.A.R.S. Bravo Team member Rebecca Chambers and convicted ex-Marine Billy Coen investigate a derailed train and an abandoned training facility in the Arklay Mountains.",
+      "recommendedReason": "The Rebecca and Billy prequel, best played right before the mansion incident.",
+      "chronologicalOrder": null,
+      "summary": "S.T.A.R.S. Bravo Team medic Rebecca Chambers and accused ex-Marine Billy Coen are thrown together aboard a derailed train and a hidden Umbrella training facility in the Arklay Mountains, both crawling with the victims of a T-virus outbreak. They must cooperate to survive and trace the disaster to its source.",
       "image": null,
-      "imageUrl": null,
-      "status": false,
+      "imageUrl": "https://cdn.cloudflare.steamstatic.com/steam/apps/339340/header.jpg",
+      "status": true,
       "sources": [
         "https://en.wikipedia.org/wiki/Resident_Evil_Zero"
       ]
@@ -43,12 +43,12 @@
       "branch": "mainline",
       "releaseDate": "2019-01-25",
       "recommendedOrder": 3,
-      "recommendedReason": "Picks up months after RE1 — introduces Leon and Claire, the franchise's other pillar protagonists.",
+      "recommendedReason": "Picks up months after RE1, introducing Leon and Claire, the franchise's other pillar protagonists.",
       "chronologicalOrder": 3,
-      "summary": "Rookie cop Leon Kennedy and college student Claire Redfield fight to survive a zombie outbreak in Raccoon City.",
+      "summary": "Rookie cop Leon S. Kennedy and college student Claire Redfield arrive in Raccoon City just as a T-virus outbreak turns the population into the undead. Battling through the besieged police station, they uncover Umbrella's experiments and struggle to survive the doomed city.",
       "image": null,
-      "imageUrl": null,
-      "status": false,
+      "imageUrl": "https://cdn.cloudflare.steamstatic.com/steam/apps/883710/header.jpg",
+      "status": true,
       "sources": [
         "https://en.wikipedia.org/wiki/Resident_Evil_2_(2019_video_game)"
       ]
@@ -60,14 +60,48 @@
       "branch": "mainline",
       "releaseDate": "2020-04-03",
       "recommendedOrder": 4,
-      "recommendedReason": "Runs parallel to RE2 — Jill's escape from Raccoon City before and during the outbreak.",
+      "recommendedReason": "Runs parallel to RE2, covering Jill's escape from Raccoon City before and during the outbreak.",
       "chronologicalOrder": 4,
-      "summary": "Jill Valentine fights to escape Raccoon City while being relentlessly pursued by the bioweapon Nemesis.",
+      "summary": "Former S.T.A.R.S. agent Jill Valentine fights to escape a collapsing Raccoon City as the T-virus outbreak peaks, relentlessly stalked by the towering bioweapon Nemesis, built to hunt down surviving S.T.A.R.S. members. With mercenary Carlos Oliveira, she struggles to outrun the creature and flee the city.",
       "image": null,
-      "imageUrl": null,
-      "status": false,
+      "imageUrl": "https://cdn.cloudflare.steamstatic.com/steam/apps/952060/header.jpg",
+      "status": true,
       "sources": [
         "https://en.wikipedia.org/wiki/Resident_Evil_3_(2020_video_game)"
+      ]
+    },
+    {
+      "id": "resident-evil-code-veronica-x-2001",
+      "title": "Resident Evil Code: Veronica X (2001)",
+      "medium": "game",
+      "branch": "mainline",
+      "releaseDate": "2001-03-22",
+      "recommendedOrder": 5,
+      "recommendedReason": "The definitive cut of Claire and Chris's Rockfort Island ordeal, with the added Wesker scenes.",
+      "chronologicalOrder": null,
+      "summary": "Three months after the fall of Raccoon City, Claire Redfield is taken prisoner on Umbrella's Rockfort Island just as a viral outbreak sweeps the facility. With fellow inmate Steve Burnside, she fights to survive while her brother Chris races to find her, a hunt that leads to Antarctica and a deadly reckoning with the deranged Ashford twins and Albert Wesker.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/4/44/RECV_boxart.jpg",
+      "status": true,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil_Code:_Veronica"
+      ]
+    },
+    {
+      "id": "resident-evil-4-2005",
+      "title": "Resident Evil 4 (2005)",
+      "medium": "game",
+      "branch": "mainline",
+      "releaseDate": "2005-01-11",
+      "recommendedOrder": 6,
+      "recommendedReason": "The genre-defining original RE4; the 2023 remake is the recommended path, this for its landmark influence.",
+      "chronologicalOrder": null,
+      "summary": "Six years after Raccoon City, special agent Leon S. Kennedy travels to a remote Spanish village to rescue the U.S. President's kidnapped daughter, Ashley Graham. He finds the locals enthralled by the sinister Los Illuminados cult and the mind-controlling Las Plagas parasite, and must fight his way through to bring her home.",
+      "image": null,
+      "imageUrl": "https://cdn.cloudflare.steamstatic.com/steam/apps/254700/header.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil_4"
       ]
     },
     {
@@ -76,32 +110,345 @@
       "medium": "game",
       "branch": "mainline",
       "releaseDate": "2023-03-24",
-      "recommendedOrder": 5,
-      "recommendedReason": "Six years after Raccoon City — Leon's mission to rural Spain shifts the series toward action-horror.",
+      "recommendedOrder": 7,
+      "recommendedReason": "Six years after Raccoon City, Leon's mission to rural Spain shifts the series toward action-horror.",
       "chronologicalOrder": 5,
-      "summary": "Now a federal agent, Leon Kennedy is sent to a rural Spanish village to rescue the president's kidnapped daughter.",
+      "summary": "Now a federal agent, Leon S. Kennedy is dispatched to an isolated rural Spanish village to rescue the President's kidnapped daughter, Ashley Graham. There he confronts the fanatical Los Illuminados cult and villagers controlled by the parasitic Las Plagas, fighting to escape with her alive.",
       "image": null,
-      "imageUrl": null,
+      "imageUrl": "https://cdn.cloudflare.steamstatic.com/steam/apps/2050650/header.jpg",
       "status": false,
       "sources": [
         "https://en.wikipedia.org/wiki/Resident_Evil_4_(2023_video_game)"
       ]
     },
     {
-      "id": "resident-evil-the-marhawa-desire",
-      "title": "Resident Evil: The Marhawa Desire",
-      "medium": "comic",
-      "branch": "spinoff",
-      "releaseDate": "2012-03-15",
-      "recommendedOrder": 6,
-      "recommendedReason": "Manga prequel to RE6 — optional but enriches Piers Nivans' character arc.",
+      "id": "resident-evil-revelations-2012",
+      "title": "Resident Evil: Revelations (2012)",
+      "medium": "game",
+      "branch": "mainline",
+      "releaseDate": "2012-01-26",
+      "recommendedOrder": 8,
+      "recommendedReason": "Canon survival-horror entry set between RE4 and RE5; a return to slow-burn dread.",
       "chronologicalOrder": null,
-      "summary": "BSAA agent Piers Nivans and Professor Doug Wright investigate a bio-terror outbreak at a remote boarding school in Asia.",
+      "summary": "Counter-terrorism agents Jill Valentine and Chris Redfield board a derelict cruise ship to investigate the resurgence of the bioterror group Il Veltro and its T-Abyss virus. Aboard the drifting vessel they unravel a conspiracy reaching to FBC director Morgan Lansdale.",
+      "image": null,
+      "imageUrl": "https://cdn.cloudflare.steamstatic.com/steam/apps/222480/header.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil:_Revelations"
+      ]
+    },
+    {
+      "id": "resident-evil-5-2009",
+      "title": "Resident Evil 5 (2009)",
+      "medium": "game",
+      "branch": "mainline",
+      "releaseDate": "2009-03-05",
+      "recommendedOrder": 9,
+      "recommendedReason": "Chris Redfield’s co-op-driven hunt for Wesker; the action-era peak.",
+      "chronologicalOrder": null,
+      "summary": "Bioterrorism agents Chris Redfield and Sheva Alomar investigate a bioweapon threat in the West African region of Kijuju, where locals have been infected by a Plaga variant. Their pursuit leads them to Chris's long-time nemesis Albert Wesker, who intends to unleash a new virus on the entire world.",
+      "image": null,
+      "imageUrl": "https://cdn.cloudflare.steamstatic.com/steam/apps/21690/header.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil_5",
+        "https://store.steampowered.com/app/21690/Resident_Evil_5/"
+      ]
+    },
+    {
+      "id": "resident-evil-revelations-2-2015",
+      "title": "Resident Evil: Revelations 2 (2015)",
+      "medium": "game",
+      "branch": "mainline",
+      "releaseDate": "2015-02-25",
+      "recommendedOrder": 10,
+      "recommendedReason": "Canon survival-horror entry set between RE5 and RE6, starring Claire and Barry.",
+      "chronologicalOrder": null,
+      "summary": "Claire Redfield and Moira Burton are abducted and dumped on a Baltic Sea island prison, where they must survive mutated creatures under the gaze of a captor known as the Overseer. Six months later, Barry Burton arrives with a mysterious girl named Natalia to find his missing daughter.",
+      "image": null,
+      "imageUrl": "https://cdn.cloudflare.steamstatic.com/steam/apps/287290/header.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil:_Revelations_2"
+      ]
+    },
+    {
+      "id": "resident-evil-6-2012",
+      "title": "Resident Evil 6 (2012)",
+      "medium": "game",
+      "branch": "mainline",
+      "releaseDate": "2012-10-02",
+      "recommendedOrder": 11,
+      "recommendedReason": "Four interlocking campaigns; the most sprawling, action-forward mainline entry.",
+      "chronologicalOrder": null,
+      "summary": "A worldwide bioterror crisis driven by the C-virus and the rogue organization Neo-Umbrella draws in agent Leon S. Kennedy, soldier Chris Redfield, mercenary Jake Muller, son of Albert Wesker, and spy Ada Wong. Their interwoven paths converge as they confront National Security Advisor Derek Simmons and the catastrophe he has set in motion.",
+      "image": null,
+      "imageUrl": "https://cdn.cloudflare.steamstatic.com/steam/apps/221040/header.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil_6",
+        "https://store.steampowered.com/app/221040/Resident_Evil_6/"
+      ]
+    },
+    {
+      "id": "resident-evil-7-biohazard-2017",
+      "title": "Resident Evil 7: Biohazard (2017)",
+      "medium": "game",
+      "branch": "mainline",
+      "releaseDate": "2017-01-24",
+      "recommendedOrder": 12,
+      "recommendedReason": "First-person soft reboot that restored intimate horror; begins the Winters story.",
+      "chronologicalOrder": null,
+      "summary": "Searching for his missing wife, Ethan Winters ventures into a derelict Louisiana plantation and is captured by the deranged, infected Baker family. As he fights to survive their home, he uncovers the source of a mold-based bioweapon tied to a mysterious girl named Eveline.",
+      "image": null,
+      "imageUrl": "https://cdn.cloudflare.steamstatic.com/steam/apps/418370/header.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil_7:_Biohazard",
+        "https://store.steampowered.com/app/418370/Resident_Evil_7_Biohazard/"
+      ]
+    },
+    {
+      "id": "resident-evil-village-2021",
+      "title": "Resident Evil Village (2021)",
+      "medium": "game",
+      "branch": "mainline",
+      "releaseDate": "2021-05-07",
+      "recommendedOrder": 13,
+      "recommendedReason": "Direct sequel to RE7 that concludes Ethan Winters’ arc.",
+      "chronologicalOrder": null,
+      "summary": "When his infant daughter Rose is taken, Ethan Winters follows her to a remote, snow-bound European village ruled by four mutant lords who serve the enigmatic Mother Miranda, among them the towering Lady Dimitrescu. Ethan ventures into each lord's domain to recover his child and uncover the village's dark secrets.",
+      "image": null,
+      "imageUrl": "https://cdn.cloudflare.steamstatic.com/steam/apps/1196590/header.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil_Village",
+        "https://store.steampowered.com/app/1196590/Resident_Evil_Village/"
+      ]
+    },
+    {
+      "id": "resident-evil-requiem-2026",
+      "title": "Resident Evil Requiem (2026)",
+      "medium": "game",
+      "branch": "mainline",
+      "releaseDate": "2026-02-27",
+      "recommendedOrder": 14,
+      "recommendedReason": "The newest mainline entry (RE9), returning to Raccoon City with Grace Ashcroft and Leon.",
+      "chronologicalOrder": null,
+      "summary": "FBI analyst Grace Ashcroft investigates a string of mysterious deaths linked to survivors of the Raccoon City disaster, aided by federal agent Leon S. Kennedy. Her inquiry draws her back to the ruined midwestern city and the deadly legacy of the former Umbrella Corporation.",
+      "image": null,
+      "imageUrl": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3764200/ce5437442768e38eb575f205ab9397d0264017b0/header.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil_Requiem",
+        "https://store.steampowered.com/app/3764200/Resident_Evil_Requiem/",
+        "https://www.capcom.co.jp/ir/english/news/html/e250609.html"
+      ]
+    },
+    {
+      "id": "resident-evil-survivor-2000",
+      "title": "Resident Evil Survivor (2000)",
+      "medium": "game",
+      "branch": "spinoff",
+      "releaseDate": "2000-01-27",
+      "recommendedOrder": 15,
+      "recommendedReason": "Early light-gun-style spinoff set on Umbrella’s Sheena Island; for completionists.",
+      "chronologicalOrder": null,
+      "summary": "An amnesiac crash-lands on Umbrella's Sheena Island and slowly realizes he is detective Ark Thompson. As zombies and Umbrella operatives close in, he fights to help two children escape the facility before it self-destructs.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/e/e3/RE_Survivor_front.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil_Survivor"
+      ]
+    },
+    {
+      "id": "resident-evil-survivor-2-code-veronica-2001",
+      "title": "Resident Evil Survivor 2 – Code: Veronica (2001)",
+      "medium": "game",
+      "branch": "spinoff",
+      "releaseDate": "2001-11-08",
+      "recommendedOrder": 16,
+      "recommendedReason": "Arcade on-rails shooter reusing Code: Veronica characters; a score-attack side piece.",
+      "chronologicalOrder": null,
+      "summary": "Claire Redfield and Steve Burnside battle through wave after wave of the bio-organic horrors that hunted them on Rockfort Island.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/c/ca/RESurvivor2CV.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil_Survivor_2_%E2%80%93_Code:_Veronica"
+      ]
+    },
+    {
+      "id": "resident-evil-gaiden-2001",
+      "title": "Resident Evil Gaiden (2001)",
+      "medium": "game",
+      "branch": "spinoff",
+      "releaseDate": "2001-12-14",
+      "recommendedOrder": 17,
+      "recommendedReason": "Game Boy Color action-adventure; a non-canon curio for collectors.",
+      "chronologicalOrder": null,
+      "summary": "Leon S. Kennedy and veteran S.T.A.R.S. member Barry Burton board a cruise ship overrun by Umbrella's bio-organic weapons, fighting through the infested vessel while protecting an orphan girl named Lucia.",
+      "image": null,
+      "imageUrl": "https://static.wikia.nocookie.net/residentevil/images/e/ec/Resident_Evil_Gaiden.png/revision/latest/scale-to-width-down/400",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil_Gaiden"
+      ]
+    },
+    {
+      "id": "resident-evil-the-missions-2003",
+      "title": "Resident Evil: The Missions (2003)",
+      "medium": "game",
+      "branch": "spinoff",
+      "releaseDate": "2003-01-01",
+      "recommendedOrder": 18,
+      "recommendedReason": "Obscure Japanese feature-phone challenge-mission game; a deep-cut completionist entry.",
+      "chronologicalOrder": null,
+      "summary": "Survivors face Umbrella's undead and bio-organic weapons across a string of short, self-contained ordeals in familiar outbreak zones.",
       "image": null,
       "imageUrl": null,
       "status": false,
       "sources": [
-        "https://en.wikipedia.org/wiki/Resident_Evil:_The_Marhawa_Desire"
+        "https://en.wikipedia.org/wiki/Mobile_games_in_the_Resident_Evil_series"
+      ]
+    },
+    {
+      "id": "resident-evil-dead-aim-2003",
+      "title": "Resident Evil: Dead Aim (2003)",
+      "medium": "game",
+      "branch": "spinoff",
+      "releaseDate": "2003-02-13",
+      "recommendedOrder": 19,
+      "recommendedReason": "Gun Survivor entry blending third-person movement and light-gun aiming aboard an Umbrella liner.",
+      "chronologicalOrder": null,
+      "summary": "U.S. agent Bruce McGivern and Chinese operative Fong Ling board an Umbrella ocean liner to stop bioterrorist Morpheus D. Duvall, who has unleashed the t-Virus and threatens a missile strike. Their pursuit drives them from the infested ship to an abandoned island facility.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/a/a5/Residentevildeadaim.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil:_Dead_Aim"
+      ]
+    },
+    {
+      "id": "resident-evil-outbreak-2003",
+      "title": "Resident Evil Outbreak (2003)",
+      "medium": "game",
+      "branch": "spinoff",
+      "releaseDate": "2003-12-11",
+      "recommendedOrder": 20,
+      "recommendedReason": "First online co-op entry; survive Raccoon City as ordinary citizens.",
+      "chronologicalOrder": null,
+      "summary": "As the T-virus outbreak engulfs Raccoon City, a group of ordinary citizens band together to survive across a series of harrowing scenarios. With infection steadily spreading through their veins, they must cooperate to escape the doomed city before it is too late.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/a/ad/Re_outbreak_a.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil_Outbreak"
+      ]
+    },
+    {
+      "id": "resident-evil-confidential-report-2004",
+      "title": "Resident Evil: Confidential Report (2004)",
+      "medium": "game",
+      "branch": "spinoff",
+      "releaseDate": "2004-01-01",
+      "recommendedOrder": 21,
+      "recommendedReason": "Obscure Japanese feature-phone strategy game tying into series lore.",
+      "chronologicalOrder": null,
+      "summary": "A sequence of tense tactical operations pits small units against Umbrella's viral horrors, each mission uncovering more of the corporation's bioweapon secrets.",
+      "image": null,
+      "imageUrl": null,
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Mobile_games_in_the_Resident_Evil_series"
+      ]
+    },
+    {
+      "id": "resident-evil-outbreak-file-2-2004",
+      "title": "Resident Evil Outbreak: File #2 (2004)",
+      "medium": "game",
+      "branch": "spinoff",
+      "releaseDate": "2004-09-09",
+      "recommendedOrder": 22,
+      "recommendedReason": "Standalone follow-up to Outbreak with new co-op scenarios.",
+      "chronologicalOrder": null,
+      "summary": "More of Raccoon City's ordinary citizens fight to stay alive as the T-virus outbreak rages, navigating fresh scenarios across the dying city while the infection takes hold within them. They must rely on one another to escape the spreading nightmare.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/9/9c/Resident_Evil_Outbreak_File_2.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil_Outbreak",
+        "https://en.wikipedia.org/wiki/Resident_Evil_Outbreak_File_%232"
+      ]
+    },
+    {
+      "id": "resident-evil-the-umbrella-chronicles-2007",
+      "title": "Resident Evil: The Umbrella Chronicles (2007)",
+      "medium": "game",
+      "branch": "spinoff",
+      "releaseDate": "2007-11-13",
+      "recommendedOrder": 23,
+      "recommendedReason": "On-rails recap shooter covering RE0/RE1/RE3 and Umbrella’s downfall.",
+      "chronologicalOrder": null,
+      "summary": "Narrated by Albert Wesker, this account traces the rise and fall of the Umbrella Corporation, from the Arklay Mountains training facility and the Spencer Mansion to the streets of Raccoon City. Series heroes battle hordes of bio-organic weapons across the events that doomed the company.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/b/b5/Resident_Evil%2C_The_Umbrella_Chronicles_%282007_video_game%29.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil:_The_Umbrella_Chronicles"
+      ]
+    },
+    {
+      "id": "resident-evil-the-darkside-chronicles-2009",
+      "title": "Resident Evil: The Darkside Chronicles (2009)",
+      "medium": "game",
+      "branch": "spinoff",
+      "releaseDate": "2009-11-17",
+      "recommendedOrder": 24,
+      "recommendedReason": "On-rails shooter retelling RE2 and Code: Veronica plus a new scenario.",
+      "chronologicalOrder": null,
+      "summary": "Agent Leon S. Kennedy and his allies trace the spread of viral bioweapons through the Raccoon City outbreak, the horrors of Rockfort Island, and a deadly operation in the jungles of South America, battling the undead and Umbrella's creations every step of the way.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/9/91/REDC_Cover.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil:_The_Darkside_Chronicles"
+      ]
+    },
+    {
+      "id": "resident-evil-operation-raccoon-city-2012",
+      "title": "Resident Evil: Operation Raccoon City (2012)",
+      "medium": "game",
+      "branch": "spinoff",
+      "releaseDate": "2012-03-20",
+      "recommendedOrder": 25,
+      "recommendedReason": "Squad-based shooter offering a non-canon take on the Raccoon City outbreak.",
+      "chronologicalOrder": null,
+      "summary": "During the T-virus outbreak that engulfs Raccoon City, an Umbrella Security Service team is sent in to destroy evidence and silence witnesses, even the survivors who would later become the city's heroes, while a U.S. Spec Ops unit fights through the same infested streets.",
+      "image": null,
+      "imageUrl": "https://cdn.cloudflare.steamstatic.com/steam/apps/209100/header.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil:_Operation_Raccoon_City"
+      ]
+    },
+    {
+      "id": "umbrella-corps-2016",
+      "title": "Umbrella Corps (2016)",
+      "medium": "game",
+      "branch": "spinoff",
+      "releaseDate": "2016-06-21",
+      "recommendedOrder": 26,
+      "recommendedReason": "Competitive multiplayer shooter detached from the main story; for the curious.",
+      "chronologicalOrder": null,
+      "summary": "Mercenary squads clash in tight, zombie-infested arenas, battling one another amid the lingering horrors of Umbrella's bioweapon legacy.",
+      "image": null,
+      "imageUrl": "https://cdn.cloudflare.steamstatic.com/steam/apps/390340/header.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Umbrella_Corps"
       ]
     },
     {
@@ -110,15 +457,732 @@
       "medium": "film",
       "branch": "mainline",
       "releaseDate": "2008-10-17",
-      "recommendedOrder": 7,
-      "recommendedReason": "CG film bridging RE4 and RE5 — Leon and Claire reunite during an airport bioterror incident.",
+      "recommendedOrder": 27,
+      "recommendedReason": "CG film bridging RE4 and RE5, where Leon and Claire reunite during an airport bioterror incident.",
       "chronologicalOrder": 6,
-      "summary": "Leon and Claire respond to a zombie outbreak at a US airport, uncovering a conspiracy tied to a pharmaceutical company.",
+      "summary": "Government agent Leon S. Kennedy and survivor Claire Redfield are caught in a zombie outbreak at a US airport. As the infected overrun the terminal, they uncover a pharmaceutical conspiracy behind the engineered virus.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/a/a1/BioDPoster.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil:_Degeneration"
+      ]
+    },
+    {
+      "id": "resident-evil-damnation",
+      "title": "Resident Evil: Damnation",
+      "medium": "film",
+      "branch": "mainline",
+      "releaseDate": "2012-10-27",
+      "recommendedOrder": 28,
+      "recommendedReason": "Second CG film in the game continuity; Leon investigates bioweapons in a civil war.",
+      "chronologicalOrder": null,
+      "summary": "Government agent Leon S. Kennedy slips into a war-torn Eastern European republic to investigate reports of bioweapons being used in its civil war. Hunting Lickers and Las Plagas through the conflict, he crosses paths with the elusive spy Ada Wong.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/b/bd/BioDamnationPoster.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil:_Damnation"
+      ]
+    },
+    {
+      "id": "resident-evil-vendetta",
+      "title": "Resident Evil: Vendetta",
+      "medium": "film",
+      "branch": "mainline",
+      "releaseDate": "2017-05-27",
+      "recommendedOrder": 29,
+      "recommendedReason": "Third CG film teaming Chris, Leon, and Rebecca against a new A-virus threat.",
+      "chronologicalOrder": null,
+      "summary": "BSAA agent Chris Redfield, government agent Leon S. Kennedy, and Professor Rebecca Chambers band together to stop arms dealer Glenn Arias. Arias intends to release a mind-controlling A-virus that would turn New York City against itself.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/0/00/Biohazard_vendetta_poster.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil:_Vendetta"
+      ]
+    },
+    {
+      "id": "resident-evil-death-island",
+      "title": "Resident Evil: Death Island",
+      "medium": "film",
+      "branch": "mainline",
+      "releaseDate": "2023-07-07",
+      "recommendedOrder": 30,
+      "recommendedReason": "Fourth CG film uniting the core cast against an Alcatraz bioterror plot.",
+      "chronologicalOrder": null,
+      "summary": "Leon S. Kennedy, Chris and Claire Redfield, Jill Valentine, and Rebecca Chambers each chase leads on a strange T-virus outbreak, and their separate investigations converge on Alcatraz Island. There a vengeful Raccoon City survivor has set a bioterror plot in motion.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/4/4f/Resident_Evil_-_Death_Island.png",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil:_Death_Island"
+      ]
+    },
+    {
+      "id": "resident-evil-2002-film",
+      "title": "Resident Evil (2002 film)",
+      "medium": "film",
+      "branch": "spinoff",
+      "releaseDate": "2002-03-15",
+      "recommendedOrder": 31,
+      "recommendedReason": "Paul W.S. Anderson’s live-action original; a separate continuity from the games.",
+      "chronologicalOrder": null,
+      "summary": "Security operative Alice wakes with amnesia and joins a squad of Umbrella Corporation commandos descending into the Hive, a hidden underground research lab beneath Raccoon City. After the facility's AI seals the complex in response to a T-virus release, the team must survive the horrors trapped inside.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/a/a1/Resident_evil_ver4.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil_(2002_film)",
+        "https://www.imdb.com/title/tt0120804/"
+      ]
+    },
+    {
+      "id": "resident-evil-apocalypse",
+      "title": "Resident Evil: Apocalypse",
+      "medium": "film",
+      "branch": "spinoff",
+      "releaseDate": "2004-09-10",
+      "recommendedOrder": 32,
+      "recommendedReason": "Second live-action film, bringing Jill and Nemesis to the screen.",
+      "chronologicalOrder": null,
+      "summary": "Alice and a band of survivors fight their way out of the underground Hive as the T-virus outbreak swallows Raccoon City. Trapped inside the quarantined city, they flee for the perimeter while the mutated Umbrella supersoldier Nemesis hunts them down.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/5/50/Resident_evil_apocalypse_poster.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil:_Apocalypse"
+      ]
+    },
+    {
+      "id": "resident-evil-extinction",
+      "title": "Resident Evil: Extinction",
+      "medium": "film",
+      "branch": "spinoff",
+      "releaseDate": "2007-09-21",
+      "recommendedOrder": 33,
+      "recommendedReason": "Third live-action film; a post-apocalyptic desert survival arc.",
+      "chronologicalOrder": null,
+      "summary": "With the T-virus pandemic having ravaged the planet, Alice joins a nomadic convoy of survivors crossing the Mojave Desert toward rumored safety in Alaska. Umbrella tracks her every move as the wasteland closes in.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/3/34/Resident_Evil_Extinction.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil:_Extinction"
+      ]
+    },
+    {
+      "id": "resident-evil-afterlife",
+      "title": "Resident Evil: Afterlife",
+      "medium": "film",
+      "branch": "spinoff",
+      "releaseDate": "2010-09-10",
+      "recommendedOrder": 34,
+      "recommendedReason": "Fourth live-action film, the first shot in 3D.",
+      "chronologicalOrder": null,
+      "summary": "Alice scours the ruins of Los Angeles for other survivors and a tanker safe haven called Arcadia. Joining forces with Chris and Claire Redfield, she squares off against the superhuman Umbrella chairman Albert Wesker.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/e/ea/Resident_Evil-_Afterlife.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil:_Afterlife"
+      ]
+    },
+    {
+      "id": "resident-evil-retribution",
+      "title": "Resident Evil: Retribution",
+      "medium": "film",
+      "branch": "spinoff",
+      "releaseDate": "2012-09-14",
+      "recommendedOrder": 35,
+      "recommendedReason": "Fifth live-action film, set in an Umbrella simulation facility.",
+      "chronologicalOrder": null,
+      "summary": "Captured by Umbrella, Alice must break out of a vast underwater testing facility whose chambers recreate simulated cities. Aided by allies including Ada Wong, she fights through one staged nightmare after another to reach the surface.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/5/50/Resident_evil_retribution_poster.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil:_Retribution"
+      ]
+    },
+    {
+      "id": "resident-evil-the-final-chapter",
+      "title": "Resident Evil: The Final Chapter",
+      "medium": "film",
+      "branch": "spinoff",
+      "releaseDate": "2017-01-27",
+      "recommendedOrder": 36,
+      "recommendedReason": "Sixth and final film of the Anderson live-action series.",
+      "chronologicalOrder": null,
+      "summary": "Alice is given 48 hours to reach the Hive beneath Raccoon City and recover an airborne antivirus that could finally end the global outbreak. Racing the clock, she discovers she is a clone of Alicia Marcus.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/b/bf/Resident_Evil_The_Final_Chapter_poster.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil:_The_Final_Chapter"
+      ]
+    },
+    {
+      "id": "resident-evil-welcome-to-raccoon-city",
+      "title": "Resident Evil: Welcome to Raccoon City",
+      "medium": "film",
+      "branch": "spinoff",
+      "releaseDate": "2021-11-24",
+      "recommendedOrder": 37,
+      "recommendedReason": "2021 reboot adapting the first two games more faithfully.",
+      "chronologicalOrder": null,
+      "summary": "In 1998, Claire Redfield returns to the dying company town of Raccoon City to warn her brother Chris of what Umbrella is hiding. As a S.T.A.R.S. team investigates the Spencer Mansion, the corporation's T-virus experiments erupt into a full outbreak.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/0/01/Welcome_to_Raccoon_City.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil:_Welcome_to_Raccoon_City"
+      ]
+    },
+    {
+      "id": "resident-evil-2026-film",
+      "title": "Resident Evil (2026 film)",
+      "medium": "film",
+      "branch": "spinoff",
+      "releaseDate": "2026-09-18",
+      "recommendedOrder": 38,
+      "recommendedReason": "Zach Cregger’s upcoming Sony reboot; unreleased, included for completeness.",
+      "chronologicalOrder": null,
+      "summary": "A medical courier named Bryan becomes trapped in Raccoon City as a viral outbreak tears through the streets. With the infected closing in, he fights to survive the night.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/3/3c/Resident_Evil_2026_film_poster.png",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil_(2026_film)",
+        "https://screenrant.com/resident-evil-new-trailer-sony/"
+      ]
+    },
+    {
+      "id": "resident-evil-infinite-darkness",
+      "title": "Resident Evil: Infinite Darkness",
+      "medium": "show",
+      "branch": "mainline",
+      "releaseDate": "2021-07-08",
+      "recommendedOrder": 39,
+      "recommendedReason": "Canon CG anime set between RE4 and RE5; Leon and Claire uncover a conspiracy.",
+      "chronologicalOrder": null,
+      "summary": "In 2006, a hacking incident at the White House draws government agent Leon S. Kennedy and TerraSave member Claire Redfield into separate investigations. Their inquiries lead them toward a bioweapon conspiracy rooted in the war-torn nation of Penamstan.",
+      "image": null,
+      "imageUrl": "https://image.tmdb.org/t/p/original/wWwTjKER5a8LRUGHrw86VU0gUy1.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil:_Infinite_Darkness",
+        "https://www.themoviedb.org/tv/110642",
+        "https://www.netflix.com/title/80987064"
+      ]
+    },
+    {
+      "id": "resident-evil-2022",
+      "title": "Resident Evil (2022)",
+      "medium": "show",
+      "branch": "spinoff",
+      "releaseDate": "2022-07-14",
+      "recommendedOrder": 40,
+      "recommendedReason": "Netflix live-action series in its own continuity; cancelled after one season.",
+      "chronologicalOrder": null,
+      "summary": "In New Raccoon City in 2022, teen twins Jade and Billie Wesker begin to uncover the dark secrets Umbrella is keeping. Years later, in a 2036 ravaged by the T-virus, an adult Jade struggles to survive a world overrun by the infected.",
+      "image": null,
+      "imageUrl": "https://image.tmdb.org/t/p/original/rmLvn4w4HMdxobPkjmIqrhJiXDO.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil_(TV_series)",
+        "https://www.themoviedb.org/tv/108296-resident-evil",
+        "https://www.netflix.com/title/80996532"
+      ]
+    },
+    {
+      "id": "resident-evil-the-umbrella-conspiracy",
+      "title": "Resident Evil: The Umbrella Conspiracy",
+      "medium": "novel",
+      "branch": "mainline",
+      "releaseDate": "1998-09-23",
+      "recommendedOrder": 41,
+      "recommendedReason": "S.D. Perry’s novelization of the first game; the canonical novel starting point.",
+      "chronologicalOrder": null,
+      "summary": "S.T.A.R.S. Alpha team is stranded at the Spencer Mansion outside Raccoon City, where Chris Redfield and Jill Valentine fight their way through zombies and other monsters to expose the Umbrella Corporation's illegal bio-organic weapons program and the source of the outbreak.",
+      "image": null,
+      "imageUrl": "https://covers.openlibrary.org/b/id/404217-L.jpg",
+      "status": false,
+      "sources": [
+        "https://residentevil.fandom.com/wiki/Resident_Evil:_The_Umbrella_Conspiracy",
+        "https://www.goodreads.com/series/50354-resident-evil"
+      ]
+    },
+    {
+      "id": "resident-evil-city-of-the-dead",
+      "title": "Resident Evil: City of the Dead",
+      "medium": "novel",
+      "branch": "mainline",
+      "releaseDate": "1999-05-01",
+      "recommendedOrder": 42,
+      "recommendedReason": "Perry’s novelization of RE2; continues the Raccoon City story in prose.",
+      "chronologicalOrder": null,
+      "summary": "Rookie cop Leon S. Kennedy and Claire Redfield arrive in a Raccoon City overrun by the dead and battle through the besieged police station, uncovering Umbrella's lethal experiments as they try to escape the doomed city.",
+      "image": null,
+      "imageUrl": "https://covers.openlibrary.org/b/id/8764060-L.jpg",
+      "status": false,
+      "sources": [
+        "https://residentevil.fandom.com/wiki/S.D._Perry_series",
+        "https://www.goodreads.com/series/50354-resident-evil"
+      ]
+    },
+    {
+      "id": "resident-evil-nemesis",
+      "title": "Resident Evil: Nemesis",
+      "medium": "novel",
+      "branch": "mainline",
+      "releaseDate": "2000-10-03",
+      "recommendedOrder": 43,
+      "recommendedReason": "Perry’s novelization of RE3, following Jill’s escape from the city.",
+      "chronologicalOrder": null,
+      "summary": "Former S.T.A.R.S. member Jill Valentine races to escape a collapsing Raccoon City while a towering tyrant called Nemesis stalks her relentlessly, hunting down the last surviving S.T.A.R.S. operatives one by one.",
+      "image": null,
+      "imageUrl": "https://covers.openlibrary.org/b/id/408700-L.jpg",
+      "status": false,
+      "sources": [
+        "https://residentevil.fandom.com/wiki/S.D._Perry_series",
+        "https://www.goodreads.com/series/50354-resident-evil"
+      ]
+    },
+    {
+      "id": "resident-evil-code-veronica",
+      "title": "Resident Evil: Code: Veronica",
+      "medium": "novel",
+      "branch": "mainline",
+      "releaseDate": "2001-12-01",
+      "recommendedOrder": 44,
+      "recommendedReason": "Perry’s novelization of Code: Veronica and the Redfield siblings’ reunion.",
+      "chronologicalOrder": null,
+      "summary": "Searching for her brother Chris, Claire Redfield is captured and imprisoned on Umbrella's remote Rockfort Island. With fellow inmate Steve Burnside she fights through swarms of bio-weapons and the deranged Ashford twins in a struggle that carries them all the way to Antarctica.",
+      "image": null,
+      "imageUrl": "https://covers.openlibrary.org/b/id/408701-L.jpg",
+      "status": false,
+      "sources": [
+        "https://residentevil.fandom.com/wiki/S.D._Perry_series",
+        "https://www.goodreads.com/series/50354-resident-evil"
+      ]
+    },
+    {
+      "id": "resident-evil-zero-hour",
+      "title": "Resident Evil: Zero Hour",
+      "medium": "novel",
+      "branch": "mainline",
+      "releaseDate": "2004-10-26",
+      "recommendedOrder": 45,
+      "recommendedReason": "Perry’s final novel, adapting the RE0 prequel.",
+      "chronologicalOrder": null,
+      "summary": "Rookie S.T.A.R.S. medic Rebecca Chambers and escaped convict Billy Coen are thrown together aboard the doomed Ecliptic Express and a hidden Umbrella training facility in the Arklay Mountains, where the t-Virus has turned everything around them deadly.",
+      "image": null,
+      "imageUrl": "https://covers.openlibrary.org/b/id/11209777-L.jpg",
+      "status": false,
+      "sources": [
+        "https://residentevil.fandom.com/wiki/S.D._Perry_series",
+        "https://www.goodreads.com/series/50354-resident-evil"
+      ]
+    },
+    {
+      "id": "bio-hazard-hokkai-no-yoju-the-wicked-north-sea",
+      "title": "BIO HAZARD: Hokkai no Yoju (The Wicked North Sea)",
+      "medium": "novel",
+      "branch": "spinoff",
+      "releaseDate": "1998-01-31",
+      "recommendedOrder": 46,
+      "recommendedReason": "Untranslated 1998 Japanese light novel; deep-cut expanded-universe lore.",
+      "chronologicalOrder": null,
+      "summary": "On the North Sea island of Gadiwell, an SAS operation stumbles onto secret bio-weapons research run by the Beardsley family, members of the circle that founded Umbrella, and must survive the horrors the experiments have created.",
       "image": null,
       "imageUrl": null,
       "status": false,
       "sources": [
-        "https://en.wikipedia.org/wiki/Resident_Evil:_Degeneration"
+        "https://residentevil.fandom.com/wiki/BIO_HAZARD_The_Wicked_North_Sea",
+        "https://en.wikipedia.org/wiki/Resident_Evil"
+      ]
+    },
+    {
+      "id": "resident-evil-caliban-cove",
+      "title": "Resident Evil: Caliban Cove",
+      "medium": "novel",
+      "branch": "spinoff",
+      "releaseDate": "1998-10-01",
+      "recommendedOrder": 47,
+      "recommendedReason": "Perry’s original side story starring Rebecca Chambers between the first two games.",
+      "chronologicalOrder": null,
+      "summary": "Shortly after the Spencer Mansion incident, rookie S.T.A.R.S. medic Rebecca Chambers joins a team investigating an Umbrella facility at Caliban Cove, where a rogue researcher is breeding mutated zombies and pushing his experiments far past control.",
+      "image": null,
+      "imageUrl": "https://covers.openlibrary.org/b/id/15167351-L.jpg",
+      "status": false,
+      "sources": [
+        "https://residentevil.fandom.com/wiki/S.D._Perry_series",
+        "https://www.goodreads.com/series/50354-resident-evil"
+      ]
+    },
+    {
+      "id": "resident-evil-underworld",
+      "title": "Resident Evil: Underworld",
+      "medium": "novel",
+      "branch": "spinoff",
+      "releaseDate": "1999-05-01",
+      "recommendedOrder": 48,
+      "recommendedReason": "Perry’s original bridge story between RE2 and RE3.",
+      "chronologicalOrder": null,
+      "summary": "Coerced by the mysterious Trent, Leon S. Kennedy, Claire Redfield, Rebecca Chambers, and others descend into an underground Umbrella testing facility hidden in the desert and must survive a gauntlet of engineered bio-weapons to make it out alive.",
+      "image": null,
+      "imageUrl": "https://covers.openlibrary.org/b/id/404220-L.jpg",
+      "status": false,
+      "sources": [
+        "https://residentevil.fandom.com/wiki/S.D._Perry_series",
+        "https://www.goodreads.com/series/50354-resident-evil"
+      ]
+    },
+    {
+      "id": "resident-evil-genesis",
+      "title": "Resident Evil: Genesis",
+      "medium": "novel",
+      "branch": "spinoff",
+      "releaseDate": "2004-01-01",
+      "recommendedOrder": 49,
+      "recommendedReason": "DeCandido’s novelization of the 2002 live-action film.",
+      "chronologicalOrder": null,
+      "summary": "An amnesiac woman named Alice is taken by a commando team into the Hive, a secret underground Umbrella laboratory sealed shut by the rogue AI known as the Red Queen after a t-Virus release, and must fight through the infected to survive.",
+      "image": null,
+      "imageUrl": "https://covers.openlibrary.org/b/isbn/0743492919-L.jpg",
+      "status": false,
+      "sources": [
+        "https://www.amazon.com/Genesis-Resident-Evil-Keith-DeCandido/dp/0743492919",
+        "https://residentevil.fandom.com/wiki/Resident_Evil_novels"
+      ]
+    },
+    {
+      "id": "resident-evil-apocalypse-novel",
+      "title": "Resident Evil: Apocalypse (novel)",
+      "medium": "novel",
+      "branch": "spinoff",
+      "releaseDate": "2004-08-31",
+      "recommendedOrder": 50,
+      "recommendedReason": "DeCandido’s novelization of the 2004 film.",
+      "chronologicalOrder": null,
+      "summary": "Alice breaks free of Umbrella custody into a Raccoon City consumed by the t-Virus, joining forces with Jill Valentine and other survivors as the engineered supersoldier Nemesis hunts them through the dying streets.",
+      "image": null,
+      "imageUrl": "https://covers.openlibrary.org/b/isbn/0743493494-L.jpg",
+      "status": false,
+      "sources": [
+        "https://www.amazon.com/Apocalypse-Resident-Evil-Keith-DeCandido/dp/0743493494",
+        "https://residentevil.fandom.com/wiki/Resident_Evil_novels"
+      ]
+    },
+    {
+      "id": "resident-evil-extinction-novel",
+      "title": "Resident Evil: Extinction (novel)",
+      "medium": "novel",
+      "branch": "spinoff",
+      "releaseDate": "2007-07-31",
+      "recommendedOrder": 51,
+      "recommendedReason": "DeCandido’s novelization of the 2007 film.",
+      "chronologicalOrder": null,
+      "summary": "In a desert world ravaged by the t-Virus, Alice falls in with a convoy of survivors crossing the wasteland while Umbrella's Dr. Isaacs pursues her to harvest the blood that may hold the key to the virus.",
+      "image": null,
+      "imageUrl": "https://covers.openlibrary.org/b/isbn/1416544984-L.jpg",
+      "status": false,
+      "sources": [
+        "https://www.amazon.com/Resident-Evil-Extinction-Keith-DeCandido/dp/1416544984",
+        "https://residentevil.fandom.com/wiki/Resident_Evil:_Extinction_(novel)"
+      ]
+    },
+    {
+      "id": "resident-evil-retribution-the-official-movie-novelization",
+      "title": "Resident Evil: Retribution - The Official Movie Novelization",
+      "medium": "novel",
+      "branch": "spinoff",
+      "releaseDate": "2012-09-18",
+      "recommendedOrder": 52,
+      "recommendedReason": "John Shirley’s novelization of the 2012 film.",
+      "chronologicalOrder": null,
+      "summary": "Alice wakes inside a sprawling Umbrella underwater testing facility filled with simulated cities and clones, and joins a resistance team to fight her way out before Umbrella can trap her for good.",
+      "image": null,
+      "imageUrl": "https://covers.openlibrary.org/b/isbn/1781163154-L.jpg",
+      "status": false,
+      "sources": [
+        "https://www.amazon.com/Resident-Evil-Retribution-Official-Novelization/dp/1781163154",
+        "https://residentevil.fandom.com/wiki/Resident_Evil:_Retribution_-_The_Official_Movie_Novelization"
+      ]
+    },
+    {
+      "id": "resident-evil-the-final-chapter-the-official-movie-novelization",
+      "title": "Resident Evil: The Final Chapter - The Official Movie Novelization",
+      "medium": "novel",
+      "branch": "spinoff",
+      "releaseDate": "2017-01-31",
+      "recommendedOrder": 53,
+      "recommendedReason": "Waggoner’s novelization of the final live-action film.",
+      "chronologicalOrder": null,
+      "summary": "Alice returns to the Hive beneath Raccoon City for a final confrontation with Umbrella and the Red Queen, racing to claim the means to end the outbreak that destroyed the world.",
+      "image": null,
+      "imageUrl": "https://images4.penguinrandomhouse.com/cover/9781785652967",
+      "status": false,
+      "sources": [
+        "https://www.penguinrandomhouse.com/books/546246/resident-evil-the-final-chapter-the-official-movie-novelization-by-tim-waggoner/",
+        "https://titanbooks.com/8931-resident-evil-the-final-chapter-the-official-movie-novelization/"
+      ]
+    },
+    {
+      "id": "resident-evil-code-veronica-comic",
+      "title": "Resident Evil CODE: Veronica",
+      "medium": "comic",
+      "branch": "mainline",
+      "releaseDate": "2002-07-01",
+      "recommendedOrder": 54,
+      "recommendedReason": "WildStorm’s manhua adaptation of the Code: Veronica game.",
+      "chronologicalOrder": null,
+      "summary": "Three months after Raccoon City falls, Claire Redfield is captured and imprisoned on a remote Umbrella island compound. Her brother Chris races to find her as they confront the unstable Ashford twins and the corporation's deadliest bio-organic weapons.",
+      "image": null,
+      "imageUrl": "https://static.wikia.nocookie.net/residentevil/images/1/17/Resident_Evil_Code_Veronica_Issue_1.jpg/revision/latest/scale-to-width-down/400?cb=20090617041513",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil",
+        "https://dc.fandom.com/wiki/Resident_Evil_Code:_Veronica_Vol_1"
+      ]
+    },
+    {
+      "id": "resident-evil-fire-and-ice",
+      "title": "Resident Evil: Fire and Ice",
+      "medium": "comic",
+      "branch": "spinoff",
+      "releaseDate": "2000-12-01",
+      "recommendedOrder": 55,
+      "recommendedReason": "WildStorm miniseries following an original Charlie Team mission.",
+      "chronologicalOrder": null,
+      "summary": "Charlie Team, an elite squad deployed against Umbrella's bioweapons, is dispatched on a high-stakes mission to contain a viral outbreak. As mutated creatures overwhelm them, the operatives fight to complete their objective and escape with their lives.",
+      "image": null,
+      "imageUrl": "https://static.wikia.nocookie.net/residentevil/images/b/b5/Fire_and_Ice_issue_1.jpg/revision/latest/scale-to-width-down/400?cb=20210422004425",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil",
+        "https://dc.fandom.com/wiki/Resident_Evil:_Fire_and_Ice_Vol_1"
+      ]
+    },
+    {
+      "id": "resident-evil-the-marhawa-desire",
+      "title": "Resident Evil: The Marhawa Desire",
+      "medium": "comic",
+      "branch": "spinoff",
+      "releaseDate": "2012-02-23",
+      "recommendedOrder": 56,
+      "recommendedReason": "Manga prequel to RE6; optional, but it enriches Piers Nivans' character arc.",
+      "chronologicalOrder": null,
+      "summary": "BSAA agent Piers Nivans and Professor Doug Wright investigate a sudden bio-terror outbreak at a remote, prestigious boarding school in Asia. As the infection spreads through the students, they race to uncover who unleashed it before the entire campus is consumed.",
+      "image": null,
+      "imageUrl": "https://static.wikia.nocookie.net/residentevil/images/1/13/Resident_Evil_Vol_1_The_Marhawa_Desire.jpg/revision/latest/scale-to-width-down/400?cb=20210617121747",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil:_The_Marhawa_Desire"
+      ]
+    },
+    {
+      "id": "biohazard-heavenly-island-resident-evil-heavenly-island",
+      "title": "BIOHAZARD heavenly island (Resident Evil: Heavenly Island)",
+      "medium": "comic",
+      "branch": "spinoff",
+      "releaseDate": "2015-01-15",
+      "recommendedOrder": 57,
+      "recommendedReason": "Serizawa manga of an original island outbreak set after RE6.",
+      "chronologicalOrder": null,
+      "summary": "On a secluded tropical island, a viral outbreak erupts among the stranded and the unsuspecting, twisting victims into ravenous monsters. The survivors must escape the paradise turned slaughterground while exposing the bioterror plot behind it.",
+      "image": null,
+      "imageUrl": "https://static.wikia.nocookie.net/residentevil/images/0/07/BIOHAZARD_heavenly_island_Vol.1_-_Japanese_front_cover.png/revision/latest/scale-to-width-down/400?cb=20180815102459",
+      "status": false,
+      "sources": [
+        "https://www.animenewsnetwork.com/news/2015-01-07/resident-evil-biohazard-heavenly-island-manga-launch-date-story-unveiled/.82943",
+        "https://www.animenewsnetwork.com/encyclopedia/manga.php?id=16440"
+      ]
+    },
+    {
+      "id": "resident-evil-infinite-darkness-the-beginning",
+      "title": "Resident Evil: Infinite Darkness - The Beginning",
+      "medium": "comic",
+      "branch": "spinoff",
+      "releaseDate": "2024-03-12",
+      "recommendedOrder": 58,
+      "recommendedReason": "Tokyopop prequel manga to the Infinite Darkness anime.",
+      "chronologicalOrder": null,
+      "summary": "Years before a bioweapon conspiracy draws him into the shadows, Leon S. Kennedy faces the formative ordeal that hardens him into a relentless agent. This earlier chapter traces the events that shaped the man who will later uncover the truth in Penamstan.",
+      "image": null,
+      "imageUrl": "https://static.wikia.nocookie.net/residentevil/images/0/07/Infinite_Darkness_Volume_1.jpg/revision/latest/scale-to-width-down/400?cb=20220728125943",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Resident_Evil:_Infinite_Darkness",
+        "https://tokyopop.com/products/9781427868428_resident-evil-infinite-darkness-the-beginning"
+      ]
+    },
+    {
+      "id": "biohazard-the-stage",
+      "title": "BIOHAZARD THE STAGE",
+      "medium": "stagePlay",
+      "branch": "spinoff",
+      "releaseDate": "2015-10-22",
+      "recommendedOrder": 59,
+      "recommendedReason": "Capcom-overseen Japanese stage play set between RE5 and RE6.",
+      "chronologicalOrder": null,
+      "summary": "BSAA operatives Chris Redfield and Piers Nivans respond to a bioterror outbreak at a Western Australian university, where they join Rebecca Chambers to contain the infection and uncover who unleashed it.",
+      "image": null,
+      "imageUrl": "https://static.wikia.nocookie.net/residentevil/images/7/78/BIOHAZARD_THE_STAGE.jpg/revision/latest/scale-to-width-down/400?cb=20150801013957",
+      "status": false,
+      "sources": [
+        "https://www.projectumbrella.net/biohazard-the-stage.html",
+        "https://residentevil.fandom.com/wiki/BIOHAZARD_THE_STAGE",
+        "https://www.imdb.com/title/tt10236090/"
+      ]
+    },
+    {
+      "id": "musical-biohazard-voice-of-gaia",
+      "title": "MUSICAL BIOHAZARD ~Voice of Gaia~",
+      "medium": "stagePlay",
+      "branch": "spinoff",
+      "releaseDate": "2016-09-30",
+      "recommendedOrder": 60,
+      "recommendedReason": "Capcom-licensed stage musical in a deliberately separate continuity.",
+      "chronologicalOrder": null,
+      "summary": "In a future where the walled city of Dubrovnik shelters the last survivors from the ravenous infected known as Them, the people hold the line against the horde, fighting in part through the power of music.",
+      "image": null,
+      "imageUrl": "https://static.wikia.nocookie.net/residentevil/images/6/66/MUSICAL_BIOHAZARD_poster.jpg/revision/latest/scale-to-width-down/400?cb=20160630170342",
+      "status": false,
+      "sources": [
+        "https://www.projectumbrella.net/musical-biohazard-voice-of-gaia.html",
+        "https://residentevil.fandom.com/wiki/MUSICAL_BIOHAZARD_~_Voice_of_Gaia_~"
+      ]
+    },
+    {
+      "id": "biohazard-the-experience",
+      "title": "BIOHAZARD THE Experience",
+      "medium": "stagePlay",
+      "branch": "spinoff",
+      "releaseDate": "2017-02-10",
+      "recommendedOrder": 61,
+      "recommendedReason": "Japanese survival-horror stage play; a mansion-bound mystery.",
+      "chronologicalOrder": null,
+      "summary": "Thirteen strangers wake inside a strange mansion with no memory of how they got there or why they were taken, and they must survive its horrors while piecing together the reason behind their abduction.",
+      "image": null,
+      "imageUrl": "https://static.wikia.nocookie.net/residentevil/images/7/71/BIOHAZARD_THE_EXPERIENCE_poster.png/revision/latest/scale-to-width-down/400?cb=20180531172553",
+      "status": false,
+      "sources": [
+        "https://www.j25musical.jp/en/stage/63",
+        "https://residentevil.fandom.com/wiki/BIOHAZARD_THE_EXPERIENCE",
+        "https://www.animenewsnetwork.com/news/2017-01-09/biohazard-resident-evil-gets-new-stage-play-in-february/.110764"
+      ]
+    },
+    {
+      "id": "bio-hazard-the-tragedy-of-makoba-village-sound-drama",
+      "title": "BIO HAZARD ~The Tragedy of Makoba Village~ SOUND DRAMA",
+      "medium": "audio",
+      "branch": "spinoff",
+      "releaseDate": "1997-12-31",
+      "recommendedOrder": 62,
+      "recommendedReason": "The first official Biohazard radio drama; early expanded-universe lore.",
+      "chronologicalOrder": null,
+      "summary": "Caught in a violent incident in the Arklay Mountains after a string of bizarre murders near Raccoon City, S.T.A.R.S. officer Jill Valentine uncovers something far worse stalking the woods.",
+      "image": null,
+      "imageUrl": "https://static.wikia.nocookie.net/residentevil/images/e/ea/BHSOUNDDRANAMANUALhhhhh.png/revision/latest/scale-to-width-down/400?cb=20170103210433",
+      "status": false,
+      "sources": [
+        "https://www.projectumbrella.net/bio-hazard-tragedy-of-machova-village-sound-drama.html",
+        "https://vgmdb.net/album/1370",
+        "https://residentevil.fandom.com/wiki/BIO_HAZARD_~The_Tragedy_of_Makoba_Village~_SOUND_DRAMA"
+      ]
+    },
+    {
+      "id": "bio-hazard-drama-album-the-doomed-raccoon-city-vol-1",
+      "title": "BIO HAZARD DRAMA ALBUM ~The Doomed Raccoon City~ VOL.1",
+      "medium": "audio",
+      "branch": "spinoff",
+      "releaseDate": "1998-02-21",
+      "recommendedOrder": 63,
+      "recommendedReason": "Part 1 of a Capcom RE2-prequel drama anthology of civilian outbreak stories.",
+      "chronologicalOrder": null,
+      "summary": "As the t-Virus tears through Raccoon City, ordinary residents Jane and Jim fight to survive the outbreak and uncover the truth about the infected hunting them.",
+      "image": null,
+      "imageUrl": "https://static.wikia.nocookie.net/residentevil/images/1/19/BIO_HAZARD_The_Doomed_Raccoon_City_Vol.1_booklet_cover.png/revision/latest/scale-to-width-down/400?cb=20140807154126",
+      "status": false,
+      "sources": [
+        "https://www.projectumbrella.net/bio-hazard-drama-album-the-doomed-raccoon-city-vol1.html",
+        "https://residentevil.fandom.com/wiki/BIO_HAZARD_DRAMA_ALBUM_~The_Doomed_Raccoon_City~_VOL.1"
+      ]
+    },
+    {
+      "id": "bio-hazard-drama-album-the-doomed-raccoon-city-vol-2",
+      "title": "BIO HAZARD DRAMA ALBUM ~The Doomed Raccoon City~ VOL.2",
+      "medium": "audio",
+      "branch": "spinoff",
+      "releaseDate": "1998-03-21",
+      "recommendedOrder": 64,
+      "recommendedReason": "Part 2 of the Doomed Raccoon City drama anthology.",
+      "chronologicalOrder": null,
+      "summary": "As the t-Virus keeps spreading, Raccoon City sinks deeper into collapse and its trapped residents struggle to stay alive.",
+      "image": null,
+      "imageUrl": "https://static.wikia.nocookie.net/residentevil/images/c/c7/BIO_HAZARD_The_Doomed_Raccoon_City_VOL.2_cover.png/revision/latest/scale-to-width-down/400?cb=20131024122437",
+      "status": false,
+      "sources": [
+        "https://www.projectumbrella.net/bio-hazard-drama-album-the-doomed-raccoon-city-vol2.html",
+        "https://residentevil.fandom.com/wiki/BIO_HAZARD_DRAMA_ALBUM_~The_Doomed_Raccoon_City~_VOL.2"
+      ]
+    },
+    {
+      "id": "bio-hazard-drama-album-the-doomed-raccoon-city-vol-3",
+      "title": "BIO HAZARD DRAMA ALBUM ~The Doomed Raccoon City~ VOL.3",
+      "medium": "audio",
+      "branch": "spinoff",
+      "releaseDate": "1998-04-21",
+      "recommendedOrder": 65,
+      "recommendedReason": "Part 3 concluding the Doomed Raccoon City drama anthology.",
+      "chronologicalOrder": null,
+      "summary": "The Raccoon City outbreak reaches its climax as the surviving residents make their final desperate stand against the infection.",
+      "image": null,
+      "imageUrl": "https://static.wikia.nocookie.net/residentevil/images/1/1a/Fate_of_Raccoon_City_3.png/revision/latest/scale-to-width-down/400?cb=20101215183221",
+      "status": false,
+      "sources": [
+        "https://www.projectumbrella.net/bio-hazard-drama-album-the-doomed-raccoon-city-vol3.html",
+        "https://residentevil.fandom.com/wiki/BIO_HAZARD_DRAMA_ALBUM_~The_Doomed_Raccoon_City~_VOL.3"
+      ]
+    },
+    {
+      "id": "biohazard-2-drama-album-the-little-runaway-sherry",
+      "title": "BIOHAZARD 2 DRAMA ALBUM ~The Little Runaway Sherry~",
+      "medium": "audio",
+      "branch": "spinoff",
+      "releaseDate": "1999-03-20",
+      "recommendedOrder": 66,
+      "recommendedReason": "RE2 follow-up drama CD chronicling Sherry Birkin after the game.",
+      "chronologicalOrder": null,
+      "summary": "After escaping the destruction of Raccoon City, young Sherry Birkin tries to find safety in the town of Stone Ville while the dangers that follow her refuse to let go.",
+      "image": null,
+      "imageUrl": "https://static.wikia.nocookie.net/residentevil/images/d/d1/The_Little_Runaway_Sherry_-_front_cover.jpg/revision/latest/scale-to-width-down/400?cb=20131029140857",
+      "status": false,
+      "sources": [
+        "https://www.projectumbrella.net/biohazard-2-drama-album-the-little-fugitive-sherry.html",
+        "https://vgmdb.net/album/3112",
+        "https://residentevil.fandom.com/wiki/BIOHAZARD_2_DRAMA_ALBUM_~The_Little_Runaway_Sherry~"
+      ]
+    },
+    {
+      "id": "biohazard-2-drama-album-the-female-spy-ada-lives",
+      "title": "BIOHAZARD 2 Drama Album ~The Female Spy Ada Lives~",
+      "medium": "audio",
+      "branch": "spinoff",
+      "releaseDate": "1999-04-21",
+      "recommendedOrder": 67,
+      "recommendedReason": "RE2 side-story drama CD centered on Ada Wong.",
+      "chronologicalOrder": null,
+      "summary": "Having survived the fall of Raccoon City, spy Ada Wong navigates the deadly aftermath of the outbreak, relying on her wits to stay one step ahead of the threats closing in.",
+      "image": null,
+      "imageUrl": "https://static.wikia.nocookie.net/residentevil/images/b/b3/Female_spy_Ada_lives.jpg/revision/latest/scale-to-width-down/400?cb=20121210004423",
+      "status": false,
+      "sources": [
+        "https://www.projectumbrella.net/biohazard-2-drama-album-the-female-spy-ada-lives.html",
+        "https://vgmdb.net/album/3111",
+        "https://residentevil.fandom.com/wiki/BIOHAZARD_2_Drama_Album_~The_Female_Spy_Ada_Lives~"
       ]
     }
   ]
