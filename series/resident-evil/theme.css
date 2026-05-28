@@ -161,7 +161,7 @@ body {
 
 .bookmark-bar {
   position: absolute;
-  right: -28px;
+  right: -34px;
   top: 80px;
   flex-direction: column;
   gap: 2px;
@@ -468,7 +468,7 @@ body {
   }
   #app::before { inset: -3px; }
   #app::after { width: 10px; left: -3px; top: -3px; bottom: -3px; }
-  .bookmark-bar { right: -20px; }
+  .bookmark-bar { right: -23px; }
   .bookmark-tab { width: 20px; max-width: 20px; height: 18px; }
   .bookmark-toc::after { font-size: 0.4rem; }
   .entry-cover { width: 90px; }
