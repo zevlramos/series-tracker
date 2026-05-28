@@ -454,6 +454,14 @@ body {
   padding-bottom: 2rem;
 }
 
+.ds-flip-overlay {
+  background: #d8ccaa;
+  background-image: repeating-linear-gradient(0deg, transparent, transparent 26px,
+    rgba(139,119,80,0.06) 26px, rgba(139,119,80,0.06) 27px);
+  border-radius: 0 6px 6px 0;
+  padding: 0 clamp(28px, 4vw, 50px) 2rem;
+}
+
 .viewport::after {
   content: '';
   display: block;

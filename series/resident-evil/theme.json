@@ -1,5 +1,6 @@
 {
   "layoutMode": "paged",
+  "pageTurn": "3d",
   "tokens": {
     "palette": {
       "bg": "#0a0a0a",

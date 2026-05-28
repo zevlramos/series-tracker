@@ -88,4 +88,28 @@ describe('validateTheme', () => {
     assert.equal(validateTheme('string').ok, false);
     assert.equal(validateTheme([]).ok, false);
   });
+
+  it('accepts pageTurn "3d"', () => {
+    const theme = { ...goldenTheme, pageTurn: '3d' };
+    const result = validateTheme(theme);
+    assert.equal(result.ok, true);
+  });
+
+  it('accepts missing pageTurn', () => {
+    const { pageTurn, ...noPT } = goldenTheme;
+    const result = validateTheme(noPT);
+    assert.equal(result.ok, true);
+  });
+
+  it('accepts null pageTurn', () => {
+    const theme = { ...goldenTheme, pageTurn: null };
+    const result = validateTheme(theme);
+    assert.equal(result.ok, true);
+  });
+
+  it('rejects unsupported pageTurn', () => {
+    const result = validateTheme({ ...goldenTheme, pageTurn: 'slide' });
+    assert.equal(result.ok, false);
+    assert.match(result.error, /pageTurn/);
+  });
 });

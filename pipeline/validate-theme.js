@@ -1,4 +1,5 @@
 const VALID_LAYOUT_MODES = ['paged'];
+const VALID_PAGE_TURNS = ['3d'];
 const PALETTE_KEYS = ['bg', 'surface', 'text', 'accent'];
 const FONT_KEYS = ['heading', 'body'];
 
@@ -53,6 +54,10 @@ export function validateTheme(theme) {
   }
   if (t.background !== null && typeof t.background !== 'string') {
     return { ok: false, error: 'tokens.background must be a string or null' };
+  }
+
+  if ('pageTurn' in theme && theme.pageTurn !== null && !VALID_PAGE_TURNS.includes(theme.pageTurn)) {
+    return { ok: false, error: `Invalid pageTurn "${theme.pageTurn}" — must be one of: ${VALID_PAGE_TURNS.join(', ')}` };
   }
 
   return { ok: true, theme };
