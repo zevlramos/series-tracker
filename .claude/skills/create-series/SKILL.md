@@ -80,7 +80,25 @@ After the Series renders in the Shell, derive franchise-appropriate Visual token
 
 Rebuild → re-validate → write → refresh preview. Continue until approved.
 
-**Structural feedback (ADR-0010):** if the maintainer asks for something tokens can't express — texture, motion, custom layout, navigation changes — stop and surface the choice: "That's beyond what Visual tokens can do. It belongs in either a Layout Mode (shared structure) or a per-Series `theme.css` (experiential layer). Which feels right?" Do not silently encode structural asks as token hacks.
+### 8. Theme CSS (experiential layer)
+
+After Visual tokens are approved, author a per-Series `theme.css` — the surface skin that tokens can't express (texture, typography feel, decorative elements). Per ADR-0010, `theme.css` is **surface only**.
+
+1. Web-search the franchise's visual identity for texture, material, and decorative cues beyond palette/fonts.
+2. Write `series/<slug>/theme.css` targeting the Shell's existing DOM classes (see `style.css` and `shell.js` for class names). It loads after `style.css`, so same-specificity selectors win by cascade order — avoid `!important`. Never assume custom DOM elements or JS-injected attributes.
+3. Regenerate `series/<slug>/index.html` with `renderSeriesIndex(name, { hasThemeCss: true })` so the `<link>` is present.
+4. Open `/series/<slug>/` in the Shell to preview.
+5. **Iterate.** Present the proposed skin and ask:
+
+> "Here's the theme.css I derived. You can ask me to: adjust textures, change decorative elements, tweak typography feel, or approve as-is."
+
+Edit → write → refresh preview. Continue until approved.
+
+**Structural/navigational gate (ADR-0010):** if the maintainer's feedback is structural or navigational — new DOM elements, JS behavior, navigation changes, animations requiring JS — **stop and surface the choice**:
+
+> "That's a structural ask, not surface skin. Two options: (1) build it as a shared Layout Mode in the Shell (more work, reusable by other Series), or (2) build it as a one-off override (faster, bespoke to this Series). Which feels right?"
+
+Do not silently bake structural asks into `theme.css`. The classification must be an explicit, surfaced decision at this checkpoint.
 
 ## Constraints
 

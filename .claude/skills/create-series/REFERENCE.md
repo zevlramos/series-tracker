@@ -43,7 +43,7 @@ The Draft is pipeline-internal JSON persisted at `.drafts/<slug>.json`. Review-o
 | `validate-draft.js` | `validateDraft(draft) → {ok, draft}∣{ok:false, error}` | Validate full Draft shape |
 | `draft-to-series-data.js` | `draftToSeriesData(draft) → dataJsonObject` | Strip review fields → data.json |
 | `append-to-registry.js` | `appendToRegistry(registry, {slug, name}) → registry` | Idempotent series.json append |
-| `render-series-index.js` | `renderSeriesIndex(name) → htmlString` | Template substitution for index.html |
+| `render-series-index.js` | `renderSeriesIndex(name, {hasThemeCss?}) → htmlString` | Template substitution for index.html; pass `{hasThemeCss: true}` to include `<link>` to `theme.css` |
 | `flag-low-trust-source.js` | `hasOnlyLowTrustSources(sources) → boolean` | True if all sources match low-trust domains |
 | `render-draft-markdown.js` | `renderDraftMarkdown(draft) → string` | Draft → review Markdown, flagged Entries first |
 | `build-theme.js` | `buildTheme({layoutMode?, tokens}) → themeObject` | Assemble tokens into theme.json shape; defaults layoutMode to `"paged"`, fills missing heroImage/background with null |
@@ -56,6 +56,7 @@ The Draft is pipeline-internal JSON persisted at `.drafts/<slug>.json`. Review-o
 | `series/<slug>/data.json` | The 13-field Entry array — must pass `parseSeries` |
 | `series/<slug>/index.html` | Shell bootstrap page with correct `<title>` |
 | `series/<slug>/theme.json` | Visual tokens — assembled by `buildTheme`, validated by `validateTheme` |
+| `series/<slug>/theme.css` | Experiential layer — per-Series surface skin (optional, ADR-0010) |
 | `series.json` | Registry — `[{slug, name}]`, append-only |
 
 ## Stage code snippets

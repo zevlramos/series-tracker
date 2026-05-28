@@ -16,4 +16,17 @@ describe('renderSeriesIndex', () => {
     assert.ok(html.includes('Tom &amp; Jerry &lt;3'));
     assert.ok(!html.includes('<3'));
   });
+
+  it('omits theme.css link by default', () => {
+    const html = renderSeriesIndex('Test Series');
+    assert.ok(!html.includes('theme.css'));
+  });
+
+  it('includes theme.css link when hasThemeCss is true', () => {
+    const html = renderSeriesIndex('Resident Evil', { hasThemeCss: true });
+    assert.ok(html.includes('href="theme.css"'));
+    const styleIdx = html.indexOf('href="../../style.css"');
+    const themeIdx = html.indexOf('href="theme.css"');
+    assert.ok(themeIdx > styleIdx, 'theme.css link should appear after style.css');
+  });
 });
