@@ -1,0 +1,17 @@
+{
+  "layoutMode": "paged",
+  "tokens": {
+    "palette": {
+      "bg": "#0a0c14",
+      "surface": "#141825",
+      "text": "#d4d8e4",
+      "accent": "#e8722a"
+    },
+    "fonts": {
+      "heading": "\"Playfair Display\", Georgia, serif",
+      "body": "\"Inter\", \"Helvetica Neue\", sans-serif"
+    },
+    "heroImage": "https://images4.alphacoders.com/153/thumb-1920-153594.jpg",
+    "background": null
+  }
+}

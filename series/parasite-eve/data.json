@@ -1,0 +1,134 @@
+{
+  "slug": "parasite-eve",
+  "name": "Parasite Eve",
+  "entries": [
+    {
+      "id": "parasite-eve-novel",
+      "title": "Parasite Eve",
+      "medium": "novel",
+      "branch": "mainline",
+      "releaseDate": "1995-04-01",
+      "recommendedOrder": 1,
+      "recommendedReason": "The origin of the franchise — all other media build on or adapt this novel.",
+      "chronologicalOrder": null,
+      "summary": "A Japanese science fiction horror novel about mitochondria as a conscious, intelligent life-form called Eve. After a woman named Kiyomi dies in a car crash, Eve manipulates her husband Toshiaki into cultivating her liver cells and orchestrating a kidney transplant into teenager Mariko Anzai, ultimately using Mariko as a host to birth a new mitochondrial life-form.",
+      "image": null,
+      "imageUrl": "https://images1.penguinrandomhouse.com/cover/9781942993582",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Parasite_Eve_(novel)",
+        "https://www.goodreads.com/en/book/show/624023.Parasite_Eve",
+        "https://www.penguinrandomhouse.com/books/163960/parasite-eve-by-hideaki-sena/"
+      ]
+    },
+    {
+      "id": "parasite-eve-film",
+      "title": "Parasite Eve",
+      "medium": "film",
+      "branch": "mainline",
+      "releaseDate": "1997-02-01",
+      "recommendedOrder": 2,
+      "recommendedReason": "Direct adaptation of the novel — best experienced right after reading the source material.",
+      "chronologicalOrder": null,
+      "summary": "A biologist's wife is left brain dead after a car accident. When he obtains her liver for mitochondria research, the cells transform into a sentient organism that takes human form and plots to create a new species that will wipe out humanity. Based on the 1995 horror novel by Hideaki Sena.",
+      "image": null,
+      "imageUrl": "https://media.themoviedb.org/t/p/w300_and_h450_face/tEQqMOfiHWtCb2dDu4X5dOBF2AH.jpg",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Parasite_Eve_(film)",
+        "https://www.themoviedb.org/movie/33045-parasaito-ivu?language=en-US",
+        "https://www.imdb.com/title/tt0119860/"
+      ]
+    },
+    {
+      "id": "parasite-eve-game",
+      "title": "Parasite Eve",
+      "medium": "game",
+      "branch": "mainline",
+      "releaseDate": "1998-03-29",
+      "recommendedOrder": 3,
+      "recommendedReason": "Canonical sequel to the novel — the game that brought the franchise to international attention.",
+      "chronologicalOrder": null,
+      "summary": "NYPD rookie Aya Brea battles a woman named Eve whose mitochondria have gained sentience, granting her the power to cause spontaneous human combustion. Set over six days in December 1997 New York City, Aya must stop Eve from birthing an \"Ultimate Being\" that would wipe out humanity in a survival-horror RPG blending real-time and turn-based combat.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/3/3f/Parasite_Eve_Coverart.png",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Parasite_Eve_(video_game)",
+        "https://www.igdb.com/games/parasite-eve"
+      ]
+    },
+    {
+      "id": "parasite-eve-ii",
+      "title": "Parasite Eve II",
+      "medium": "game",
+      "branch": "mainline",
+      "releaseDate": "1999-12-16",
+      "recommendedOrder": 4,
+      "recommendedReason": "Direct sequel — continues Aya Brea's story from the first game.",
+      "chronologicalOrder": null,
+      "summary": "Set three years after the original, FBI operative Aya Brea investigates a new outbreak of Neo-Mitochondrial Creatures, tracing the threat from a Los Angeles mall to a secret underground facility in Nevada called the Shelter. She uncovers a conspiracy to create artificial humanoid creatures and transform humanity using a vector virus, ultimately defeating the threat and adopting a cloned girl named Eve.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/9/92/Parasite_Eve_II_Coverart.png",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Parasite_Eve_II",
+        "https://www.igdb.com/games/parasite-eve-ii"
+      ]
+    },
+    {
+      "id": "the-3rd-birthday",
+      "title": "The 3rd Birthday",
+      "medium": "game",
+      "branch": "spinoff",
+      "releaseDate": "2010-12-22",
+      "recommendedOrder": 5,
+      "recommendedReason": "Loose spinoff — best experienced after the mainline games for context on Aya Brea's character.",
+      "chronologicalOrder": null,
+      "summary": "In 2013, mysterious creatures called the Twisted devastate Manhattan, and Aya Brea uses her Overdive ability to project her consciousness back in time to alter past battles. As she fights corrupted beings known as High Ones, she discovers the crisis is rooted in a 2010 cathedral attack that split her consciousness from her adopted sister Eve's across time and space.",
+      "image": null,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/en/a/a1/The_3rd_Birthday_Cover.png",
+      "status": false,
+      "sources": [
+        "https://en.wikipedia.org/wiki/The_3rd_Birthday",
+        "https://www.igdb.com/collections/parasite-eve"
+      ]
+    },
+    {
+      "id": "parasite-eve-manga",
+      "title": "Parasite Eve",
+      "medium": "comic",
+      "branch": "mainline",
+      "releaseDate": "1998-03-11",
+      "recommendedOrder": 6,
+      "recommendedReason": "Manga adaptation of the novel — supplementary to the core experience.",
+      "chronologicalOrder": null,
+      "summary": "A single-volume manga adaptation of the 1995 Parasite Eve novel by Hideaki Sena, drawn by Shikakuno and published under Kadokawa's Asuka Comics DX imprint. The story follows Kiyomi Nagashima as host to the mitochondrial entity Eve, primarily using the 1997 film's setting with some original additions.",
+      "image": null,
+      "imageUrl": "https://m.media-amazon.com/images/I/51Xtu3KA9NL._SL500_.jpg",
+      "status": false,
+      "sources": [
+        "https://www.kadokawa.co.jp/product/199999852906/",
+        "https://en.wikipedia.org/wiki/Parasite_Eve_(novel)"
+      ]
+    },
+    {
+      "id": "parasite-eve-diva-n-y-shi-no-utahime",
+      "title": "Parasite Eve DIVA: N.Y. Shi no Utahime",
+      "medium": "comic",
+      "branch": "spinoff",
+      "releaseDate": "1998-09-25",
+      "recommendedOrder": 7,
+      "recommendedReason": "Manga adaptation of the first game with altered events and original characters — best read after playing the game.",
+      "chronologicalOrder": null,
+      "summary": "A two-volume manga adaptation of the 1998 Parasite Eve video game, drawn by Fujitaka Noriko and published under Kadokawa's Asuka Comics DX imprint. While following the game's core plot of Aya Brea battling Eve in New York, the manga introduces three original characters and alters several events from the game.",
+      "image": null,
+      "imageUrl": null,
+      "status": false,
+      "sources": [
+        "https://www.kadokawa.co.jp/product/199999852993/",
+        "https://www.kadokawa.co.jp/product/199999853101/"
+      ]
+    }
+  ]
+}
