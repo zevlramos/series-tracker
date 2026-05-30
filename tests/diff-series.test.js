@@ -161,4 +161,24 @@ describe('diffSeries', () => {
 
     assert.deepStrictEqual(result.unchanged, ['resident-evil-2002']);
   });
+
+  it('surfaces a loreDate change as an accept/reject delta (researched fact)', () => {
+    const existing = [{ ...baseEntry, loreDate: '1998' }];
+    const changed = { ...freshMatch, loreDate: '1998-09' };
+    const alignment = { matches: [{ existingId: 'resident-evil-2002', freshEntry: changed }], unmatched: [] };
+    const result = diffSeries(existing, alignment);
+
+    assert.equal(result.changed.length, 1);
+    assert.deepStrictEqual(result.changed[0].fields.loreDate, { old: '1998', new: '1998-09' });
+  });
+
+  it('does not surface an unchanged loreDate', () => {
+    const existing = [{ ...baseEntry, loreDate: '1998-09' }];
+    const changed = { ...freshMatch, loreDate: '1998-09' };
+    const alignment = { matches: [{ existingId: 'resident-evil-2002', freshEntry: changed }], unmatched: [] };
+    const result = diffSeries(existing, alignment);
+
+    assert.deepStrictEqual(result.unchanged, ['resident-evil-2002']);
+    assert.equal(result.changed.length, 0);
+  });
 });
