@@ -1,8 +1,5 @@
-// Variable-precision in-universe "lore date" logic (ADR-0011).
-// A lore date is a nullable ISO-8601 string at year, month, or day precision —
-// "1998", "1998-09", or "1998-09-28". This deep module is the single source of
-// truth for parsing, ordering, and display; the gate, draft validator, and view
-// call into it rather than re-deriving the rules.
+// Variable-precision in-universe "lore date" logic (ADR-0011):
+// "1998" (year), "1998-09" (month), or "1998-09-28" (day).
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -13,11 +10,7 @@ const YEAR = /^\d{4}$/;
 const YEAR_MONTH = /^(\d{4})-(\d{2})$/;
 const FULL_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
-// Parse a lore-date string into its components, or null if it is not one of the
-// three exact precisions (including calendar-invalid days). Non-string input
-// returns null too — but note that null is also the result for the valid
-// "absent date" case, so callers that must distinguish a bad value from an
-// absent one check `typeof !== 'string'` themselves before parsing.
+// null for malformed strings and for non-string input alike.
 export function parseLoreDate(s) {
   if (typeof s !== 'string') return null;
 
@@ -46,11 +39,8 @@ export function parseLoreDate(s) {
   return null;
 }
 
-// Comparator over lore-date strings. Returns -1 | 0 | 1. Orders by year, then
-// month, then day, where an absent (coarser) field sorts before any present one
-// ("1998" < "1998-09" < "1999"). null and unparseable values sort AFTER every
-// known date, so it can be used directly as an Array.sort comparator to push
-// unknowns last.
+// Orders by year, then month, then day; a coarser (absent) field sorts before a
+// present one, so "1998" < "1998-09" < "1999". null and unparseable values sort last.
 export function compareLoreDate(a, b) {
   const pa = parseLoreDate(a);
   const pb = parseLoreDate(b);
@@ -66,9 +56,7 @@ export function compareLoreDate(a, b) {
   );
 }
 
-// Human-readable rendering, deferring entirely to parseLoreDate for validity:
-// "1998", "September 1998", "September 28, 1998". Returns null for an absent or
-// invalid value so the caller can omit the "Set in:" surface.
+// "1998", "September 1998", or "September 28, 1998"; null for absent or invalid.
 export function formatLoreDate(s) {
   const parsed = parseLoreDate(s);
   if (parsed === null) return null;
