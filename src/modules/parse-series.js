@@ -1,3 +1,5 @@
+import { parseLoreDate } from './lore-date.js';
+
 const VALID_MEDIA = ['game', 'novel', 'comic', 'film', 'show', 'stagePlay', 'podcast', 'audio', 'video'];
 const VALID_BRANCHES = ['mainline', 'spinoff'];
 
@@ -92,6 +94,11 @@ function validateEntry(e, prefix, seenIds) {
     return `${prefix}: invalid "chronologicalOrder" — must be an integer or null`;
   }
 
+  if (e.loreDate != null &&
+      (typeof e.loreDate !== 'string' || parseLoreDate(e.loreDate) === null)) {
+    return `${prefix}: invalid "loreDate" — must be null or an ISO date (YYYY, YYYY-MM, or YYYY-MM-DD)`;
+  }
+
   return null;
 }
 
@@ -105,6 +112,7 @@ function normalizeEntry(raw) {
     recommendedOrder: raw.recommendedOrder,
     recommendedReason: raw.recommendedReason,
     chronologicalOrder: raw.chronologicalOrder ?? null,
+    loreDate: raw.loreDate ?? null,
     summary: raw.summary,
     image: raw.image ?? null,
     imageUrl: raw.imageUrl ?? null,

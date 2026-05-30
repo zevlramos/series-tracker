@@ -1,6 +1,7 @@
 import { resolveImage } from './resolve-image.js';
 import { verbFor } from './status.js';
 import { buildEditUrl } from './edit-url.js';
+import { formatLoreDate } from './lore-date.js';
 
 export function presentEntry(entry, repoCoords, seriesSlug) {
   return {
@@ -13,6 +14,7 @@ export function presentEntry(entry, repoCoords, seriesSlug) {
     imageSrc: resolveImage(entry),
     statusLabel: verbFor(entry.medium, entry.status),
     statusDone: Boolean(entry.status),
+    loreDateLabel: formatLoreDate(entry.loreDate),
     editUrl: buildEditUrl(repoCoords, seriesSlug),
   };
 }

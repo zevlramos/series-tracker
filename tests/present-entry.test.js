@@ -50,4 +50,14 @@ describe('presentEntry', () => {
     const view = presentEntry({ ...entry, medium: 'hologram' }, COORDS, 'test');
     assert.equal(view.statusLabel, 'Done');
   });
+
+  it('exposes a formatted loreDateLabel when loreDate is set', () => {
+    const view = presentEntry({ ...entry, loreDate: '1998-09' }, COORDS, 'test');
+    assert.equal(view.loreDateLabel, 'September 1998');
+  });
+
+  it('loreDateLabel is null when loreDate is absent or null', () => {
+    assert.equal(presentEntry(entry, COORDS, 'test').loreDateLabel, null);
+    assert.equal(presentEntry({ ...entry, loreDate: null }, COORDS, 'test').loreDateLabel, null);
+  });
 });

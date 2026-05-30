@@ -31,18 +31,28 @@ describe('draftToSeriesData', () => {
     assert.equal('incompleteMedia' in data, false);
   });
 
-  it('preserves all 13 data.json fields per entry', () => {
+  it('preserves all 14 data.json fields per entry', () => {
     const data = draftToSeriesData(validDraft);
     const entry = data.entries[0];
     const expectedFields = [
       'id', 'title', 'medium', 'branch', 'releaseDate',
-      'recommendedOrder', 'recommendedReason', 'chronologicalOrder',
+      'recommendedOrder', 'recommendedReason', 'chronologicalOrder', 'loreDate',
       'summary', 'image', 'imageUrl', 'status', 'sources'
     ];
     for (const field of expectedFields) {
       assert.ok(field in entry, `entry should have "${field}"`);
     }
-    assert.equal(Object.keys(entry).length, 13);
+    assert.equal(Object.keys(entry).length, 14);
+  });
+
+  it('carries loreDate through, defaulting absent to null', () => {
+    const entries = [
+      { ...validDraft.entries[0], id: 'has-lore', loreDate: '1998-09' },
+      { ...validDraft.entries[1], id: 'no-lore' },  // loreDate absent
+    ];
+    const data = draftToSeriesData({ ...validDraft, entries });
+    assert.equal(data.entries.find(e => e.id === 'has-lore').loreDate, '1998-09');
+    assert.equal(data.entries.find(e => e.id === 'no-lore').loreDate, null);
   });
 
   it('output passes parseSeries validation', () => {

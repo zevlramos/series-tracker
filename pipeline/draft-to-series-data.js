@@ -11,6 +11,7 @@ export function draftToSeriesData(draft) {
       recommendedOrder: entry.recommendedOrder,
       recommendedReason: entry.recommendedReason,
       chronologicalOrder: entry.chronologicalOrder ?? null,
+      loreDate: entry.loreDate ?? null,
       summary: entry.summary,
       image: entry.image ?? null,
       imageUrl: entry.imageUrl ?? null,

@@ -159,6 +159,19 @@ body {
   margin-bottom: 1.5rem;
 }
 
+.entry-lore-date {
+  font-size: 0.9rem;
+  opacity: 0.75;
+  margin-bottom: 1rem;
+}
+
+.entry-lore-date-label {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
 .entry-summary {
   line-height: 1.6;
 }
