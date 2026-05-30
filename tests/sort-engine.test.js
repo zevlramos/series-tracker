@@ -68,6 +68,11 @@ describe('availableSorts', () => {
       const entries = makeEntries([{ chronologicalOrder: null }, { chronologicalOrder: null }]);
       assert.ok(!availableSorts({ entries }).includes('chronological'));
     });
+
+    it('treats rank 0 as a real rank (offers chronological)', () => {
+      const entries = makeEntries([{ chronologicalOrder: 0 }, { chronologicalOrder: null }]);
+      assert.ok(availableSorts({ entries }).includes('chronological'));
+    });
   });
 
   it('returns all three when data is complete', () => {
@@ -125,6 +130,16 @@ describe('sortEntries', () => {
       const sorted = sortEntries(entries, 'chronological');
       assert.equal(sorted.length, 2);
       assert.ok(sorted.every(e => e.chronologicalOrder === null));
+    });
+
+    it('treats rank 0 as a real rank, sorting it before null-rank entries', () => {
+      const entries = makeEntries([
+        { id: 'n', chronologicalOrder: null },
+        { id: 'zero', chronologicalOrder: 0 },
+        { id: 'one', chronologicalOrder: 1 }
+      ]);
+      const sorted = sortEntries(entries, 'chronological');
+      assert.deepEqual(sorted.map(e => e.chronologicalOrder), [0, 1, null]);
     });
   });
 

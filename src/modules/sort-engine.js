@@ -27,8 +27,7 @@ export function sortEntries(entries, mode) {
   }
 }
 
-// Ascending by chronologicalOrder, with unranked (null) entries pushed to the
-// end. Explicit null handling — `null - n` would coerce to 0 and interleave
+// Explicit null handling: `null - n` coerces to 0, which would interleave
 // unranked entries instead of placing them last.
 function byRankNullsLast(a, b) {
   const ra = a.chronologicalOrder;
