@@ -39,16 +39,28 @@ A single named styling value in a Series' Theme (`theme.json`) that the Shell ma
 _Avoid_: Style, CSS variable, setting.
 
 **Timeline**:
-The ordered display of a Series' Entries. Its default spine is the **Recommended order**; the Shell offers only the sorts a Series declares it supports — Recommended always, release date when Entries carry dates, and an optional in-universe **Chronological order** when defined — so no empty sort toggle is ever shown.
+The ordered display of a Series' Entries. Its default spine is the **Recommended order**. A reader can switch to other lenses the Series supports: **Chronological order** (in-universe) and **Release order** (by publication date). A sort is offered only when it has data to sort by, so no empty toggle is ever shown. These three orderings are orthogonal — the same Series can read differently under each.
 
 **Recommended order**:
-The curated "order you should generally consume this Series in," with a per-Entry reason for its placement. The headline of each Series and the Timeline's default.
+The curated "order you should generally consume this Series in," with a per-Entry reason for its placement. The headline of each Series and the Timeline's default. It is **authored, never derived** — it may intentionally diverge from both release and in-universe order (e.g. playing an original before its prequel so a later reveal still lands). See [[0011-curated-chronological-rank-lore-date-enrichment]].
+_Avoid_: treating it as the in-universe timeline — the recommended path need not match **Chronological order**.
+
+**Chronological order**:
+The order a Series' Entries occur **in-universe** — the canon timeline, independent of when each shipped. A distinct lens from the **Recommended order**: a Series may deliberately be experienced out of in-universe order. Carried as an explicit per-Entry rank so it works even for a Series that has a clear in-universe order but no known in-universe dates (an Entry can have a known position without a known date). Seeded by **Lore date** where dates exist, then curated. See [[0011-curated-chronological-rank-lore-date-enrichment]].
+
+**Lore date**:
+The in-universe date an Entry's events are set (e.g. *September 1998*), distinct from its **release date** (when the media shipped). A fact surfaced on the Entry, often coarse (year-only) or unknown — many Series have a clear in-universe *order* but no meaningful in-universe *dates*. Informs **Chronological order** (it seeds the rank) but does not replace it. See [[0011-curated-chronological-rank-lore-date-enrichment]].
+_Avoid_: Release date, Date (unqualified), Chronological order (that's the ordering, this is the date).
 
 **Source**:
 A citation URL on an Entry backing its existence and details. Lets a human verify research and lets `update-series` diff fresh research against existing data. See [[0004-checkpointed-research-pipeline]].
 
 **Draft**:
-The flat, reviewable intermediate that `create-series`/`update-series` produce from research — the Entry list, order, reasons, summaries, cover URLs, and Sources — before any site is generated. The human approves the Draft, then it's rendered into the Shell.
+The flat, reviewable intermediate that `create-series`/`update-series` produce from research — the Entry list, order, reasons, summaries, cover URLs, and Sources — before any site is generated. The maintainer curates the Draft in the **Curation wizard**, then it's rendered into the Shell.
+
+**Curation wizard**:
+The interactive surface where the maintainer vets a Draft pass by pass — keep/drop, branch, consumed, recommended order + reasons, in-universe timeline (lore dates and chronological rank), and summaries — rather than approving auto-decided choices in bulk. The shared curation stage for both `create-series` and `update-series`: it edits a starting set of Entries that is empty for a create and the curation-preserved merge for an update, so the wizard itself never needs to know which it is. See [[0012-unified-curation-pipeline]].
+_Avoid_: Editor, Form (it's a guided multi-pass review, not a single form).
 
 ## Example dialogue
 
