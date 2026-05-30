@@ -56,7 +56,11 @@ _Avoid_: Release date, Date (unqualified), Chronological order (that's the order
 A citation URL on an Entry backing its existence and details. Lets a human verify research and lets `update-series` diff fresh research against existing data. See [[0004-checkpointed-research-pipeline]].
 
 **Draft**:
-The flat, reviewable intermediate that `create-series`/`update-series` produce from research — the Entry list, order, reasons, summaries, cover URLs, and Sources — before any site is generated. The human approves the Draft, then it's rendered into the Shell.
+The flat, reviewable intermediate that `create-series`/`update-series` produce from research — the Entry list, order, reasons, summaries, cover URLs, and Sources — before any site is generated. The maintainer curates the Draft in the **Curation wizard**, then it's rendered into the Shell.
+
+**Curation wizard**:
+The interactive surface where the maintainer vets a Draft pass by pass — keep/drop, branch, consumed, recommended order + reasons, in-universe timeline (lore dates and chronological rank), and summaries — rather than approving auto-decided choices in bulk. The shared curation stage for both `create-series` and `update-series`: it edits a starting set of Entries that is empty for a create and the curation-preserved merge for an update, so the wizard itself never needs to know which it is. See [[0012-unified-curation-pipeline]].
+_Avoid_: Editor, Form (it's a guided multi-pass review, not a single form).
 
 ## Example dialogue
 
