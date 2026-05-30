@@ -322,6 +322,7 @@ function renderPage(container, pager, seriesSlug) {
           <span class="entry-branch badge badge-${esc(view.branch)}">${esc(view.branch)}</span>
           <span class="entry-status badge ${view.statusDone ? 'status-done' : 'status-pending'}">${esc(view.statusLabel)}</span>
         </div>
+        ${view.loreDateLabel ? `<p class="entry-lore-date"><span class="entry-lore-date-label">Set in:</span> ${esc(view.loreDateLabel)}</p>` : ''}
         <p class="entry-summary">${esc(view.summary)}</p>
         <a class="edit-link" href="${esc(view.editUrl)}" target="_blank" rel="noopener">Edit on GitHub</a>
       </div>

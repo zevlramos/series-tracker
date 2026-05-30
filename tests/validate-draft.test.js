@@ -164,6 +164,30 @@ describe('validateDraft', () => {
       assert.equal(result.ok, true);
     });
 
+    it('accepts loreDate at each precision and null/absent', () => {
+      for (const loreDate of [null, '1998', '1998-09', '1998-09-28']) {
+        const result = validateDraft(withEntry({ loreDate }));
+        assert.equal(result.ok, true, `loreDate ${JSON.stringify(loreDate)} should be valid`);
+      }
+      const { loreDate, ...noLore } = validDraft.entries[0];
+      const result = validateDraft({ ...validDraft, entries: [noLore] });
+      assert.equal(result.ok, true, 'absent loreDate should be valid');
+    });
+
+    it('rejects non-string loreDate (bare number)', () => {
+      const result = validateDraft(withEntry({ loreDate: 1998 }));
+      assert.equal(result.ok, false);
+      assert.ok(result.error.includes('loreDate'));
+    });
+
+    it('rejects malformed loreDate strings', () => {
+      for (const bad of ['98', '1998-13', '1998-02-29', '1998-9', '']) {
+        const result = validateDraft(withEntry({ loreDate: bad }));
+        assert.equal(result.ok, false, `loreDate ${JSON.stringify(bad)} should be rejected`);
+        assert.ok(result.error.includes('loreDate'));
+      }
+    });
+
     it('rejects duplicate entry ids', () => {
       const e1 = { ...validDraft.entries[0], recommendedOrder: 1 };
       const e2 = { ...validDraft.entries[0], recommendedOrder: 2 };
