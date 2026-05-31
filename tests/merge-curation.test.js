@@ -168,6 +168,43 @@ describe('mergeCuration', () => {
     assert.equal(result[0].branch, 'spinoff');
   });
 
+  it('applies an accepted loreDate while preserving chronologicalOrder and status', () => {
+    const existing = [mkEntry({ loreDate: '1998', chronologicalOrder: 2, status: true })];
+    const diff = {
+      new: [],
+      changed: [{
+        existingId: 'resident-evil-2002',
+        fields: {
+          loreDate: { old: '1998', new: '1998-09', accepted: true }
+        }
+      }],
+      unchanged: []
+    };
+    const result = mergeCuration(existing, diff);
+
+    assert.equal(result[0].loreDate, '1998-09');     // diffed fact applied
+    assert.equal(result[0].chronologicalOrder, 2);    // curation rank preserved
+    assert.equal(result[0].status, true);             // curation preserved
+  });
+
+  it('keeps the existing loreDate when the delta is rejected', () => {
+    const existing = [mkEntry({ loreDate: '1998', chronologicalOrder: 2 })];
+    const diff = {
+      new: [],
+      changed: [{
+        existingId: 'resident-evil-2002',
+        fields: {
+          loreDate: { old: '1998', new: '1998-09', accepted: false }
+        }
+      }],
+      unchanged: []
+    };
+    const result = mergeCuration(existing, diff);
+
+    assert.equal(result[0].loreDate, '1998');
+    assert.equal(result[0].chronologicalOrder, 2);
+  });
+
   it('output passes parseSeries when wrapped in a series envelope', () => {
     const existing = [mkEntry()];
     const diff = {
