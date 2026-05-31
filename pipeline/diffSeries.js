@@ -5,6 +5,7 @@ const DIFF_FIELDS = [
   'medium',
   'branch',
   'releaseDate',
+  'loreDate',
   'summary',
   'image',
   'imageUrl',

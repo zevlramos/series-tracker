@@ -61,6 +61,22 @@ describe('parseSeries', () => {
       assert.equal(result.series.entries[0].chronologicalOrder, null);
     });
 
+    it('accepts loreDate at each precision and carries it through', () => {
+      for (const loreDate of [null, '1998', '1998-09', '1998-09-28']) {
+        const entry = { ...validEntry, loreDate };
+        const series = { ...validSeries, entries: [entry] };
+        const result = parseSeries(JSON.stringify(series));
+        assert.equal(result.ok, true, `loreDate ${JSON.stringify(loreDate)} should be valid`);
+        assert.equal(result.series.entries[0].loreDate, loreDate);
+      }
+    });
+
+    it('defaults an absent loreDate to null', () => {
+      const result = parseSeries(JSON.stringify(validSeries));
+      assert.equal(result.ok, true);
+      assert.equal(result.series.entries[0].loreDate, null);
+    });
+
     it('accepts all valid Medium values', () => {
       const media = ['game', 'novel', 'comic', 'film', 'show', 'stagePlay', 'podcast', 'audio', 'video'];
       for (const medium of media) {
@@ -223,6 +239,24 @@ describe('parseSeries', () => {
       const result = parseSeries(JSON.stringify(series));
       assert.equal(result.ok, false);
       assert.ok(result.error.includes('releaseDate'));
+    });
+
+    it('returns error for non-string loreDate (bare number)', () => {
+      const entry = { ...validEntry, loreDate: 1998 };
+      const series = { ...validSeries, entries: [entry] };
+      const result = parseSeries(JSON.stringify(series));
+      assert.equal(result.ok, false);
+      assert.ok(result.error.includes('loreDate'));
+    });
+
+    it('returns error for malformed loreDate strings', () => {
+      for (const bad of ['98', '1998-13', '1998-02-29', '1998-9', '']) {
+        const entry = { ...validEntry, loreDate: bad };
+        const series = { ...validSeries, entries: [entry] };
+        const result = parseSeries(JSON.stringify(series));
+        assert.equal(result.ok, false, `loreDate ${JSON.stringify(bad)} should be rejected`);
+        assert.ok(result.error.includes('loreDate'));
+      }
     });
   });
 });
