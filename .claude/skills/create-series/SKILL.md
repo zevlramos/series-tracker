@@ -1,19 +1,22 @@
 ---
 name: create-series
-description: Create a new Series from a franchise name. Discovers media, researches Entries via per-medium subagents, consolidates into a reviewable Draft, and generates Shell-ready output after human approval. Use when user wants to add a new franchise tracker (e.g. "create a Silent Hill series", "add a new series for Zelda").
+description: Create a new Series from a franchise name. Discovers media, researches Entries via per-medium subagents, then delegates to curate-series for the 6-phase wizard and publish, and derives the theme. Use when user wants to add a new franchise tracker (e.g. "create a Silent Hill series", "add a new series for Zelda").
 ---
 
 # create-series
 
 ## Quick start
 
-User names a franchise → you discover media, research Entries, build a Draft, get approval, generate files.
+User names a franchise → you discover media, research Entries, then **delegate to
+[curate-series](../curate-series/SKILL.md)** with an empty starting set: it runs the
+6-phase wizard and publishes. A create is the unified pipeline with nothing to merge
+against (ADR-0012); this skill owns discovery, research, and theming around it.
 
 ## Workflow
 
 ### 0. Precondition + resumability check
 
-Derive the slug with `deriveEntryId(name)`. Run `checkPrecondition(registry, slug)` — abort if slug exists. Then check for an existing Draft at `.drafts/${slug}.json` — if valid, skip to Stage 4 (Review). See [REFERENCE.md](REFERENCE.md) for code.
+Derive the slug with `deriveEntryId(name)`. Run `checkPrecondition(registry, slug)` — abort if slug exists. Then check for an existing Draft at `.drafts/${slug}.json` — if one is present, skip research and hand it straight to curate-series (Stage 4). See [REFERENCE.md](REFERENCE.md) for code.
 
 ### 1. Discovery
 
@@ -29,45 +32,34 @@ Proceed after the user confirms. If they add a medium, include it. If they narro
 
 Dispatch one `Agent` call per confirmed medium, all **in parallel**. Use `subagent_type: "general-purpose"`, named descriptively (e.g. `"research-games"`). See [REFERENCE.md](REFERENCE.md) for the subagent prompt template.
 
-If a subagent errors or returns unparseable results, record that medium in `incompleteMedia` — don't retry automatically.
+If a subagent errors or returns unparseable results, note that medium as incomplete and tell the user at handoff — don't retry automatically.
 
-### 3. Consolidate Draft
+### 3. Consolidate the researched Entries
 
-Merge all subagent results into the Draft structure (you, the orchestrator — not a subagent).
+Merge all subagent results into a flat Entry list (you, the orchestrator — not a subagent).
 
-1. Parse each subagent's JSON (strip code fences/prose first). Failed media → `incompleteMedia`.
+1. Parse each subagent's JSON (strip code fences/prose first). Failed media → note them and tell the user; don't retry automatically.
 2. Mint ids with `deriveEntryId(title)` for every Entry.
-3. Assign `recommendedOrder` (1-based) — mainline first, then spinoffs. Write a `recommendedReason` per Entry and an `orderRationale` for the overall philosophy.
-4. Set `status: false`, `image: null`, `chronologicalOrder: null` on each Entry.
-5. Validate with `validateDraft` and persist to `.drafts/${slug}.json`. Never write while invalid — fix and re-validate first.
+3. Assign a provisional `recommendedOrder` (1-based, mainline first, then spinoffs) and a `recommendedReason` per Entry — the maintainer refines both in the wizard's Order phase.
+4. Set `status: false`, `image: null`, `loreDate: null`, `chronologicalOrder: null` on each Entry.
 
-### 4. Review
+### 4. Delegate to curate-series (empty starting set)
 
-Render with `renderDraftMarkdown(draft)` — low-confidence and low-trust-source Entries surface first. Tell the user:
+A create has nothing to merge against, so hand curate-series a **pass-through diff** —
+every researched Entry is `new`:
 
-> "Here's the Draft. You can ask me to: reorder entries, drop entries, add entries you think are missing, rewrite reasons or summaries, change branch assignments, or approve as-is."
+```js
+const startingEntries = [];                 // empty: create starts from ∅ (ADR-0012)
+const approvedDiff = { new: researchedEntries, changed: [], unchanged: [] };
+```
 
-**Conversational revision loop:** edit → re-validate → re-persist → show updated section. Continue until approved.
+Then follow **[curate-series](../curate-series/SKILL.md)** from its Step 1 (merge is a
+pass-through here) through publish. It writes the Draft, launches the 6-phase wizard, and
+on the maintainer's "Publish" projects through the `parseSeries` gate to
+`series/<slug>/data.json` + `series.json` + `index.html`. Do not write `data.json`
+yourself — the wizard's publish is the single fail-closed write.
 
-### 5. Generate (fail-closed)
-
-Once approved — **no partial writes if any step fails**:
-
-1. `validateDraft(draft)` — abort if `!ok`
-2. `draftToSeriesData(draft)` → data object
-3. `parseSeries(JSON.stringify(data))` — **fail-closed gate**: abort if `!ok`
-4. Write `series/<slug>/data.json`
-5. `appendToRegistry` → write `series.json`
-6. `renderSeriesIndex` → write `series/<slug>/index.html`
-7. Skip `theme.json` — Shell falls back to defaults. Stage 7 derives proper tokens after content is verified.
-
-See [REFERENCE.md](REFERENCE.md) for imports and code.
-
-### 6. Verify
-
-Open `/series/<slug>/` in the real Shell via the dev server. Confirm TOC + Entry pages render with default styling.
-
-### 7. Theme (derive Visual tokens)
+### 5. Theme (derive Visual tokens)
 
 After the Series renders in the Shell, derive franchise-appropriate Visual tokens.
 
@@ -80,7 +72,7 @@ After the Series renders in the Shell, derive franchise-appropriate Visual token
 
 Rebuild → re-validate → write → refresh preview. Continue until approved.
 
-### 8. Theme CSS (experiential layer)
+### 6. Theme CSS (experiential layer)
 
 After Visual tokens are approved, author a per-Series `theme.css` — the surface skin that tokens can't express (texture, typography feel, decorative elements). Per ADR-0010, `theme.css` is **surface only**.
 
@@ -102,8 +94,7 @@ Do not silently bake structural asks into `theme.css`. The classification must b
 
 ## Constraints
 
-- **Fail closed** — if `parseSeries` rejects the projection, write nothing
-- **Idempotent registry** — `appendToRegistry` never duplicates a slug
+- **Publish belongs to curate-series** — the wizard's fail-closed `parseSeries` write is the only path that creates `data.json`; never write it from this skill
 - **Stable ids** — `deriveEntryId`, never positional (ADR-0009)
 - **Draft is gitignored** — `.drafts/` is scratch, never committed
 - **No schema changes** — output conforms to existing `data.json` / `theme.json`
@@ -111,5 +102,4 @@ Do not silently bake structural asks into `theme.css`. The classification must b
 - **Every Entry needs ≥1 Source URL** — the user must be able to verify claims
 - **Remakes are distinct** — each gets its own Entry with a `versionNote` (ADR-0007)
 - **Cover URLs recorded, never downloaded** — `imageUrl` only (ADR-0005)
-- **Failed media → `incompleteMedia`** — never silently dropped
-- **Low-confidence first** — flagged Entries surface at the top of the review Markdown
+- **Failed media surfaced** — tell the user which media didn't research; never silently dropped
