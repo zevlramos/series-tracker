@@ -1,0 +1,507 @@
+<!doctype html>
+<!-- Curation wizard UI — committed, series-agnostic. Loads everything (series name,
+     slug, entries, each entry's _mergeStatus) from GET /data at runtime; never names
+     a series. Served by curate-server.mjs. Six phases:
+       1 Include · 2 Branch · 3 Consumed · 4 Order · 5 Timeline · 6 Summaries
+     Imports the repo's real esc + lore-date helpers (served at /src/modules/*) so the
+     wizard's date handling is identical to what the publish gate validates against. -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Series curation</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:14px/1.45 system-ui,sans-serif; background:#14110f; color:#e8e2da; }
+  header { position:sticky; top:0; z-index:5; background:#1d1916; border-bottom:1px solid #3a322b; padding:10px 16px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  header h1 { font-size:14px; margin:0; color:#c98b54; letter-spacing:.06em; white-space:nowrap; text-transform:uppercase; }
+  .phases { display:flex; gap:4px; flex-wrap:wrap; }
+  .phase-tab { font-size:12px; padding:5px 10px; border-radius:6px; border:1px solid #3a322b; background:#221d19; color:#a89c90; cursor:pointer; }
+  .phase-tab.active { background:#7c3b22; border-color:#a85a37; color:#fff; }
+  .phase-tab .n { opacity:.6; margin-right:4px; }
+  .spacer { flex:1; }
+  button { font:inherit; cursor:pointer; border-radius:6px; border:1px solid #4a4038; background:#2a241f; color:#e8e2da; padding:6px 11px; }
+  button.primary { background:#7c3b22; border-color:#a85a37; color:#fff; font-weight:600; }
+  button.tiny { padding:1px 7px; font-size:12px; }
+  button:disabled { opacity:.45; cursor:default; }
+  #status { font-size:12px; color:#8fae7a; min-width:120px; text-align:right; }
+  #status.err { color:#e08a7a; }
+  main { padding:18px 16px 90px; max-width:1040px; margin:0 auto; }
+  .hint { color:#8a7f75; font-size:12px; margin:0 0 14px; }
+
+  /* merge badges (new / preserved / changed) */
+  .mb { font-size:9px; padding:2px 6px; border-radius:9px; text-transform:uppercase; letter-spacing:.05em; border:1px solid; }
+  .mb.new { color:#7fc6ff; border-color:#3a6c8f; background:#13212b; }
+  .mb.preserved { color:#9a8f84; border-color:#3a322b; background:#1a1613; }
+  .mb.changed { color:#e0b46a; border-color:#7a5a2a; background:#241c10; }
+  .badge { font-size:10px; padding:2px 7px; border-radius:10px; border:1px solid #4a4038; color:#bcae9f; text-transform:uppercase; letter-spacing:.05em; }
+  .date { color:#7a7068; font-size:12px; font-variant-numeric:tabular-nums; }
+
+  /* card phases (1-3) */
+  .stage { display:flex; flex-direction:column; align-items:center; gap:18px; }
+  .progress { color:#8a7f75; font-size:12px; letter-spacing:.08em; }
+  .progress .bar { display:inline-block; width:200px; height:5px; background:#2a241f; border-radius:3px; margin-left:10px; vertical-align:middle; overflow:hidden; }
+  .progress .bar i { display:block; height:100%; background:#a85a37; }
+  .card { width:100%; max-width:680px; background:#1a1613; border:1px solid #3a322b; border-radius:14px; padding:24px 26px; transition:border-color .12s, box-shadow .12s; }
+  .card.on-left { border-color:#a8513e; box-shadow:0 0 0 1px #a8513e; }
+  .card.on-right { border-color:#5f8a4e; box-shadow:0 0 0 1px #5f8a4e; }
+  .card .ctitle { font-size:21px; font-weight:700; margin:0 0 6px; }
+  .card .cmeta { display:flex; gap:10px; align-items:center; flex-wrap:wrap; color:#8a7f75; font-size:12px; margin-bottom:14px; }
+  .card .csum { color:#c4bbb0; font-size:14px; line-height:1.55; }
+  .decision { display:flex; gap:14px; width:100%; max-width:680px; }
+  .decision .opt { flex:1; text-align:center; padding:14px; border-radius:10px; border:1px solid #3a322b; background:#1d1916; cursor:pointer; user-select:none; }
+  .decision .opt .k { display:block; font-size:11px; color:#8a7f75; margin-bottom:4px; }
+  .decision .opt .v { font-size:15px; font-weight:600; }
+  .decision .opt.sel-left { border-color:#a8513e; background:#3a201a; }
+  .decision .opt.sel-right { border-color:#5f8a4e; background:#1f2c1a; }
+  .done-screen { text-align:center; padding:40px 0; }
+  .done-screen h2 { color:#c98b54; }
+  .done-screen .tally { color:#b3a89d; margin:14px 0 22px; }
+
+  /* list phases (4 order, 6 summaries) */
+  .row { display:grid; grid-template-columns:26px 30px 1fr; gap:10px; align-items:start; padding:10px 8px; border:1px solid #2a241f; border-radius:8px; margin:6px 0; background:#1a1613; }
+  .row.newrow { border-color:#3a6c8f; }
+  .row.dragging { outline:2px dashed #a85a37; }
+  .row .pos { color:#7a7068; font-size:12px; text-align:right; padding-top:3px; }
+  .handle { cursor:grab; color:#6a605a; text-align:center; padding-top:2px; user-select:none; }
+  .rmain { min-width:0; display:flex; flex-direction:column; gap:6px; }
+  .line1 { display:flex; gap:8px; align-items:baseline; flex-wrap:wrap; }
+  .rtitle { font-weight:600; }
+  .nudge button { padding:1px 7px; font-size:12px; }
+  textarea { width:100%; resize:vertical; background:#0f0d0b; border:1px solid #2f2820; color:#d8cfc4; border-radius:6px; padding:7px 9px; font:inherit; }
+  .reason { min-height:34px; }
+  .summary-box { min-height:62px; }
+  .sumctrls { display:flex; gap:8px; align-items:center; font-size:12px; color:#8a7f75; }
+  .sumctrls button { padding:2px 8px; font-size:12px; }
+  .group { margin:16px 0 4px; color:#c98b54; font-size:11px; text-transform:uppercase; letter-spacing:.12em; border-bottom:1px solid #2a241f; padding-bottom:4px; }
+
+  /* timeline phase (5) — dense table with drag-to-rank */
+  .tl-actions { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:11px; color:#9a8f84; margin-bottom:10px; }
+  table.tl { width:100%; border-collapse:collapse; font-size:13px; }
+  table.tl th { text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:#8a7f75; border-bottom:1px solid #3a322b; padding:6px 8px; }
+  table.tl td { border-bottom:1px solid #221d19; padding:5px 8px; vertical-align:middle; }
+  table.tl tr.newrow td { background:rgba(19,33,43,.35); }
+  table.tl tr.drifts td { background:rgba(36,28,16,.5); }
+  table.tl td.rank { width:46px; }
+  table.tl input.rank-in { width:42px; background:#0f0d0b; border:1px solid #2f2820; color:#c98b54; border-radius:4px; padding:2px 4px; font:inherit; text-align:center; font-variant-numeric:tabular-nums; }
+  table.tl td.dh { width:20px; color:#6a605a; cursor:grab; text-align:center; user-select:none; }
+  table.tl tr.dragging td { background:#2a1f17 !important; opacity:.6; }
+  table.tl tr.dropbefore td { box-shadow:inset 0 2px 0 #a85a37; }
+  .tl-sep td { border-bottom:1px dashed #3a322b; padding:4px 8px; color:#8a7f75; font-size:10px; text-transform:uppercase; letter-spacing:.1em; }
+  .lore { display:inline-flex; gap:4px; align-items:center; background:#0f0d0b; border:1px solid #2f2820; border-radius:6px; padding:2px 6px; }
+  .lore input, .lore select { background:transparent; border:none; color:#d8cfc4; font:inherit; font-variant-numeric:tabular-nums; }
+  .lore input.yr { width:46px; } .lore input.dy { width:30px; } .lore select { color:#c4bbb0; }
+  .lore-fmt { color:#c98b54; font-size:12px; min-width:118px; display:inline-block; }
+  .lore-fmt .unk { color:#6a605a; font-style:italic; }
+  .drift-pill { display:inline-flex; gap:6px; align-items:center; font-size:11px; color:#e0b46a; background:#241c10; border:1px solid #7a5a2a; border-radius:8px; padding:2px 8px; }
+  .drift-warn { color:#e08a7a; }
+  /* primary (recommended-vs-lore) drift banner */
+  .drift-banner { border:1px solid #7a5a2a; background:#241c10; border-radius:10px; padding:10px 14px; margin-bottom:14px; }
+  .drift-banner h3 { margin:0 0 6px; font-size:12px; color:#e0b46a; text-transform:uppercase; letter-spacing:.08em; }
+  .drift-banner ul { margin:0; padding-left:0; list-style:none; }
+  .drift-banner li { display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:4px 0; font-size:13px; }
+  .drift-banner .prov { color:#b3a89d; }
+</style></head>
+<body>
+<header>
+  <h1 id="seriesName">curation</h1>
+  <div class="phases" id="phases"></div>
+  <span class="spacer"></span>
+  <span id="status"></span>
+  <button id="publish" class="primary">Publish to site</button>
+</header>
+<main id="main"></main>
+
+<script type="module">
+import { esc } from '/src/modules/escape.js';
+import { parseLoreDate, formatLoreDate, compareLoreDate } from '/src/modules/lore-date.js';
+
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+// Primary-drift threshold: only flag recommended-vs-lore gaps this large (years),
+// so deliberate out-of-universe-order recommendations don't trip the advisory.
+const LARGE_LORE_GAP_YEARS = 5;
+
+const PHASES = [
+  { n:1, key:'include',  label:'Include' },
+  { n:2, key:'branch',   label:'Branch' },
+  { n:3, key:'consumed', label:'Consumed' },
+  { n:4, key:'order',    label:'Order' },
+  { n:5, key:'timeline', label:'Timeline' },
+  { n:6, key:'summary',  label:'Summaries' },
+];
+const LAST_CARD_PHASE = 3;   // phases 1-3 are Tinder cards; 4+ are list/table editors
+let DATA = {}, ENTRIES = [], phase = 1, cursor = 0, saveTimer = null;
+
+const included = () => ENTRIES.filter(e => !e._drop);
+const mb = e => `<span class="mb ${e._mergeStatus}">${e._mergeStatus}</span>`;
+
+// Append a "medium / branch" header to `wrap` when the group changes. `state.last`
+// carries the previous group across the loop. Shared by the Order and Summaries phases.
+function groupHeader(wrap, e, state) {
+  const g = e.medium + ' / ' + e.branch;
+  if (g === state.last) return;
+  const h = document.createElement('div'); h.className = 'group'; h.textContent = g;
+  wrap.appendChild(h); state.last = g;
+}
+
+async function boot() {
+  DATA = await (await fetch('/data')).json();
+  ENTRIES = DATA.entries.map(e => ({
+    ...e,
+    loreDate: e.loreDate ?? null,
+    chronologicalOrder: e.chronologicalOrder ?? null,     // preserves a real rank of 0
+    _drop: e._drop ?? false,
+    _origSummary: e._origSummary ?? e.summary,
+    _proposedSummary: e._proposedSummary ?? null,         // in-universe rewrite, if research supplied one
+    _summaryTouched: e._summaryTouched ?? false,
+    _mergeStatus: e._mergeStatus ?? 'new',                // create → everything new
+    _driftDismissed: e._driftDismissed ?? false,          // secondary (rank-vs-lore)
+    _orderDriftDismissed: e._orderDriftDismissed ?? false, // primary (recommended-vs-lore)
+  }));
+  document.getElementById('seriesName').textContent = `${DATA.name} — curation`;
+  document.addEventListener('keydown', onKey);
+  document.getElementById('publish').onclick = doPublish;
+  render();
+}
+
+function setStatus(msg, err) { const s = document.getElementById('status'); s.textContent = msg; s.className = err ? 'err' : ''; }
+function renumber() { ENTRIES.forEach((e, i) => e.recommendedOrder = i + 1); }
+
+// Autosave the FULL working set (UI flags and all) on every change, so a later
+// phase's save never clobbers an earlier phase's edits. The server keeps this
+// verbatim in .drafts/<slug>.json; projection happens only at publish.
+function draftDoc() { return { slug: DATA.slug, name: DATA.name, entries: ENTRIES.map(e => ({ ...e })) }; }
+function finalDoc() {
+  let o = 0;
+  const entries = included().map(e => ({ ...e, recommendedOrder: ++o }));
+  return { slug: DATA.slug, name: DATA.name, entries };
+}
+function stage() {
+  clearTimeout(saveTimer); setStatus('editing…');
+  saveTimer = setTimeout(async () => {
+    try { await fetch('/stage', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(draftDoc()) }); setStatus('draft saved'); }
+    catch { setStatus('autosave failed', true); }
+  }, 700);
+}
+async function doPublish() {
+  const btn = document.getElementById('publish'); btn.disabled = true; setStatus('publishing…');
+  try {
+    const r = await (await fetch('/publish', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(finalDoc()) })).json();
+    setStatus(r.ok ? `published ${r.count} entries` : `rejected: ${r.error}`, !r.ok);
+  } catch { setStatus('publish failed', true); }
+  btn.disabled = false;
+}
+
+function renderTabs() {
+  document.getElementById('phases').innerHTML = PHASES.map(p =>
+    `<span class="phase-tab ${p.n===phase?'active':''}" data-phase="${p.n}"><span class="n">${p.n}</span>${p.label}</span>`
+  ).join('');
+  document.querySelectorAll('.phase-tab').forEach(t => t.onclick = () => { phase = +t.dataset.phase; cursor = 0; render(); });
+}
+
+// ---- card phases (1 include, 2 branch, 3 consumed) ----
+function cardConfig() {
+  if (phase === 1) return {
+    list: ENTRIES, left:{label:'Exclude'}, right:{label:'Include'},
+    state: e => e._drop ? 'left' : 'right',
+    set: (e, side) => { e._drop = (side === 'left'); },
+  };
+  if (phase === 2) return {
+    list: included(), left:{label:'Spinoff'}, right:{label:'Mainline'},
+    state: e => e.branch === 'mainline' ? 'right' : 'left',
+    set: (e, side) => { e.branch = side === 'right' ? 'mainline' : 'spinoff'; },
+  };
+  return { // phase 3
+    list: included(), left:{label:'Not consumed'}, right:{label:'Consumed'},
+    state: e => e.status ? 'right' : 'left',
+    set: (e, side) => { e.status = (side === 'right'); },
+  };
+}
+function renderCardPhase() {
+  const cfg = cardConfig(), list = cfg.list, main = document.getElementById('main');
+  if (cursor >= list.length) {
+    const incl = included().length;
+    const tally = phase === 1 ? `${incl} included, ${ENTRIES.length - incl} excluded`
+      : phase === 2 ? `${included().filter(e => e.branch === 'mainline').length} mainline, ${included().filter(e => e.branch === 'spinoff').length} spinoff`
+      : `${included().filter(e => e.status).length} consumed, ${included().filter(e => !e.status).length} not`;
+    const next = PHASES.find(p => p.n === phase + 1);
+    main.innerHTML = `<div class="done-screen"><h2>Pass ${phase} done</h2><div class="tally">${tally}</div>
+      ${next ? `<button class="primary" id="next">Next: ${next.label} &rarr;</button>` : '<div>All passes visited. Review and Publish.</div>'}
+      <div class="hint" style="margin-top:16px">Press &larr; to step back into this pass.</div></div>`;
+    if (next) document.getElementById('next').onclick = () => { phase = next.n; cursor = 0; render(); };
+    return;
+  }
+  const e = list[cursor], side = cfg.state(e);
+  main.innerHTML = `
+    <div class="stage">
+      <div class="progress">${cursor+1} / ${list.length}<span class="bar"><i style="width:${Math.round(cursor/list.length*100)}%"></i></span></div>
+      <div class="card ${side==='left'?'on-left':'on-right'}">
+        <p class="ctitle">${esc(e.title)}</p>
+        <div class="cmeta"><span class="badge">${esc(e.medium)}</span><span class="date">${esc(e.releaseDate||'')}</span>${mb(e)}<span>branch: ${esc(e.branch)}</span></div>
+        <div class="csum">${esc(e.summary)}</div>
+      </div>
+      <div class="decision">
+        <div class="opt ${side==='left'?'sel-left':''}" data-side="left"><span class="k">&larr; left</span><span class="v">${cfg.left.label}</span></div>
+        <div class="opt ${side==='right'?'sel-right':''}" data-side="right"><span class="k">right &rarr;</span><span class="v">${cfg.right.label}</span></div>
+      </div>
+      <div class="hint">&larr;/&rarr; choose &amp; advance &nbsp;&middot;&nbsp; Space skip &nbsp;&middot;&nbsp; Esc back</div>
+    </div>`;
+  document.querySelectorAll('.opt').forEach(o => o.onclick = () => { cfg.set(e, o.dataset.side); cursor++; stage(); render(); });
+}
+function onKey(ev) {
+  if (phase > LAST_CARD_PHASE) return;
+  const cfg = cardConfig();
+  if (cursor >= cfg.list.length) {
+    if (ev.key === 'ArrowLeft' || ev.key === 'Escape' || ev.key === 'Backspace') { ev.preventDefault(); cursor = Math.max(0, cfg.list.length - 1); render(); }
+    return;
+  }
+  const e = cfg.list[cursor];
+  if (ev.key === 'ArrowRight') { ev.preventDefault(); cfg.set(e, 'right'); cursor++; stage(); render(); }
+  else if (ev.key === 'ArrowLeft') { ev.preventDefault(); cfg.set(e, 'left'); cursor++; stage(); render(); }
+  else if (ev.key === ' ') { ev.preventDefault(); cursor++; render(); }
+  else if (ev.key === 'Escape' || ev.key === 'Backspace') { ev.preventDefault(); cursor = Math.max(0, cursor - 1); render(); }
+}
+
+// ---- phase 4: recommended order + reason ----
+function moveAdjacent(entry, dir) {
+  const i = ENTRIES.indexOf(entry);
+  let j = i + dir;
+  while (j >= 0 && j < ENTRIES.length && ENTRIES[j]._drop) j += dir;
+  if (j < 0 || j >= ENTRIES.length) return;
+  [ENTRIES[i], ENTRIES[j]] = [ENTRIES[j], ENTRIES[i]];
+  renumber(); stage(); render();
+}
+function renderOrder() {
+  const main = document.getElementById('main'), list = included();
+  main.innerHTML = '<p class="hint">The <b>recommended</b> order people are guided through (its own lens — independent of the in-universe Timeline). Drag, or use the arrows. Edit each one-line reason shown in the contents list.</p><div id="orderlist"></div>';
+  const wrap = document.getElementById('orderlist');
+  const group = { last: '' };
+  list.forEach((e, idx) => {
+    groupHeader(wrap, e, group);
+    const row = document.createElement('div'); row.className = 'row' + (e._mergeStatus === 'new' ? ' newrow' : ''); row.draggable = true; row.dataset.id = e.id;
+    row.innerHTML = `<div class="handle">&#x283F;</div><div class="pos">${idx+1}</div>
+      <div class="rmain">
+        <div class="line1"><span class="rtitle">${esc(e.title)}</span><span class="badge">${esc(e.medium)}</span><span class="date">${esc(e.releaseDate||'')}</span>${mb(e)}
+          <span class="nudge"><button data-up>&uarr;</button><button data-down>&darr;</button></span></div>
+        <textarea class="reason" placeholder="why consume it here…">${esc(e.recommendedReason)}</textarea>
+      </div>`;
+    row.querySelector('[data-up]').onclick = () => moveAdjacent(e, -1);
+    row.querySelector('[data-down]').onclick = () => moveAdjacent(e, 1);
+    row.querySelector('.reason').oninput = ev => { e.recommendedReason = ev.target.value; stage(); };
+    row.ondragstart = ev => { ev.dataTransfer.setData('text/plain', e.id); row.classList.add('dragging'); };
+    row.ondragend = () => row.classList.remove('dragging');
+    row.ondragover = ev => ev.preventDefault();
+    row.ondrop = ev => { ev.preventDefault(); dropBeforeOrder(ev.dataTransfer.getData('text/plain'), e.id); };
+    wrap.appendChild(row);
+  });
+}
+function dropBeforeOrder(fromId, toId) {
+  if (fromId === toId) return;
+  const from = ENTRIES.find(x => x.id === fromId);
+  ENTRIES.splice(ENTRIES.indexOf(from), 1);
+  ENTRIES.splice(ENTRIES.findIndex(x => x.id === toId), 0, from);
+  renumber(); stage(); render();
+}
+
+// ---- phase 5: timeline (lore dates + chronological rank) ----
+const loreYear = s => { const p = parseLoreDate(s); return p ? p.year : null; };
+
+// Secondary drift: rank order disagrees with lore order, among ranked+dated entries.
+// Directly fixable here (Match the dates / Keep as-is). Surgical, never global.
+function rankDrift() {
+  const dated = included().filter(e => e.chronologicalOrder != null && parseLoreDate(e.loreDate));
+  const byRank = [...dated].sort((a, b) => a.chronologicalOrder - b.chronologicalOrder);
+  const drift = new Set();
+  for (let i = 0; i < byRank.length - 1; i++) {
+    if (compareLoreDate(byRank[i].loreDate, byRank[i+1].loreDate) > 0) { drift.add(byRank[i].id); drift.add(byRank[i+1].id); }
+  }
+  for (const e of ENTRIES) if (e._driftDismissed) drift.delete(e.id);
+  return drift;
+}
+// Primary drift: an entry placed earlier in the recommended order than another whose
+// lore date is much later. Large gaps only, always dismissable, never gates. Surfaced
+// as a banner; fixed in the Order phase.
+function orderDrift() {
+  const dated = included().filter(e => parseLoreDate(e.loreDate) && !e._orderDriftDismissed);
+  const flags = [];
+  for (const E of dated) {
+    const ey = loreYear(E.loreDate);
+    const F = dated.find(f => f.recommendedOrder < E.recommendedOrder && loreYear(f.loreDate) - ey >= LARGE_LORE_GAP_YEARS);
+    if (F) flags.push({ E, F });
+  }
+  return flags;
+}
+function loreControl(e) {
+  const p = parseLoreDate(e.loreDate);
+  const yr = p ? p.year : '';
+  const mo = p && p.month ? p.month : 0;
+  const dy = p && p.day ? p.day : '';
+  const opts = ['<option value="0">—</option>'].concat(MONTHS.map((n, i) => `<option value="${i+1}" ${mo===i+1?'selected':''}>${n}</option>`)).join('');
+  const fmt = formatLoreDate(e.loreDate);
+  return `<span class="lore" data-id="${e.id}">
+      <input class="yr" placeholder="YYYY" value="${yr}" inputmode="numeric">
+      <select class="mo">${opts}</select>
+      <input class="dy" placeholder="DD" value="${dy}" inputmode="numeric">
+      <button class="tiny unkbtn" title="set unknown">unknown</button>
+    </span>
+    <span class="lore-fmt">${fmt ? '&rarr; ' + esc(fmt) : '<span class="unk">unknown / order only</span>'}</span>`;
+}
+function wireLore(root) {
+  root.querySelectorAll('.lore').forEach(c => {
+    const e = ENTRIES.find(x => x.id === c.dataset.id);
+    const yr = c.querySelector('.yr'), mo = c.querySelector('.mo'), dy = c.querySelector('.dy');
+    const apply = () => {
+      const y = yr.value.trim();
+      if (!/^\d{4}$/.test(y)) { e.loreDate = null; }                       // emit null, never '' or a number
+      else if (+mo.value) {
+        const mm = String(+mo.value).padStart(2, '0');
+        e.loreDate = /^\d{1,2}$/.test(dy.value.trim()) ? `${y}-${mm}-${String(+dy.value).padStart(2,'0')}` : `${y}-${mm}`;
+      } else { e.loreDate = y; }
+      if (e.loreDate != null && parseLoreDate(e.loreDate) === null) e.loreDate = null; // reject what the gate would reject
+      stage(); render();
+    };
+    yr.onchange = apply; mo.onchange = apply; dy.onchange = apply;
+    c.querySelector('.unkbtn').onclick = () => { e.loreDate = null; stage(); render(); };
+  });
+}
+function setRank(id, raw) {
+  const e = ENTRIES.find(x => x.id === id), v = raw.trim();
+  if (v === '') { e.chronologicalOrder = null; stage(); render(); return; }   // empty → unranked
+  if (/^-?\d+$/.test(v)) { e.chronologicalOrder = Number(v); stage(); render(); return; } // integer (incl. 0)
+  render(); // invalid → revert (re-read from state)
+}
+const rankedIncluded = () => included().filter(e => e.chronologicalOrder != null).sort((a, b) => a.chronologicalOrder - b.chronologicalOrder);
+// Reinsert `entry` into the ranked sequence at the slot `locate(ranked)` picks
+// (null → append), then renumber 1..N. Shared by drag-to-rank and match-to-lore;
+// each caller keeps its own input guard.
+function reorderRank(entry, locate) {
+  const ranked = rankedIncluded();
+  ranked.splice(ranked.indexOf(entry), 1);
+  const idx = locate(ranked);
+  ranked.splice(idx == null ? ranked.length : idx, 0, entry);
+  ranked.forEach((e, i) => e.chronologicalOrder = i + 1);
+  stage(); render();
+}
+function reseedRanksFromLore() {
+  // The one global re-derivation: dated entries → 1..K in lore order; dateless → null (needs rank).
+  const inc = included();
+  const dated = inc.filter(e => parseLoreDate(e.loreDate)).sort((a, b) => compareLoreDate(a.loreDate, b.loreDate));
+  dated.forEach((e, i) => e.chronologicalOrder = i + 1);
+  inc.filter(e => !parseLoreDate(e.loreDate)).forEach(e => e.chronologicalOrder = null);
+  stage(); render();
+}
+function matchOneToLore(id) {
+  // Surgical: move ONLY this entry to its lore-date slot among ranked entries; never reseed others.
+  const e = ENTRIES.find(x => x.id === id);
+  if (!e || e.chronologicalOrder == null || !parseLoreDate(e.loreDate)) return;
+  reorderRank(e, ranked => {
+    const i = ranked.findIndex(x => parseLoreDate(x.loreDate) && compareLoreDate(x.loreDate, e.loreDate) > 0);
+    return i < 0 ? null : i;
+  });
+}
+function dropBeforeRank(fromId, toId) {
+  if (fromId === toId) return;
+  const from = ENTRIES.find(e => e.id === fromId);
+  if (!from || from.chronologicalOrder == null) return;
+  reorderRank(from, ranked => {
+    const i = ranked.findIndex(e => e.id === toId);
+    return i < 0 ? null : i;
+  });
+}
+function renderTimeline() {
+  const main = document.getElementById('main');
+  const drift = rankDrift();
+  const odrift = orderDrift();
+  const inc = included();
+  const ranked = inc.filter(e => e.chronologicalOrder != null).sort((a, b) => a.chronologicalOrder - b.chronologicalOrder);
+  const unranked = inc.filter(e => e.chronologicalOrder == null);
+
+  const banner = odrift.length ? `<div class="drift-banner"><h3>&#9888; Recommended order vs in-universe date — ${odrift.length} to review</h3>
+    <ul>${odrift.map(({E, F}) => `<li data-id="${esc(E.id)}">
+        <span class="prov"><b>${esc(E.title)}</b> (${esc(formatLoreDate(E.loreDate))}) is recommended after <b>${esc(F.title)}</b> (${esc(formatLoreDate(F.loreDate))})</span>
+        <button class="tiny" data-fixorder>Fix in Order phase &rsaquo;</button>
+        <button class="tiny" data-odismiss>Dismiss — intentional</button></li>`).join('')}</ul>
+    <div class="hint" style="margin:6px 0 0">First-cut advisory — flags only large gaps, never blocks publishing.</div></div>` : '';
+
+  const rowHtml = e => {
+    const d = drift.has(e.id);
+    const driftCell = d
+      ? `<span class="drift-pill">&#9888; out of date order <button class="tiny" data-match>Match the dates</button> <button class="tiny" data-keep>Keep as-is</button></span>`
+      : (e.chronologicalOrder == null ? '<span class="date">needs rank</span>'
+        : (e._driftDismissed ? '<span class="date">kept (dismissed)</span>' : '<span class="date">ok</span>'));
+    return `<tr class="${e._mergeStatus==='new'?'newrow':''} ${d?'drifts':''}" data-id="${esc(e.id)}" ${e.chronologicalOrder!=null?'draggable="true"':''}>
+      <td class="dh">${e.chronologicalOrder!=null?'&#x283F;':''}</td>
+      <td class="rank"><input class="rank-in" value="${e.chronologicalOrder==null?'':e.chronologicalOrder}" data-rank></td>
+      <td>${esc(e.title)}</td>
+      <td><span class="badge">${esc(e.medium)}</span></td>
+      <td>${mb(e)}</td>
+      <td>${loreControl(e)}</td>
+      <td>${driftCell}</td>
+    </tr>`;
+  };
+  const sep = unranked.length ? `<tr class="tl-sep"><td></td><td colspan="6">needs rank — new / undated (${unranked.length})</td></tr>` : '';
+  main.innerHTML = `
+    <p class="hint">The <b>in-universe</b> timeline (its own lens). Drag &#x283F; to set chronological rank by position, or type it. Set <b>lore date</b> at any precision; rank works even with zero dates. Empty rank = unranked (sorts last).</p>
+    ${banner}
+    <div class="legend"><span><b class="mb new" style="border:0;padding:0">new</b> fresh research</span><span><b class="mb preserved" style="border:0;padding:0">preserved</b> your curation</span><span><b class="mb changed" style="border:0;padding:0">changed</b> research updated it</span></div>
+    <div class="tl-actions"><span class="hint" style="margin:0">Timeline — in-universe order</span><button id="reseed">&#x27F2; Reseed all ranks from lore dates</button></div>
+    <table class="tl"><thead><tr><th></th><th>Rank</th><th>Title</th><th>Medium</th><th>Merge</th><th>Lore date</th><th>Drift check</th></tr></thead>
+    <tbody>${ranked.map(rowHtml).join('')}${sep}${unranked.map(rowHtml).join('')}</tbody></table>`;
+
+  wireLore(main);
+  main.querySelectorAll('[data-rank]').forEach(inp => inp.onchange = ev => setRank(ev.target.closest('tr').dataset.id, ev.target.value));
+  main.querySelectorAll('[data-match]').forEach(b => b.onclick = ev => matchOneToLore(ev.target.closest('tr').dataset.id));
+  main.querySelectorAll('[data-keep]').forEach(b => b.onclick = ev => { ENTRIES.find(x => x.id === ev.target.closest('tr').dataset.id)._driftDismissed = true; stage(); render(); });
+  document.getElementById('reseed').onclick = reseedRanksFromLore;
+  main.querySelectorAll('[data-fixorder]').forEach(b => b.onclick = ev => { phase = 4; cursor = 0; render(); });
+  main.querySelectorAll('[data-odismiss]').forEach(b => b.onclick = ev => { ENTRIES.find(x => x.id === ev.target.closest('li').dataset.id)._orderDriftDismissed = true; stage(); render(); });
+  // drag-to-rank — ranked rows only
+  main.querySelectorAll('tr[draggable]').forEach(row => {
+    row.ondragstart = ev => { ev.dataTransfer.setData('text/plain', row.dataset.id); row.classList.add('dragging'); };
+    row.ondragend = () => { row.classList.remove('dragging'); main.querySelectorAll('.dropbefore').forEach(r => r.classList.remove('dropbefore')); };
+    row.ondragover = ev => { ev.preventDefault(); row.classList.add('dropbefore'); };
+    row.ondragleave = () => row.classList.remove('dropbefore');
+    row.ondrop = ev => { ev.preventDefault(); dropBeforeRank(ev.dataTransfer.getData('text/plain'), row.dataset.id); };
+  });
+}
+
+// ---- phase 6: summaries ----
+function applyProposed() {
+  // Auto-fill the in-universe rewrite where the maintainer hasn't hand-edited.
+  included().forEach(e => { if (!e._summaryTouched && e._proposedSummary) e.summary = e._proposedSummary; });
+}
+function renderSummaries() {
+  applyProposed();
+  const main = document.getElementById('main');
+  main.innerHTML = '<p class="hint">Story summary shown on each entry page. Pre-filled with the in-universe rewrite where research proposed one. "Factual" restores the original research text.</p><div id="sumlist"></div>';
+  const wrap = document.getElementById('sumlist');
+  const group = { last: '' };
+  included().forEach((e, idx) => {
+    groupHeader(wrap, e, group);
+    const row = document.createElement('div'); row.className = 'row' + (e._mergeStatus === 'new' ? ' newrow' : ''); row.dataset.id = e.id;
+    row.innerHTML = `<div class="handle"></div><div class="pos">${idx+1}</div>
+      <div class="rmain">
+        <div class="line1"><span class="rtitle">${esc(e.title)}</span><span class="badge">${esc(e.medium)}</span>${mb(e)}</div>
+        <textarea class="summary-box">${esc(e.summary)}</textarea>
+        <div class="sumctrls">
+          <button data-ai ${e._proposedSummary ? '' : 'disabled'}>AI rewrite</button>
+          <button data-factual>Factual</button>
+        </div>
+      </div>`;
+    const ta = row.querySelector('.summary-box');
+    ta.oninput = () => { e.summary = ta.value; e._summaryTouched = true; stage(); };
+    row.querySelector('[data-ai]').onclick = () => { if (e._proposedSummary) { e.summary = e._proposedSummary; e._summaryTouched = true; ta.value = e._proposedSummary; stage(); } };
+    row.querySelector('[data-factual]').onclick = () => { e.summary = e._origSummary; e._summaryTouched = true; ta.value = e._origSummary; stage(); };
+    wrap.appendChild(row);
+  });
+}
+
+function render() {
+  renderTabs();
+  if (phase <= LAST_CARD_PHASE) renderCardPhase();
+  else if (phase === 4) renderOrder();
+  else if (phase === 5) renderTimeline();
+  else renderSummaries();
+}
+boot();
+</script>
+</body></html>
