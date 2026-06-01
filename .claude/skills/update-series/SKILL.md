@@ -1,13 +1,18 @@
 ---
 name: update-series
-description: Refresh an existing Series with newly released titles without clobbering the maintainer's curation. Re-researches, aligns, diffs, reviews, merges, and regenerates through the parseSeries fail-closed gate. Use when user wants to update a series, add new entries to an existing franchise, or refresh series data.
+description: Refresh an existing Series with newly released titles without clobbering the maintainer's curation. Re-researches, semantically aligns, diffs, then delegates to curate-series to merge-preserve and run the wizard before the parseSeries fail-closed publish. Use when user wants to update a series, add new entries to an existing franchise, or refresh series data.
 ---
 
 # update-series
 
 ## Quick start
 
-User names an existing Series → you re-research, semantically align fresh results to existing Entries, diff, get field-by-field approval, merge preserving curation, and regenerate.
+User names an existing Series → you re-research, semantically align fresh results to
+existing Entries, diff, get field-by-field approval, then **delegate to
+[curate-series](../curate-series/SKILL.md)** with the existing Entries as the starting
+set. It merges (preserving curation), runs the 6-phase wizard, and publishes through the
+`parseSeries` gate. An update is the unified pipeline with a non-empty starting set
+(ADR-0012).
 
 ## Workflow
 
@@ -83,75 +88,58 @@ Each `changed` entry has per-field deltas:
 }
 ```
 
-### 4. Human approval (review checkpoint)
+### 4. Human approval — tag the diff with `accepted`
 
-Present the diff to the user. For each category:
+Present the diff and turn it into an **approved diff** curate-series can merge. `diffSeries`
+emits `{old, new}` deltas with no `accepted` flag; the merge reads `delta.accepted`, so you
+must inject it per field here.
 
 **Unchanged entries** — list briefly, no action needed.
 
-**Changed entries** — show each field change. The user accepts or rejects **per field**. Mark each delta with `accepted: true` or `accepted: false`:
+**Changed entries** — show each field change; the user accepts or rejects **per field**:
 
 ```js
-// After user review:
+// After user review, stamp each delta in place:
 change.fields.summary.accepted = true;
 change.fields.releaseDate.accepted = false;  // user wants to keep the old date
 ```
 
-**New entries** — the user approves placement in the recommended order. Each new Entry needs:
-- `recommendedOrder` — where it slots in
-- `recommendedReason` — why it belongs there
-- `status` — always `false` for new entries (never consumed yet)
+**New entries** (`diff.new`) — placement and reasons are the maintainer's job in the
+wizard's Order phase; you don't need to pre-assign `recommendedOrder` here. New entries
+default to `status: false` in the merge.
 
-Continue the review loop until the user approves.
+Continue until the user approves. The result is the `approvedDiff` —
+`{ new: diff.new, changed: diff.changed (now with accepted flags), unchanged: diff.unchanged }`.
 
-### 5. Merge
-
-Apply approved changes while preserving curation:
+### 5. Delegate to curate-series (existing Entries as the starting set)
 
 ```js
-import { mergeCuration } from '../../pipeline/mergeCuration.js';
-
-const mergedEntries = mergeCuration(existingSeries.entries, diff);
+const startingEntries = existingSeries.entries;   // non-empty: update preserves curation
+const approvedDiff = { new: diff.new, changed: diff.changed, unchanged: diff.unchanged };
 ```
 
-`mergeCuration` guarantees:
-- **Status** is never overwritten — existing entries keep their `status`, new entries default to `false`
-- **recommendedOrder** and **recommendedReason** are preserved on existing entries
-- Only fields where `accepted: true` are applied
-- New entries are placed at their approved positions
+Then follow **[curate-series](../curate-series/SKILL.md)** from its Step 1. It runs
+`mergeCuration(startingEntries, approvedDiff)` **before** the wizard (preserving `status`,
+`recommendedOrder`, `recommendedReason`, `chronologicalOrder` per ADR-0009), writes the
+Draft, runs the 6-phase wizard, and on "Publish" **projects through `draftToSeriesData`**
+then the `parseSeries` gate before writing `series/<slug>/data.json`.
 
-### 6. Regenerate (fail-closed)
+That projection is the fix for the old wholesale-write: publish writes the **projected**
+merged set, never the raw working object — so wizard UI fields never reach disk, and
+re-running `mergeCuration` after the wizard (which would revert Order/Timeline edits) is
+designed out.
 
-Rebuild the data file through the `parseSeries` gate:
+### 6. Verify
 
-```js
-import { parseSeries } from '../../src/modules/parse-series.js';
-import { writeFileSync } from 'node:fs';
-
-const updatedData = {
-  slug: existingSeries.slug,
-  name: existingSeries.name,
-  entries: mergedEntries
-};
-
-const gate = parseSeries(JSON.stringify(updatedData));
-if (!gate.ok) {
-  // Fail closed — do not write
-  throw new Error(`parseSeries rejected merged output: ${gate.error}`);
-}
-
-writeFileSync(`series/${slug}/data.json`, JSON.stringify(updatedData, null, 2));
-```
-
-### 7. Verify
-
-Open `/series/<slug>/` in the Shell and confirm the updated entries render correctly.
+Open `/series/<slug>/` in the Shell and confirm the updated entries render correctly, and
+that the Chronological lens reflects any rank edits.
 
 ## Constraints
 
-- **Curation is never auto-overwritten** — status, recommendedOrder, recommendedReason are preserved (ADR-0009)
-- **Fail closed** — if `parseSeries` rejects the merged output, write nothing
-- **Semantic alignment, not string matching** — ids are carried forward on matches, minted only for genuinely new Entries
+- **Curation is never auto-overwritten** — status, recommendedOrder, recommendedReason, chronologicalOrder preserved by the merge (ADR-0009)
+- **Merge runs once, before the wizard** — never re-merge after; it would clobber Order/Timeline edits
+- **Publish belongs to curate-series** — its projected, fail-closed `parseSeries` write is the only path that touches `data.json`
+- **Semantic alignment, not string matching** — ids carried forward on matches, minted only for genuinely new Entries
 - **Field-by-field approval** — the human accepts/rejects each changed field individually
 - **Stable ids** — `deriveEntryId` for new Entries, never positional
 - **Every Entry needs at least one Source URL**
