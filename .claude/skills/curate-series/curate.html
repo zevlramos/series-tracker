@@ -369,7 +369,13 @@ function renderPairCard(item, total) {
     </div>`;
   main.querySelectorAll('[data-choice]').forEach(b => b.onclick = () => { setPairChoice(original, remake, b.dataset.choice); cursor++; stage(); render(); });
 }
-const PAIR_KEY_CHOICE = { '1':'original', '2':'both', '3':'remake' };
+// Match both ev.key (US layout) and ev.code (Digit/Numpad) so the 1/2/3 shortcut works
+// on layouts where the unshifted top-row keys don't produce digit characters (e.g. AZERTY).
+const PAIR_KEY_CHOICE = {
+  '1':'original', '2':'both', '3':'remake',
+  Digit1:'original', Digit2:'both', Digit3:'remake',
+  Numpad1:'original', Numpad2:'both', Numpad3:'remake',
+};
 function onKey(ev) {
   if (phase > LAST_CARD_PHASE) return;
   const items = cardItems();
@@ -381,7 +387,7 @@ function onKey(ev) {
   if (ev.key === 'Escape' || ev.key === 'Backspace') { ev.preventDefault(); cursor = Math.max(0, cursor - 1); render(); return; }
   if (ev.key === ' ') { ev.preventDefault(); cursor++; render(); return; }   // skip (keeps current choice)
   if (item.type === 'pair') {
-    const c = PAIR_KEY_CHOICE[ev.key];
+    const c = PAIR_KEY_CHOICE[ev.key] || PAIR_KEY_CHOICE[ev.code];
     if (c) { ev.preventDefault(); setPairChoice(item.original, item.remake, c); cursor++; stage(); render(); }
     return;   // arrows do not apply to the 3-way card
   }
