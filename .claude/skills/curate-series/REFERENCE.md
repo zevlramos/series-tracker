@@ -89,8 +89,10 @@ later phase's save never clobbers an earlier phase's edits.
 
 ## Order-phase lenses (`_orderResearch` scratch, #40 / ADR-0013)
 
-The Order phase helps the maintainer author `recommendedOrder` with **refusable suggestions**,
-never a seed. Nothing writes to the order until an explicit per-entry accept or a drag.
+The Order phase helps the maintainer author `recommendedOrder` with **refusable suggestions**:
+no researched/fandom ordering is ever auto-applied — the release-order floor is the baseline
+(create seeds `recommendedOrder` from it before the wizard), and nothing writes to the order
+until an explicit per-entry accept or a drag.
 
 - **Pre-baked, no live LLM.** Step 1.5 researches the framings once and writes them to the Draft
   as top-level `_orderResearch = { consensus, alternatives }` (each `order` is an array of entry

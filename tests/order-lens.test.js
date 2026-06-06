@@ -310,6 +310,19 @@ describe('shapeLenses normalization', () => {
     }
   });
 
+  it('dedups a repeated included id so the result stays a permutation', () => {
+    // Researched order repeats 'a' (e.g. two titles collapsing to one id); the
+    // normalized order must still place each included id exactly once.
+    const research = {
+      consensus: { label: 'Dupes', order: ['a', 'a', 'b'], sources: [] },
+      alternatives: []
+    };
+    const { lenses } = shapeLenses({ includedEntries: included, research });
+    assert.equal(lenses[1].order.length, 3);
+    assert.deepEqual(idSet(lenses[1].order), idSet(['a', 'b', 'c']));
+    assert.deepEqual(lenses[1].order, ['a', 'b', 'c']);
+  });
+
   it('an empty researched order normalizes to the full release order', () => {
     const research = { consensus: { label: 'Empty', order: [], sources: [] }, alternatives: [] };
     const { lenses } = shapeLenses({ includedEntries: included, research });

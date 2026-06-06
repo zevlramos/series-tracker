@@ -152,8 +152,9 @@ const PHASES = [
 ];
 const LAST_CARD_PHASE = 3;   // phases 1-3 are Tinder cards; 4+ are list/table editors
 let DATA = {}, ENTRIES = [], phase = 1, cursor = 0, saveTimer = null;
-// Order phase: which lens the maintainer is comparing against (null → the release floor).
-// Lenses are recomputed each render from _orderResearch over the CURRENT included set.
+// Order phase: index (as a string) of the lens the maintainer is comparing against;
+// null → lead with the top researched suggestion. Lenses are recomputed each render from
+// _orderResearch over the CURRENT included set.
 let activeLensKey = null;
 
 const included = () => ENTRIES.filter(e => !e._drop);
@@ -305,13 +306,14 @@ function moveAdjacent(entry, dir) {
 // included ids, with an honesty verdict. Recomputed every render so Include-phase drops
 // are reflected. shapeLenses is the same module the (future) research pass shapes with.
 function orderLenses() { return shapeLenses({ includedEntries: included(), research: DATA._orderResearch }); }
-const lensKey = L => `${L.kind}:${L.label}`;
-// The active comparison lens. Lead with the top researched suggestion (lenses[1]) so the
-// recommendation is surfaced, not hidden; lenses[0] is the release floor and the dismiss
-// target. Once the maintainer picks (or dismisses), activeLensKey pins their choice.
-function activeLens(lenses) {
-  if (activeLensKey) { const m = lenses.find(L => lensKey(L) === activeLensKey); if (m) return m; }
-  return lenses[1] || lenses[0];
+// The active comparison lens, identified by its index in the lens list (collision-free even
+// if two framings share a label). Lead with the top researched suggestion (index 1) so the
+// recommendation is surfaced, not hidden; index 0 is the release floor and the dismiss target.
+// Once the maintainer picks (or dismisses), activeLensKey pins their choice across re-renders.
+function activeIndex(lenses) {
+  const i = Number(activeLensKey);
+  if (activeLensKey != null && Number.isInteger(i) && i >= 0 && i < lenses.length) return i;
+  return lenses.length > 1 ? 1 : 0;
 }
 // Surgical, per-entry accept: land ONLY `entry` at 1-based included position `pos`, then
 // renumber. Never a whole-order replace; the dropped tail is left undisturbed.
@@ -324,17 +326,18 @@ function moveToPosition(entry, pos) {
 }
 const HONESTY_COPY = {
   contested: n => ['Fans disagree', `${n} researched framings below — compare them and accept entry-by-entry, or author by hand. Nothing changes until you do.`],
-  uncontested: () => ['One widely-agreed order', 'A single fan-consensus framing. Compare it, accept what you like, or dismiss to the release floor.'],
+  uncontested: () => ['One widely-agreed order', 'A single researched framing. Compare it, accept what you like, or dismiss to the release floor.'],
   thin: () => ['Little community guidance', 'No fan consensus surfaced — starting from the release-order floor. Author this one by hand; no authority is invented.'],
 };
 function renderOrder() {
   const main = document.getElementById('main'), list = included();
   const { lenses, honesty } = orderLenses();
-  const lens = activeLens(lenses);
+  const activeIdx = activeIndex(lenses);
+  const lens = lenses[activeIdx];
   const targetPos = new Map(lens.order.map((id, i) => [id, i + 1]));   // 1-based slot under the active lens
   const [hTitle, hBody] = HONESTY_COPY[honesty](lenses.length - 1);
 
-  const switcher = lenses.map(L => `<span class="lens-pick ${lensKey(L)===lensKey(lens)?'active':''}" data-lens="${esc(lensKey(L))}">${esc(L.label)}${L.sources.length?`<span class="src">${L.sources.length} src</span>`:''}</span>`).join('');
+  const switcher = lenses.map((L, i) => `<span class="lens-pick ${i===activeIdx?'active':''}" data-lens="${i}">${esc(L.label)}${L.sources.length?`<span class="src">${L.sources.length} src</span>`:''}</span>`).join('');
   const dismiss = lens.kind !== 'release' ? '<button class="dismiss tiny" id="dismissLens">Dismiss &mdash; author by hand</button>' : '';
 
   main.innerHTML = `<p class="hint">The <b>recommended</b> order people are guided through (its own lens — independent of the in-universe Timeline). The framings below are <b>suggestions</b>: nothing is written to the order until you accept per entry or drag. Edit each one-line reason in the contents list.</p>
@@ -373,7 +376,7 @@ function renderOrder() {
   });
   main.querySelectorAll('[data-lens]').forEach(p => p.onclick = () => { activeLensKey = p.dataset.lens; render(); });
   const db = document.getElementById('dismissLens');
-  if (db) db.onclick = () => { activeLensKey = lensKey(lenses[0]); render(); };
+  if (db) db.onclick = () => { activeLensKey = '0'; render(); };   // 0 = release floor
 }
 function dropBeforeOrder(fromId, toId) {
   if (fromId === toId) return;

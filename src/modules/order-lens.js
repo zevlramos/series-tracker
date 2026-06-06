@@ -4,15 +4,14 @@
 // Ascending by ISO releaseDate (lexicographic); null dates sort last in input order.
 // Stable among equal dates. Pure — does not mutate `entries`.
 export function computeReleaseOrder(entries) {
-  return entries
-    .map((entry, idx) => ({ id: entry.id, releaseDate: entry.releaseDate, idx }))
+  return [...entries]
     .sort((a, b) => {
       const an = a.releaseDate == null;
       const bn = b.releaseDate == null;
-      if (an && bn) return a.idx - b.idx;
+      if (an && bn) return 0;
       if (an) return 1;
       if (bn) return -1;
-      return cmp(a.releaseDate, b.releaseDate) || a.idx - b.idx;
+      return cmp(a.releaseDate, b.releaseDate);
     })
     .map((e) => e.id);
 }
@@ -37,7 +36,8 @@ export function shapeLenses({ includedEntries, research }) {
     return { lenses: [releaseLens], honesty: 'thin' };
   }
 
-  const { consensus = null, alternatives = [] } = research ?? {};
+  let { consensus = null, alternatives = [] } = research ?? {};
+  if (!Array.isArray(alternatives)) alternatives = []; // tolerate null/malformed scratch
 
   const researched = [];
   if (consensus != null) {
@@ -72,8 +72,8 @@ export function shapeLenses({ includedEntries, research }) {
 // Permutation-only normalization: keep researched ids that are included (in order),
 // then append every included id still missing, in release order.
 function normalize(order, includedIds, releaseOrder) {
-  const kept = order.filter((id) => includedIds.has(id));
-  const present = new Set(kept);
+  const present = new Set(order.filter((id) => includedIds.has(id)));
+  const kept = [...present];
   for (const id of releaseOrder) {
     if (!present.has(id)) kept.push(id);
   }
