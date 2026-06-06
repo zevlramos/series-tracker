@@ -53,7 +53,6 @@
   .decision .opt.sel-left { border-color:#a8513e; background:#3a201a; }
   .decision .opt.sel-right { border-color:#5f8a4e; background:#1f2c1a; }
   /* include-phase merged version card (#47) — one original⇄remake pair as a single card */
-  .vcard { max-width:680px; }
   .vcard .vnote { color:#c98b54; font-size:12px; margin:-2px 0 14px; }
   .versions { display:flex; gap:14px; }
   .ver { flex:1; border:1px solid #3a322b; border-radius:10px; padding:12px 14px; background:#181410; opacity:.5; transition:opacity .12s, border-color .12s; }
@@ -150,6 +149,7 @@
 import { esc } from '/src/modules/escape.js';
 import { parseLoreDate, formatLoreDate, compareLoreDate } from '/src/modules/lore-date.js';
 import { shapeLenses } from '/src/modules/order-lens.js';
+import { stripYear } from '/src/modules/version-pairing.js';
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 // Primary-drift threshold: only flag recommended-vs-lore gaps this large (years),
@@ -268,16 +268,25 @@ function cardConfig() {
 function cardItems() {
   if (phase !== 1) return included().map(entry => ({ type:'single', entry }));
   const pairs = DATA._pairings || [];
-  const remakePair = new Map(pairs.map(p => [p.remakeId, p]));
   const has = id => ENTRIES.some(e => e.id === id);
-  // Originals that will be shown inside a remake's pair card → no standalone card for them.
-  const shownOriginals = new Set(pairs.filter(p => has(p.remakeId) && has(p.originalId)).map(p => p.originalId));
-  const items = [];
+  const remakePair = new Map(pairs.map(p => [p.remakeId, p]));
+  // Each original anchors AT MOST ONE version card — the first of its remakes in entry order.
+  // Any further remakes of the same original degrade to their own Include cards, so no two
+  // cards ever write the same original's _drop (which would let a later card silently re-include
+  // an original an earlier card dropped). The validated 1:1 case is unchanged.
+  const pairedOriginals = new Set();
+  const opensPair = new Map();   // remakeId → pairing, for the remake that anchors a card
   for (const entry of ENTRIES) {
     const p = remakePair.get(entry.id);
-    const original = p && ENTRIES.find(x => x.id === p.originalId);
-    if (p && original) { items.push({ type:'pair', pairing:p, original, remake:entry }); continue; }
-    if (shownOriginals.has(entry.id)) continue;   // folded into its remake's card
+    if (p && has(p.originalId) && !pairedOriginals.has(p.originalId)) {
+      opensPair.set(entry.id, p); pairedOriginals.add(p.originalId);
+    }
+  }
+  const items = [];
+  for (const entry of ENTRIES) {
+    const p = opensPair.get(entry.id);
+    if (p) { items.push({ type:'pair', pairing:p, original: ENTRIES.find(x => x.id === p.originalId), remake:entry }); continue; }
+    if (pairedOriginals.has(entry.id)) continue;   // folded into its single version card
     items.push({ type:'single', entry });
   }
   return items;
@@ -335,7 +344,7 @@ function renderPairCard(item, total) {
   const main = document.getElementById('main');
   const { original, remake, pairing } = item;
   const choice = pairChoice(original, remake);
-  const base = esc(original.title.replace(/\s*\(\d{4}\)\s*$/, ''));
+  const base = esc(stripYear(original.title));
   const ver = (label, e, keep) => `<div class="ver ${keep?'keep':''}">
       <div class="vlabel">${label}</div><div class="vtitle">${esc(e.title)}</div>
       <div class="vmeta"><span class="date">${esc(e.releaseDate||'')}</span>${mb(e)}</div></div>`;

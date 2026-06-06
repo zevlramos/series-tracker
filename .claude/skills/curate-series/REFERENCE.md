@@ -130,6 +130,10 @@ track," not two independent keep/drops.
   is `_`-prefixed scratch that `draftToSeriesData` strips at publish, same as `_orderResearch`.
 - The phase-1 card sequence folds each pair into one card at the remake's position; the original
   gets no standalone card. Phases 2–3 (Branch/Consumed) still treat the two as distinct Entries.
+- **One card per original.** If `derivePairings` reports multiple remakes for one original (a
+  remaster *and* a remake), only the first remake anchors the version card; the rest appear as
+  their own Include cards. This keeps every original's `_drop` written by a single card. A unified
+  multi-version card is a possible future refinement (kept out of the validated 1:1 Variant C).
 
 ## Drift advisories (Timeline phase)
 

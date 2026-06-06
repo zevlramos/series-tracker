@@ -140,6 +140,34 @@ describe('derivePairings — null releaseDate sorts last when choosing the origi
   });
 });
 
+describe('derivePairings — equal-date tie-break prefers the non-versionNote original', () => {
+  it('on a date tie, the candidate without a versionNote wins as the original', () => {
+    // Two same-base/same-medium candidates share a releaseDate: one is a plain original,
+    // the other carries a versionNote (itself a remake). Contract: prefer the non-remake.
+    const original = entry({ id: 'orig', title: 'Resident Evil 2', medium: 'game', releaseDate: '2000-01-01' });
+    const sameDateRemake = entry({
+      id: 'altremake',
+      title: 'Resident Evil 2',
+      medium: 'game',
+      releaseDate: '2000-01-01',
+      versionNote: 'alternate cut'
+    });
+    const remake = entry({
+      id: 'rmk',
+      title: 'Resident Evil 2 (2019)',
+      medium: 'game',
+      releaseDate: '2019-01-25',
+      versionNote: '2019 remake'
+    });
+    const result = derivePairings([original, sameDateRemake, remake]);
+    // sameDateRemake is also processed as a remake; the earliest-dated original wins for it.
+    assert.deepEqual(result, [
+      { originalId: 'orig', remakeId: 'altremake', note: 'alternate cut' },
+      { originalId: 'orig', remakeId: 'rmk', note: '2019 remake' }
+    ]);
+  });
+});
+
 describe('derivePairings — output ordered by remake input position', () => {
   it('orders pairings by the remake entry input order, regardless of original positions', () => {
     const origA = entry({ id: 'origA', title: 'Alpha', medium: 'game', releaseDate: '1990-01-01' });
