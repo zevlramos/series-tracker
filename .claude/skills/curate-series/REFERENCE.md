@@ -87,6 +87,29 @@ Two committed, series-agnostic files in this skill directory:
 The wizard autosaves the **entire** working set (UI flags included) on every change, so a
 later phase's save never clobbers an earlier phase's edits.
 
+## Order-phase lenses (`_orderResearch` scratch, #40 / ADR-0013)
+
+The Order phase helps the maintainer author `recommendedOrder` with **refusable suggestions**,
+never a seed. Nothing writes to the order until an explicit per-entry accept or a drag.
+
+- **Pre-baked, no live LLM.** Step 1.5 researches the framings once and writes them to the Draft
+  as top-level `_orderResearch = { consensus, alternatives }` (each `order` is an array of entry
+  **ids**). The wizard reads this and switches lenses instantly; `curate-server.mjs` stays a dumb
+  file-server.
+- **`src/modules/order-lens.js`** (`shapeLenses`, `computeReleaseOrder`) is the single shaping
+  core, imported by **both** the research step (to sanity-check honesty) and the wizard (served at
+  `/src/modules/order-lens.js`). The wizard recomputes `shapeLenses({ includedEntries: included(),
+  research: _orderResearch })` **every render**, so lenses always reflect the current included set
+  (permutation-only — positions, never add/remove).
+- **Lens kinds:** `release` (always present, computed from `releaseDate` — the honest floor and the
+  dismiss target), `fan-consensus` (only when real consensus exists), `alternative` (0..n, only on a
+  sourced split). **Honesty:** `thin` (no researched ordering → degrade to the floor), `uncontested`
+  (one distinct researched ordering), `contested` (≥2 distinct — a real split to adjudicate).
+- **Scratch survival.** `_orderResearch` is `_`-prefixed and lives top-level on the Draft. The wizard's
+  autosave (`draftDoc`) carries every top-level `_`-field verbatim so a later phase never drops it;
+  `draftToSeriesData` strips it at publish (it rebuilds from `{slug,name,entries}` + the 14-field
+  whitelist, so top-level and per-entry `_`-fields both vanish).
+
 ## Drift advisories (Timeline phase)
 
 - **Secondary (rank-vs-lore)** — a chronological rank that contradicts its own lore date.

@@ -73,6 +73,27 @@
   .sumctrls button { padding:2px 8px; font-size:12px; }
   .group { margin:16px 0 4px; color:#c98b54; font-size:11px; text-transform:uppercase; letter-spacing:.12em; border-bottom:1px solid #2a241f; padding-bottom:4px; }
 
+  /* order-phase lenses (#40) — refusable fandom-order suggestions, never a seed */
+  .honesty { border-radius:10px; padding:10px 14px; margin:0 0 12px; border:1px solid #3a322b; background:#1a1613; }
+  .honesty.contested { border-color:#7a5a2a; background:#241c10; }
+  .honesty.uncontested { border-color:#3a6c5a; background:#13211d; }
+  .honesty.thin { border-color:#3a322b; background:#1a1613; }
+  .honesty h3 { margin:0 0 4px; font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
+  .honesty.contested h3 { color:#e0b46a; } .honesty.uncontested h3 { color:#7fc6a0; } .honesty.thin h3 { color:#a89c90; }
+  .honesty p { margin:0; color:#b3a89d; font-size:12px; }
+  .lens-bar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:10px 0 14px; }
+  .lens-bar .lbl { font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:#8a7f75; }
+  .lens-pick { font-size:12px; padding:4px 10px; border-radius:14px; border:1px solid #3a322b; background:#221d19; color:#a89c90; cursor:pointer; }
+  .lens-pick.active { background:#7c3b22; border-color:#a85a37; color:#fff; }
+  .lens-pick .src { opacity:.6; margin-left:5px; }
+  .lens-bar .dismiss { margin-left:auto; }
+  /* per-entry ghost chip: where the active lens would place this entry */
+  .ghost { display:inline-flex; gap:6px; align-items:center; font-size:11px; border-radius:8px; padding:1px 4px 1px 8px; border:1px solid #7a5a2a; background:#241c10; color:#e0b46a; }
+  .ghost.agree { border-color:#3a6c5a; background:#13211d; color:#7fc6a0; }
+  .ghost.agree .at { color:#7fc6a0; }
+  .ghost .at { font-variant-numeric:tabular-nums; color:#e0b46a; }
+  .ghost button.move { padding:1px 7px; font-size:11px; border-color:#7a5a2a; }
+
   /* timeline phase (5) — dense table with drag-to-rank */
   .tl-actions { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px; }
   .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:11px; color:#9a8f84; margin-bottom:10px; }
@@ -114,6 +135,7 @@
 <script type="module">
 import { esc } from '/src/modules/escape.js';
 import { parseLoreDate, formatLoreDate, compareLoreDate } from '/src/modules/lore-date.js';
+import { shapeLenses } from '/src/modules/order-lens.js';
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 // Primary-drift threshold: only flag recommended-vs-lore gaps this large (years),
@@ -130,6 +152,9 @@ const PHASES = [
 ];
 const LAST_CARD_PHASE = 3;   // phases 1-3 are Tinder cards; 4+ are list/table editors
 let DATA = {}, ENTRIES = [], phase = 1, cursor = 0, saveTimer = null;
+// Order phase: which lens the maintainer is comparing against (null → the release floor).
+// Lenses are recomputed each render from _orderResearch over the CURRENT included set.
+let activeLensKey = null;
 
 const included = () => ENTRIES.filter(e => !e._drop);
 const mb = e => `<span class="mb ${e._mergeStatus}">${e._mergeStatus}</span>`;
@@ -169,7 +194,12 @@ function renumber() { ENTRIES.forEach((e, i) => e.recommendedOrder = i + 1); }
 // Autosave the FULL working set (UI flags and all) on every change, so a later
 // phase's save never clobbers an earlier phase's edits. The server keeps this
 // verbatim in .drafts/<slug>.json; projection happens only at publish.
-function draftDoc() { return { slug: DATA.slug, name: DATA.name, entries: ENTRIES.map(e => ({ ...e })) }; }
+// Carry top-level _-prefixed scratch (e.g. _orderResearch lenses) verbatim, so a later
+// phase's autosave never drops the research the Order phase reads. Stripped at publish.
+function topScratch() {
+  return Object.fromEntries(Object.entries(DATA).filter(([k]) => k.startsWith('_')));
+}
+function draftDoc() { return { slug: DATA.slug, name: DATA.name, ...topScratch(), entries: ENTRIES.map(e => ({ ...e })) }; }
 function finalDoc() {
   let o = 0;
   const entries = included().map(e => ({ ...e, recommendedOrder: ++o }));
@@ -261,7 +291,7 @@ function onKey(ev) {
   else if (ev.key === 'Escape' || ev.key === 'Backspace') { ev.preventDefault(); cursor = Math.max(0, cursor - 1); render(); }
 }
 
-// ---- phase 4: recommended order + reason ----
+// ---- phase 4: recommended order + reason, with refusable fandom-order lenses (#40) ----
 function moveAdjacent(entry, dir) {
   const i = ENTRIES.indexOf(entry);
   let j = i + dir;
@@ -270,22 +300,70 @@ function moveAdjacent(entry, dir) {
   [ENTRIES[i], ENTRIES[j]] = [ENTRIES[j], ENTRIES[i]];
   renumber(); stage(); render();
 }
+// Lenses over the CURRENT included set: the release floor (always) plus researched
+// fan orderings from _orderResearch scratch, each normalized to a permutation of the
+// included ids, with an honesty verdict. Recomputed every render so Include-phase drops
+// are reflected. shapeLenses is the same module the (future) research pass shapes with.
+function orderLenses() { return shapeLenses({ includedEntries: included(), research: DATA._orderResearch }); }
+const lensKey = L => `${L.kind}:${L.label}`;
+// The active comparison lens. Lead with the top researched suggestion (lenses[1]) so the
+// recommendation is surfaced, not hidden; lenses[0] is the release floor and the dismiss
+// target. Once the maintainer picks (or dismisses), activeLensKey pins their choice.
+function activeLens(lenses) {
+  if (activeLensKey) { const m = lenses.find(L => lensKey(L) === activeLensKey); if (m) return m; }
+  return lenses[1] || lenses[0];
+}
+// Surgical, per-entry accept: land ONLY `entry` at 1-based included position `pos`, then
+// renumber. Never a whole-order replace; the dropped tail is left undisturbed.
+function moveToPosition(entry, pos) {
+  const before = included().filter(x => x !== entry)[pos - 1] || null;
+  ENTRIES.splice(ENTRIES.indexOf(entry), 1);
+  if (before) ENTRIES.splice(ENTRIES.indexOf(before), 0, entry);
+  else { const inc = included(); ENTRIES.splice(inc.length ? ENTRIES.indexOf(inc[inc.length - 1]) + 1 : ENTRIES.length, 0, entry); }
+  renumber(); stage(); render();
+}
+const HONESTY_COPY = {
+  contested: n => ['Fans disagree', `${n} researched framings below — compare them and accept entry-by-entry, or author by hand. Nothing changes until you do.`],
+  uncontested: () => ['One widely-agreed order', 'A single fan-consensus framing. Compare it, accept what you like, or dismiss to the release floor.'],
+  thin: () => ['Little community guidance', 'No fan consensus surfaced — starting from the release-order floor. Author this one by hand; no authority is invented.'],
+};
 function renderOrder() {
   const main = document.getElementById('main'), list = included();
-  main.innerHTML = '<p class="hint">The <b>recommended</b> order people are guided through (its own lens — independent of the in-universe Timeline). Drag, or use the arrows. Edit each one-line reason shown in the contents list.</p><div id="orderlist"></div>';
+  const { lenses, honesty } = orderLenses();
+  const lens = activeLens(lenses);
+  const targetPos = new Map(lens.order.map((id, i) => [id, i + 1]));   // 1-based slot under the active lens
+  const [hTitle, hBody] = HONESTY_COPY[honesty](lenses.length - 1);
+
+  const switcher = lenses.map(L => `<span class="lens-pick ${lensKey(L)===lensKey(lens)?'active':''}" data-lens="${esc(lensKey(L))}">${esc(L.label)}${L.sources.length?`<span class="src">${L.sources.length} src</span>`:''}</span>`).join('');
+  const dismiss = lens.kind !== 'release' ? '<button class="dismiss tiny" id="dismissLens">Dismiss &mdash; author by hand</button>' : '';
+
+  main.innerHTML = `<p class="hint">The <b>recommended</b> order people are guided through (its own lens — independent of the in-universe Timeline). The framings below are <b>suggestions</b>: nothing is written to the order until you accept per entry or drag. Edit each one-line reason in the contents list.</p>
+    <div class="honesty ${honesty}"><h3>${esc(hTitle)}</h3><p>${esc(hBody)}</p></div>
+    <div class="lens-bar"><span class="lbl">Compare against</span>${switcher}${dismiss}</div>
+    <div id="orderlist"></div>`;
   const wrap = document.getElementById('orderlist');
   const group = { last: '' };
   list.forEach((e, idx) => {
     groupHeader(wrap, e, group);
+    const tp = targetPos.get(e.id);
+    // Ghost chip only for a researched suggestion (the release floor shows none): green
+    // when the entry already sits where the lens would place it, amber + Move-to-#N otherwise.
+    const chip = (lens.kind === 'release' || tp == null) ? ''
+      : tp === idx + 1
+        ? `<span class="ghost agree" title="already where ${esc(lens.label)} places it">&#10003; <span class="at">#${tp}</span></span>`
+        : `<span class="ghost">${esc(lens.label)} &rarr; <span class="at">#${tp}</span> <button class="move tiny" data-move="${tp}">Move to #${tp}</button></span>`;
     const row = document.createElement('div'); row.className = 'row' + (e._mergeStatus === 'new' ? ' newrow' : ''); row.draggable = true; row.dataset.id = e.id;
     row.innerHTML = `<div class="handle">&#x283F;</div><div class="pos">${idx+1}</div>
       <div class="rmain">
         <div class="line1"><span class="rtitle">${esc(e.title)}</span><span class="badge">${esc(e.medium)}</span><span class="date">${esc(e.releaseDate||'')}</span>${mb(e)}
+          ${chip}
           <span class="nudge"><button data-up>&uarr;</button><button data-down>&darr;</button></span></div>
         <textarea class="reason" placeholder="why consume it here…">${esc(e.recommendedReason)}</textarea>
       </div>`;
     row.querySelector('[data-up]').onclick = () => moveAdjacent(e, -1);
     row.querySelector('[data-down]').onclick = () => moveAdjacent(e, 1);
+    const moveBtn = row.querySelector('[data-move]');
+    if (moveBtn) moveBtn.onclick = () => moveToPosition(e, +moveBtn.dataset.move);
     row.querySelector('.reason').oninput = ev => { e.recommendedReason = ev.target.value; stage(); };
     row.ondragstart = ev => { ev.dataTransfer.setData('text/plain', e.id); row.classList.add('dragging'); };
     row.ondragend = () => row.classList.remove('dragging');
@@ -293,6 +371,9 @@ function renderOrder() {
     row.ondrop = ev => { ev.preventDefault(); dropBeforeOrder(ev.dataTransfer.getData('text/plain'), e.id); };
     wrap.appendChild(row);
   });
+  main.querySelectorAll('[data-lens]').forEach(p => p.onclick = () => { activeLensKey = p.dataset.lens; render(); });
+  const db = document.getElementById('dismissLens');
+  if (db) db.onclick = () => { activeLensKey = lensKey(lenses[0]); render(); };
 }
 function dropBeforeOrder(fromId, toId) {
   if (fromId === toId) return;
