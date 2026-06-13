@@ -85,6 +85,10 @@ function validateDraftEntry(e, prefix, seenIds) {
     return `${prefix}: invalid "status" — must be a boolean`;
   }
 
+  if (e.excluded != null && typeof e.excluded !== 'boolean') {
+    return `${prefix}: "excluded" must be a boolean`;
+  }
+
   if (seenIds.has(e.id)) {
     return `${prefix}: duplicate "id" "${e.id}"`;
   }

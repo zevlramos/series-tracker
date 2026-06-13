@@ -1,4 +1,5 @@
 import { parseLoreDate } from './lore-date.js';
+import { makeNullsLast } from './sort-engine.js';
 
 const VALID_MEDIA = ['game', 'novel', 'comic', 'film', 'show', 'stagePlay', 'podcast', 'audio', 'video'];
 const VALID_BRANCHES = ['mainline', 'spinoff'];
@@ -39,7 +40,7 @@ export function parseSeries(jsonString) {
     entries.push(normalizeEntry(raw));
   }
 
-  entries.sort(byRecommendedOrderNullsLast);
+  entries.sort(makeNullsLast(e => e.recommendedOrder));
 
   return {
     ok: true,
@@ -87,6 +88,10 @@ function validateEntry(e, prefix, seenIds) {
     return `${prefix}: invalid "status" — must be a boolean`;
   }
 
+  if (e.excluded != null && typeof e.excluded !== 'boolean') {
+    return `${prefix}: "excluded" must be a boolean`;
+  }
+
   if (seenIds.has(e.id)) {
     return `${prefix}: duplicate "id" "${e.id}"`;
   }
@@ -126,16 +131,4 @@ function normalizeEntry(raw) {
     excluded: raw.excluded ?? false,
     sources: raw.sources
   };
-}
-
-// Excluded entries carry no recommendedOrder; sort them last rather than letting
-// `null - n` coerce to 0 and interleave them (same nulls-last treatment as
-// chronologicalOrder's byRankNullsLast).
-function byRecommendedOrderNullsLast(a, b) {
-  const ra = a.recommendedOrder;
-  const rb = b.recommendedOrder;
-  if (ra == null && rb == null) return 0;
-  if (ra == null) return 1;
-  if (rb == null) return -1;
-  return ra - rb;
 }

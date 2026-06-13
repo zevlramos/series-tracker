@@ -4,6 +4,9 @@ import { readFileSync } from 'node:fs';
 import { parseSeries } from '../src/modules/parse-series.js';
 import { mergeCuration } from '../pipeline/mergeCuration.js';
 import { draftToSeriesData } from '../pipeline/draft-to-series-data.js';
+import { validateDraft } from '../pipeline/validate-draft.js';
+import { renderDraftMarkdown } from '../pipeline/render-draft-markdown.js';
+import { sortEntries } from '../src/modules/sort-engine.js';
 
 // Issue #52 — Excluded entries are retained and hidden from readers.
 // ADR-0014: `excluded` is a boolean Entry field (default false), the publish
@@ -267,5 +270,66 @@ describe('#52 excluded entries — Shell reader-filter chokepoint helper', () =>
     const result = mod.visibleEntries([shown, absent, hidden]);
     const ids = result.map(e => e.id);
     assert.deepEqual(ids, ['shown', 'absent'], 'only excluded:true is hidden');
+  });
+});
+
+// Review-gate hardening (code-review on #52): `excluded` is a typed field like
+// `status`, the recommended lens shares the gate's nulls-last ordering, and the
+// draft render no longer leaks the now-optional order/reason as literal null.
+describe('#52 excluded entries — gate hardening', () => {
+  it('parseSeries REJECTS a non-boolean excluded (e.g. the string "true")', () => {
+    const series = { ...validSeries, entries: [{ ...validEntry, id: 'bad', excluded: 'true' }] };
+    const result = parseSeries(JSON.stringify(series));
+    assert.equal(result.ok, false, 'a string "true" must not be silently mistreated as excluded');
+  });
+
+  it('parseSeries still ACCEPTS absent or null excluded (backward-compat default)', () => {
+    const absent = { ...validEntry, id: 'a' };
+    delete absent.excluded;
+    const series = { ...validSeries, entries: [absent, { ...validEntry, id: 'b', excluded: null }] };
+    const result = parseSeries(JSON.stringify(series));
+    assert.equal(result.ok, true, `absent/null excluded must validate: ${result.error}`);
+    assert.equal(result.series.entries.every(e => e.excluded === false), true);
+  });
+
+  it('validateDraft REJECTS a non-boolean excluded', () => {
+    const draft = {
+      slug: 's', name: 'S', orderRationale: 'r', incompleteMedia: [],
+      entries: [{
+        id: 'x', title: 'X', medium: 'game', branch: 'mainline',
+        recommendedOrder: 1, recommendedReason: 'r', summary: 's',
+        sources: ['https://example.com'], status: false,
+        confidence: 'high', confidenceReason: null, versionNote: null, sourceNotes: null,
+        excluded: 'nope'
+      }]
+    };
+    const result = validateDraft(draft);
+    assert.equal(result.ok, false, 'draft gate must type-check excluded too');
+  });
+
+  it('sortEntries("recommended") places a null-order entry last, not interleaved', () => {
+    const entries = [
+      { id: 'two', recommendedOrder: 2 },
+      { id: 'none', recommendedOrder: null },
+      { id: 'one', recommendedOrder: 1 }
+    ];
+    const ids = sortEntries(entries, 'recommended').map(e => e.id);
+    assert.deepEqual(ids, ['one', 'two', 'none']);
+  });
+
+  it('renderDraftMarkdown renders an excluded entry without literal null/undefined', () => {
+    const draft = {
+      slug: 's', name: 'S', orderRationale: 'r', incompleteMedia: [],
+      entries: [{
+        id: 'x', title: 'Old Version', medium: 'game', branch: 'mainline',
+        summary: 'Superseded.', sources: ['https://example.com'], status: false,
+        confidence: 'high', confidenceReason: null, versionNote: null, sourceNotes: null,
+        excluded: true
+      }]
+    };
+    const md = renderDraftMarkdown(draft);
+    assert.equal(md.includes('null'), false, 'no literal "null" in heading');
+    assert.equal(md.includes('undefined'), false, 'no literal "undefined" for the missing reason');
+    assert.match(md, /Old Version _\(excluded\)_/);
   });
 });
