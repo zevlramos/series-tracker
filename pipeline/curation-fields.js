@@ -3,5 +3,6 @@ export const CURATION_FIELDS = new Set([
   'recommendedOrder',
   'recommendedReason',
   'chronologicalOrder',
-  'excluded'
+  'excluded',
+  'versionGroup'
 ]);

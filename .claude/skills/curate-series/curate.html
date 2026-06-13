@@ -150,7 +150,7 @@
 import { esc } from '/src/modules/escape.js';
 import { parseLoreDate, formatLoreDate, compareLoreDate } from '/src/modules/lore-date.js';
 import { shapeLenses } from '/src/modules/order-lens.js';
-import { stripYear } from '/src/modules/version-pairing.js';
+import { stripYear, deriveVersionGroups } from '/src/modules/version-pairing.js';
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 // Primary-drift threshold: only flag recommended-vs-lore gaps this large (years),
@@ -262,32 +262,29 @@ function cardConfig() {
     set: (e, side) => { e.status = (side === 'right'); },
   };
 }
-// The card sequence for the current phase. Phase 1 (Include) collapses each researched
-// original⇄remake pair (_pairings scratch) into ONE merged version card (#47); phases 2-3
-// are per-Entry over the included set. Each item is { type:'single', entry } or
-// { type:'pair', pairing, original, remake }.
+// The card sequence for the current phase. Phase 1 (Include) collapses each durable
+// version group (entries sharing a versionGroup slug, ADR-0014) into ONE merged
+// version card (#47); phases 2-3 are per-Entry over the included set. Each item is
+// { type:'single', entry } or { type:'pair', original, remake }.
 function cardItems() {
   if (phase !== 1) return included().map(entry => ({ type:'single', entry }));
-  const pairs = DATA._pairings || [];
-  const has = id => ENTRIES.some(e => e.id === id);
-  const remakePair = new Map(pairs.map(p => [p.remakeId, p]));
-  // Each original anchors AT MOST ONE version card — the first of its remakes in entry order.
-  // Any further remakes of the same original degrade to their own Include cards, so no two
-  // cards ever write the same original's _drop (which would let a later card silently re-include
-  // an original an earlier card dropped). The validated 1:1 case is unchanged.
-  const pairedOriginals = new Set();
-  const opensPair = new Map();   // remakeId → pairing, for the remake that anchors a card
-  for (const entry of ENTRIES) {
-    const p = remakePair.get(entry.id);
-    if (p && has(p.originalId) && !pairedOriginals.has(p.originalId)) {
-      opensPair.set(entry.id, p); pairedOriginals.add(p.originalId);
-    }
+  // Only the existing 1:1 card is rendered here (the durable-key swap). A group of
+  // exactly two members renders as one version card with members in release order
+  // (original = earliest, remake = next); #55 owns the N-member UX, so larger groups
+  // fall through to per-Entry single cards.
+  const groups = deriveVersionGroups(ENTRIES).filter(g => g.members.length === 2);
+  const memberIds = new Set();
+  const anchorPair = new Map();   // remake id → { original, remake }, anchoring the card
+  for (const g of groups) {
+    const [original, remake] = g.members;
+    memberIds.add(original.id); memberIds.add(remake.id);
+    anchorPair.set(remake.id, { original, remake });
   }
   const items = [];
   for (const entry of ENTRIES) {
-    const p = opensPair.get(entry.id);
-    if (p) { items.push({ type:'pair', pairing:p, original: ENTRIES.find(x => x.id === p.originalId), remake:entry }); continue; }
-    if (pairedOriginals.has(entry.id)) continue;   // folded into its single version card
+    const pair = anchorPair.get(entry.id);
+    if (pair) { items.push({ type:'pair', ...pair }); continue; }
+    if (memberIds.has(entry.id)) continue;   // folded into its version card
     items.push({ type:'single', entry });
   }
   return items;
@@ -343,9 +340,12 @@ function renderCardPhase() {
 // version(s) of this work do I track," not two independent keep/drops. Default Both.
 function renderPairCard(item, total) {
   const main = document.getElementById('main');
-  const { original, remake, pairing } = item;
+  const { original, remake } = item;
   const choice = pairChoice(original, remake);
   const base = esc(stripYear(original.title));
+  // versionNote is still a draft-scratch field during curation (stripped at publish);
+  // surface it as the card's note when research supplied one.
+  const note = remake.versionNote || original.versionNote || '';
   const ver = (label, e, keep) => `<div class="ver ${keep?'keep':''}">
       <div class="vlabel">${label}</div><div class="vtitle">${esc(e.title)}</div>
       <div class="vmeta"><span class="date">${esc(e.releaseDate||'')}</span>${mb(e)}</div></div>`;
@@ -354,7 +354,7 @@ function renderPairCard(item, total) {
       ${progressBar(cursor+1, total)}
       <div class="card vcard">
         <p class="ctitle">${base} — which version(s)?</p>
-        <div class="vnote">Research flagged these as versions of one work${pairing.note ? `: ${esc(pairing.note)}` : ''}.</div>
+        <div class="vnote">Research flagged these as versions of one work${note ? `: ${esc(note)}` : ''}.</div>
         <div class="versions">
           ${ver('Original', original, choice==='original'||choice==='both')}
           ${ver('Remake', remake, choice==='remake'||choice==='both')}

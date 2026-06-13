@@ -89,6 +89,10 @@ function validateDraftEntry(e, prefix, seenIds) {
     return `${prefix}: "excluded" must be a boolean`;
   }
 
+  if (e.versionGroup != null && typeof e.versionGroup !== 'string') {
+    return `${prefix}: "versionGroup" must be a string or null`;
+  }
+
   if (seenIds.has(e.id)) {
     return `${prefix}: duplicate "id" "${e.id}"`;
   }

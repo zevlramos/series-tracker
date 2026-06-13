@@ -92,6 +92,10 @@ function validateEntry(e, prefix, seenIds) {
     return `${prefix}: "excluded" must be a boolean`;
   }
 
+  if (e.versionGroup != null && typeof e.versionGroup !== 'string') {
+    return `${prefix}: "versionGroup" must be a string or null`;
+  }
+
   if (seenIds.has(e.id)) {
     return `${prefix}: duplicate "id" "${e.id}"`;
   }
@@ -129,6 +133,7 @@ function normalizeEntry(raw) {
     imageUrl: raw.imageUrl ?? null,
     status: raw.status,
     excluded: raw.excluded ?? false,
+    versionGroup: raw.versionGroup ?? null,
     sources: raw.sources
   };
 }

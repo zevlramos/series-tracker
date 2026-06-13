@@ -1,5 +1,9 @@
-// Advisory original⇄remake pairing for the Curation wizard (ADR-0007): remakes are
-// curation not schema, so this Draft-scratch metadata flags pairs and dies at publish.
+// Version-group derivation for the Curation wizard (ADR-0014): a Version group is
+// emergent — "the entries where versionGroup === <slug>" — materialized by a
+// group-by. This replaces the old title-matching matcher (stripYear + base-title
+// equality + a publish-stripped versionNote), which produced zero pairings on
+// update once titles were decorated. Pairing is now a trivial group-by that scales
+// from two members to N with no new logic.
 
 const YEAR_SUFFIX = /\s*\(\d{4}\)\s*$/;
 
@@ -9,63 +13,38 @@ export function stripYear(title) {
   return String(title).replace(YEAR_SUFFIX, '');
 }
 
-// Base title for matching: year stripped, trimmed, lowercased for case-insensitive compare.
-function baseTitle(title) {
-  return stripYear(title).trim().toLowerCase();
+// Orders members within a group: earliest releaseDate first, null sorts last
+// (mirroring the gate's nulls-last treatment); equal dates keep input order.
+function compareByReleaseDate(a, b) {
+  const aDate = a.releaseDate ?? null;
+  const bDate = b.releaseDate ?? null;
+  if (aDate === bDate) return 0;
+  if (aDate === null) return 1;
+  if (bDate === null) return -1;
+  return aDate < bDate ? -1 : 1;
 }
 
-// A remake/remaster is any entry whose versionNote is a non-empty string.
-function isRemake(entry) {
-  return typeof entry.versionNote === 'string' && entry.versionNote !== '';
-}
+// deriveVersionGroups(entries) -> Array<{ versionGroup, members }>, one per slug
+// shared by >= 2 entries (a lone member is not a version card). Entries with
+// versionGroup == null are never grouped. Members are returned by release order,
+// nulls last, as the original entry references (the card mutates _drop on them).
+// Pure: the input array and its entries are not mutated.
+export function deriveVersionGroups(entries) {
+  const bySlug = new Map();
 
-// Orders candidate originals: earliest releaseDate first, null sorts last; among equal
-// dates prefer a non-remake (empty versionNote); final tie-break by input order.
-function compareOriginals(a, b) {
-  if (a.releaseDate !== b.releaseDate) {
-    if (a.releaseDate === null) return 1;
-    if (b.releaseDate === null) return -1;
-    return a.releaseDate < b.releaseDate ? -1 : 1;
-  }
-  const aRemake = isRemake(a.entry);
-  const bRemake = isRemake(b.entry);
-  if (aRemake !== bRemake) return aRemake ? 1 : -1;
-  return a.index - b.index;
-}
-
-// derivePairings(entries) -> Array<{ originalId, remakeId, note }>, one per remake that
-// has a same-base/same-medium original; ordered by remake input position, deduped, pure.
-export function derivePairings(entries) {
-  const indexed = entries.map((entry, index) => ({
-    entry,
-    index,
-    base: baseTitle(entry.title),
-    releaseDate: entry.releaseDate ?? null,
-  }));
-
-  const pairings = [];
-  const seen = new Set();
-
-  for (const remake of indexed) {
-    if (!isRemake(remake.entry)) continue;
-
-    const candidates = indexed.filter(
-      (c) => c !== remake && c.base === remake.base && c.entry.medium === remake.entry.medium,
-    );
-    if (candidates.length === 0) continue;
-
-    const original = candidates.sort(compareOriginals)[0];
-
-    const key = `${original.entry.id}\0${remake.entry.id}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-
-    pairings.push({
-      originalId: original.entry.id,
-      remakeId: remake.entry.id,
-      note: remake.entry.versionNote,
-    });
+  for (const entry of entries) {
+    const slug = entry.versionGroup ?? null;
+    if (slug === null) continue;
+    if (!bySlug.has(slug)) bySlug.set(slug, []);
+    bySlug.get(slug).push(entry);
   }
 
-  return pairings;
+  const groups = [];
+  for (const [versionGroup, members] of bySlug) {
+    if (members.length < 2) continue;
+    const sorted = [...members].sort(compareByReleaseDate);
+    groups.push({ versionGroup, members: sorted });
+  }
+
+  return groups;
 }
