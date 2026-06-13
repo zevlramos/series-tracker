@@ -76,7 +76,7 @@ const diff = diffSeries(existingSeries.entries, alignment);
 // diff = { new: [...], changed: [...], unchanged: [...] }
 ```
 
-`diffSeries` compares only non-curation fields. **Status**, **recommendedOrder**, and **recommendedReason** are never surfaced as changes — they are the maintainer's curation and are always preserved (ADR-0009).
+`diffSeries` compares only non-curation fields. The curation fields — **status**, **recommendedOrder**, **recommendedReason**, **chronologicalOrder**, **excluded**, and **versionGroup** (`CURATION_FIELDS`) — are never surfaced as changes; they are the maintainer's curation and are always preserved (ADR-0009, ADR-0014). In particular, a re-discovered excluded work can never surface a change that un-excludes it, and re-research can never flip `excluded`.
 
 Each `changed` entry has per-field deltas:
 ```js
@@ -137,7 +137,7 @@ that the Chronological lens reflects any rank edits.
 
 ## Constraints
 
-- **Curation is never auto-overwritten** — status, recommendedOrder, recommendedReason, chronologicalOrder preserved by the merge (ADR-0009)
+- **Curation is never auto-overwritten** — the `CURATION_FIELDS` (status, recommendedOrder, recommendedReason, chronologicalOrder, excluded, versionGroup) are preserved by the merge (ADR-0009, ADR-0014)
 - **Merge runs once, before the wizard** — never re-merge after; it would clobber Order/Timeline edits
 - **Publish belongs to curate-series** — its projected, fail-closed `parseSeries` write is the only path that touches `data.json`
 - **Semantic alignment, not string matching** — ids carried forward on matches, minted only for genuinely new Entries
