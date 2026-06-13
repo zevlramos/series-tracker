@@ -73,6 +73,7 @@
   .row { display:grid; grid-template-columns:26px 30px 1fr; gap:10px; align-items:start; padding:10px 8px; border:1px solid #2a241f; border-radius:8px; margin:6px 0; background:#1a1613; }
   .row.newrow { border-color:#3a6c8f; }
   .row.dragging { outline:2px dashed #a85a37; }
+  .row.dropbefore { box-shadow:inset 0 3px 0 #a85a37; }   /* insertion line: drop lands before this row */
   .row .pos { color:#7a7068; font-size:12px; text-align:right; padding-top:3px; }
   .handle { cursor:grab; color:#6a605a; text-align:center; padding-top:2px; user-select:none; }
   .rmain { min-width:0; display:flex; flex-direction:column; gap:6px; }
@@ -473,9 +474,10 @@ function renderOrder() {
     if (moveBtn) moveBtn.onclick = () => moveToPosition(e, +moveBtn.dataset.move);
     row.querySelector('.reason').oninput = ev => { e.recommendedReason = ev.target.value; stage(); };
     row.ondragstart = ev => { ev.dataTransfer.setData('text/plain', e.id); row.classList.add('dragging'); };
-    row.ondragend = () => row.classList.remove('dragging');
-    row.ondragover = ev => ev.preventDefault();
-    row.ondrop = ev => { ev.preventDefault(); dropBeforeOrder(ev.dataTransfer.getData('text/plain'), e.id); };
+    row.ondragend = () => { row.classList.remove('dragging'); wrap.querySelectorAll('.dropbefore').forEach(r => r.classList.remove('dropbefore')); };
+    row.ondragover = ev => { ev.preventDefault(); if (!row.classList.contains('dragging')) row.classList.add('dropbefore'); };
+    row.ondragleave = () => row.classList.remove('dropbefore');
+    row.ondrop = ev => { ev.preventDefault(); row.classList.remove('dropbefore'); dropBeforeOrder(ev.dataTransfer.getData('text/plain'), e.id); };
     wrap.appendChild(row);
   });
   main.querySelectorAll('[data-lens]').forEach(p => p.onclick = () => { activeLensKey = p.dataset.lens; render(); });
