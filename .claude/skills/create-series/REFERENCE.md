@@ -27,7 +27,9 @@ The Draft is pipeline-internal JSON persisted at `.drafts/<slug>.json`. Review-o
       "sources": ["string — citation URLs, at least one"],
       "confidence": "high|low",
       "confidenceReason": "string|null — why low; null when high",
-      "versionNote": "string|null — e.g. '2019 remake of the 1998 original'",
+      "versionGroup": "string|null — shared content-derived slug linking the versions of one work (e.g. 're1'); null when standalone (ADR-0014)",
+      "excluded": "boolean — always false out of research; only the maintainer's version card sets true (ADR-0014)",
+      "versionNote": "string|null — e.g. '2019 remake of the 1998 original'; review scratch, stripped at publish",
       "sourceNotes": "string|null — e.g. 'Wikipedia + Fandom corroborate'"
     }
   ]
@@ -111,11 +113,13 @@ For each entry found, return a JSON array of objects with these fields:
 - confidence: "high" or "low" — use "low" if: only one weak source exists, the entry's existence is ambiguous, sources disagree on key facts, or the entry is obscure with limited coverage
 - confidenceReason: string explaining why confidence is low, or null if high
 - versionNote: if this is a remake, remaster, or alternate version, describe its relationship to the original (e.g. "2019 remake of the 1998 original"). null if standalone.
+- versionGroup: if this entry is one of several alternative versions of the SAME underlying work (an original and its remake(s)/remaster(s)/port(s)), give a short, stable, content-derived slug naming the base work (e.g. "re1" for the 1996/2002/2015 releases of Resident Evil 1) — the SAME exact string on every member of the group. null if this work has no alternative versions. Derive the slug from the base work itself; do not parse it from titles or ids.
 - sourceNotes: brief note on source corroboration (e.g. "Wikipedia + IGDB corroborate"), or null
 
 Important:
 - Remakes and remasters are DISTINCT entries — never collapse them with the original
 - Include the disambiguating year in the title for any remake/remaster
+- GROUP the versions of one work: every alternative version of the same underlying work carries the SAME versionGroup slug; a standalone work carries null. This only FLAGS the lineage for review — never drop or exclude any version; return every one as its own entry.
 - Be thorough: find everything, including lesser-known entries
 - If you cannot complete research (e.g. too many results, unclear scope), return what you have and note the limitation
 
@@ -164,7 +168,7 @@ writeFileSync(`series/${slug}/theme.json`, JSON.stringify(theme, null, 2));
 
 ## Domain vocabulary
 
-Use terms from `CONTEXT.md`: Series, Entry, Medium, Branch, Status, Shell, Theme, Layout Mode, Draft, Source. Do not use: Franchise, Title (for Entry name), Item, Work.
+Use terms from `CONTEXT.md`: Series, Entry, Medium, Branch, Status, Shell, Theme, Layout Mode, Draft, Source, Version group, Excluded. Do not use: Franchise, Title (for Entry name), Item, Work.
 
 ## ADR cross-references
 
@@ -174,6 +178,7 @@ Use terms from `CONTEXT.md`: Series, Entry, Medium, Branch, Status, Shell, Theme
 - **0008** — Draft is structured, durable, review-enriched
 - **0009** — Stable content-derived ids; update matching is semantic
 - **0010** — Two-layer Theme: `theme.json` (Visual tokens) + optional `theme.css` (Experiential layer)
+- **0014** — Versions of one work share a durable `versionGroup` slug; research flags the grouping but never sets `excluded` (the maintainer decides on the version card)
 
 ## Golden fixture
 
