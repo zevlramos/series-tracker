@@ -80,32 +80,16 @@ const { honesty } = shapeLenses({ includedEntries: draftEntries.filter(e => !e._
 If the subagent errors, write `{ consensus: null, alternatives: [] }` and tell the maintainer at
 handoff — the floor still works. `_orderResearch` is `_`-prefixed scratch, stripped at publish.
 
-### 1.6 Derive original⇄remake pairings (the Include-phase version card)
-
-No new research — this is **derived deterministically** from the remake identification research
-already produced (each remake's year-disambiguated title + `versionNote`, per the per-medium
-template). It feeds the Include phase's merged **version card** (#47): an original and its remake
-collapse into one card with a 3-way *Original only · Both · Remake only* choice. Research only
-**flags**; nothing is excluded until the maintainer picks; default is **Both**.
-
-```js
-import { derivePairings } from '../../src/modules/version-pairing.js';
-const pairings = derivePairings(draftEntries);   // [{ originalId, remakeId, note }]
-```
-
-`_pairings` is `_`-prefixed scratch — no schema change, no structural link in `data.json`
-(ADR-0007); it dies at publish.
-
 ### 2. Write the Draft (tag merge status, then persist)
 
 Tag each merged entry so the wizard can show new / preserved / changed, then write the
-starting Draft — carrying `_orderResearch` **and** `_pairings` as top-level scratch. See
+starting Draft — carrying `_orderResearch` as top-level scratch. See
 [REFERENCE.md](REFERENCE.md) for the exact tagging snippet.
 
 ```js
 import { mkdirSync, writeFileSync } from 'node:fs';
 mkdirSync('.drafts', { recursive: true });
-writeFileSync(`.drafts/${slug}.json`, JSON.stringify({ slug, name, _orderResearch: research, _pairings: pairings, entries: draftEntries }, null, 2));
+writeFileSync(`.drafts/${slug}.json`, JSON.stringify({ slug, name, _orderResearch: research, entries: draftEntries }, null, 2));
 ```
 
 The Draft at `.drafts/<slug>.json` is gitignored scratch and is resumable — relaunching
@@ -121,7 +105,7 @@ node .claude/skills/curate-series/curate-server.mjs <slug>
 Tell the maintainer to open **http://localhost:8123/** (set `CURATE_PORT` if 8123 is
 busy). They drive six phases, autosaving as they go:
 
-1. **Include** — keep/drop each Entry (Tinder card: → keep, ← drop). Researched original⇄remake pairs (`_pairings`) collapse into one **merged version card** with a 3-way *Original only · Both · Remake only* choice (+ ✕ exclude both); default **Both** — nothing dropped until the maintainer picks.
+1. **Include** — keep/drop each Entry (Tinder card: → keep, ← drop). Entries that share a `versionGroup` slug (ADR-0014) collapse into one **merged version card** with a 3-way *Original only · Both · Remake only* choice (+ ✕ exclude both); default **Both** — nothing dropped until the maintainer picks.
 2. **Branch** — mainline / spinoff.
 3. **Consumed** — set `status`.
 4. **Order** — author the **recommended** order. A lens switcher offers the researched framings (release floor + fan-consensus + alternatives) as refusable suggestions; per-entry ghost chips show where the active lens would place each Entry, with a surgical **Move to #N** accept (green where it already agrees). Drag or nudge freely; **dismiss** falls back to the release floor. Nothing writes to the order until the maintainer accepts or drags. Edit each one-line reason.
