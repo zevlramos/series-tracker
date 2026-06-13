@@ -9,14 +9,22 @@ One tracked franchise as a whole (e.g. Resident Evil). Each Series has its own d
 _Avoid_: Space, Franchise, Collection, Directory.
 
 **Entry**:
-A single piece of media within a Series — one game, novel, film, comic, show, podcast episode-set, etc. A remake or remaster is its **own** Entry, not a variant of the original; the recommended order is curated to feature one canonical version per slot (Resident Evil includes the 2002 remake and omits the 1996 original). See [[0007-remakes-are-curation-not-schema]].
+A single piece of media within a Series — one game, novel, film, comic, show, podcast episode-set, etc. A remake or remaster is its **own** Entry, not a variant of the original; the recommended order is curated to feature one canonical version per work (Resident Evil shows the 2002 remake and marks the 1996 original **Excluded** rather than deleting it). See [[0007-remakes-are-curation-not-schema]].
 _Avoid_: Title (reserved for an Entry's name), Work, Item.
+
+**Version group**:
+A set of Entries that are alternative versions of one underlying work — an original and its remake(s), remaster(s), or ports (e.g. the 1996, 2002, and 2015 versions of *Resident Evil*). Each version stays a **distinct Entry** with its own `id`, summary, and sources; the group is the durable link between them, not a merge. A group may have two members or many. Membership is what lets curation adjudicate "which version(s) of this work do I track" as one decision and remember that decision across updates. See [[0007-remakes-are-curation-not-schema]].
+_Avoid_: Variant, Edition (overloaded with retail/format senses), Slot.
 
 **Medium**:
 The kind of media an Entry is: game, novel, comic/graphic novel, film, show, stage play, podcast, audio, video, … Drives which verb the UI shows for consuming it.
 
 **Branch**:
 Whether an Entry is **mainline** (core canon of the Series) or a **spinoff** (side story, crossover, or ancillary work). Surfaced as a badge on the Entry.
+
+**Excluded**:
+An Entry the Series knows about but the maintainer has deliberately chosen **not to show** readers. It is kept in the Series' data — so an update remembers the decision and never re-proposes it as new — yet is filtered out of every reader-facing surface (the Timeline, progress counts, every Lens). The reason varies (a non-canonical version superseded by another in its **Version group**, a work not worth tracking, or a research false positive); the durable fact is uniform. Distinct from **Status** (whether a shown Entry has been consumed) and from a never-researched work (which is simply absent from the data).
+_Avoid_: Dropped, Omitted, Removed, Hidden.
 
 **Status**:
 Whether an Entry has been consumed — **binary**: done or not done (no in-progress stage). The field is called `status` generically, but the UI surfaces a **medium-specific verb**: Played / Not played (game), Read / Unread (novel/comic), Watched / Unwatched (film/show), Listened / Unlistened (podcast/audio).
