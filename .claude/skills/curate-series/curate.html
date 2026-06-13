@@ -441,7 +441,9 @@ function onKey(ev) {
 function moveAdjacent(entry, dir) {
   const i = ENTRIES.indexOf(entry);
   let j = i + dir;
-  while (j >= 0 && j < ENTRIES.length && ENTRIES[j]._drop) j += dir;
+  // Skip both dropped AND excluded neighbours — neither is in included(), so a
+  // nudge must land on the next reader-visible entry, not a hidden one.
+  while (j >= 0 && j < ENTRIES.length && (ENTRIES[j]._drop || ENTRIES[j].excluded)) j += dir;
   if (j < 0 || j >= ENTRIES.length) return;
   [ENTRIES[i], ENTRIES[j]] = [ENTRIES[j], ENTRIES[i]];
   renumber(); stage(); render();
