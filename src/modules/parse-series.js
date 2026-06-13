@@ -125,7 +125,7 @@ function normalizeEntry(raw) {
     branch: raw.branch,
     releaseDate: raw.releaseDate ?? null,
     recommendedOrder: raw.recommendedOrder ?? null,
-    recommendedReason: raw.recommendedReason,
+    recommendedReason: raw.recommendedReason ?? null,
     chronologicalOrder: raw.chronologicalOrder ?? null,
     loreDate: raw.loreDate ?? null,
     summary: raw.summary,

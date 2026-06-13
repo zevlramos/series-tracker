@@ -52,19 +52,26 @@
   .decision .opt .v { font-size:15px; font-weight:600; }
   .decision .opt.sel-left { border-color:#a8513e; background:#3a201a; }
   .decision .opt.sel-right { border-color:#5f8a4e; background:#1f2c1a; }
-  /* include-phase merged version card (#47) — one original⇄remake pair as a single card */
+  /* include-phase N-member version card (#55, ADR-0014) — every member of a durable
+     version group on one card; a release-timeline rail of solid (shown) vs dashed-ghost
+     (excluded) nodes, with a shared "Readers will see" readout. */
   .vcard .vnote { color:#c98b54; font-size:12px; margin:-2px 0 14px; }
-  .versions { display:flex; gap:14px; }
-  .ver { flex:1; border:1px solid #3a322b; border-radius:10px; padding:12px 14px; background:#181410; opacity:.5; transition:opacity .12s, border-color .12s; }
-  .ver.keep { opacity:1; border-color:#5f8a4e; background:#1b231a; }
-  .ver .vlabel { font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:#8a7f75; margin-bottom:4px; }
-  .ver .vtitle { font-weight:600; margin-bottom:4px; }
-  .ver .vmeta { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-  .threeway { display:flex; gap:10px; width:100%; max-width:680px; }
-  .threeway button { flex:1; padding:12px; font-size:14px; font-weight:600; }
-  .threeway button.sel { background:#5f8a4e; border-color:#7fc6a0; color:#fff; }
-  .exclude-both { font-size:12px; color:#a89c90; border-color:#3a322b; background:transparent; }
-  .exclude-both.sel { color:#e08a7a; border-color:#8a4a3a; background:#2a1714; }
+  .vrail { display:flex; align-items:stretch; flex-wrap:wrap; gap:0; margin:4px 0 16px; }
+  .vrail-link { align-self:center; min-width:14px; flex:0 0 14px; height:2px; background:#3a322b; }
+  .vnode { flex:1 1 150px; min-width:140px; text-align:left; display:flex; flex-direction:column; gap:5px;
+    border:1px solid #5f8a4e; border-radius:10px; padding:11px 13px; background:#1b231a; color:#e8e2da;
+    cursor:pointer; transition:opacity .12s, border-color .12s, background .12s; }
+  .vnode.ghost-out { border-style:dashed; border-color:#6a5e54; background:#181410; opacity:.5; }
+  .vnode .vk { display:inline-block; min-width:18px; height:18px; line-height:18px; text-align:center;
+    border-radius:5px; font-size:11px; font-weight:700; background:#2a241f; color:#c98b54; }
+  .vnode.ghost-out .vk { background:#241a16; color:#8a7f75; }
+  .vnode .vk.none { background:transparent; color:#6a605a; }
+  .vnode .vtitle { font-weight:600; line-height:1.3; overflow-wrap:anywhere; }
+  .vnode .vmeta { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .readers { border-top:1px solid #2a241f; padding-top:12px; }
+  .readers-line { color:#c4bbb0; }
+  .readers-line b { color:#7fc6a0; }
+  .readers-hidden { color:#8a7f75; font-size:12px; margin-top:4px; }
   .done-screen { text-align:center; padding:40px 0; }
   .done-screen h2 { color:#c98b54; }
   .done-screen .tally { color:#b3a89d; margin:14px 0 22px; }
@@ -150,7 +157,8 @@
 import { esc } from '/src/modules/escape.js';
 import { parseLoreDate, formatLoreDate, compareLoreDate } from '/src/modules/lore-date.js';
 import { shapeLenses } from '/src/modules/order-lens.js';
-import { stripYear, deriveVersionGroups } from '/src/modules/version-pairing.js';
+import { deriveVersionGroups } from '/src/modules/version-pairing.js';
+import { buildVersionCard, initialExcludeState, reduceCardKey, projectExclusions, readerOutcome, selectPublishEntries } from '/src/modules/version-card.js';
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 // Primary-drift threshold: only flag recommended-vs-lore gaps this large (years),
@@ -172,7 +180,10 @@ let DATA = {}, ENTRIES = [], phase = 1, cursor = 0, saveTimer = null;
 // _orderResearch over the CURRENT included set.
 let activeLensKey = null;
 
-const included = () => ENTRIES.filter(e => !e._drop);
+// The working visible set for phases 2-6: neither swiped-away (_drop, a non-grouped
+// Tinder exclude) nor card-excluded (excluded:true, a reader-hidden group member,
+// ADR-0014). Both are kept out of ordering, the timeline, summaries and the tallies.
+const included = () => ENTRIES.filter(e => !e._drop && !e.excluded);
 const mb = e => `<span class="mb ${e._mergeStatus}">${e._mergeStatus}</span>`;
 
 // Append a "medium / branch" header to `wrap` when the group changes. `state.last`
@@ -217,8 +228,10 @@ function topScratch() {
 }
 function draftDoc() { return { slug: DATA.slug, name: DATA.name, ...topScratch(), entries: ENTRIES.map(e => ({ ...e })) }; }
 function finalDoc() {
-  let o = 0;
-  const entries = included().map(e => ({ ...e, recommendedOrder: ++o }));
+  // 3-state publish projection (#55 + ADR-0014): _drop entries are genuinely removed;
+  // excluded:true members are RETAINED with recommendedOrder null (the gate exempts
+  // them, #52); visible entries are renumbered 1..N skipping the excluded ones.
+  const entries = selectPublishEntries(ENTRIES);
   return { slug: DATA.slug, name: DATA.name, entries };
 }
 function stage() {
@@ -263,41 +276,42 @@ function cardConfig() {
   };
 }
 // The card sequence for the current phase. Phase 1 (Include) collapses each durable
-// version group (entries sharing a versionGroup slug, ADR-0014) into ONE merged
-// version card (#47); phases 2-3 are per-Entry over the included set. Each item is
-// { type:'single', entry } or { type:'pair', original, remake }.
+// version group (entries sharing a versionGroup slug, ADR-0014) into ONE N-member
+// version card (#55), anchored at the EARLIEST member's release slot; phases 2-3 are
+// per-Entry over the included set. Each item is { type:'single', entry } or
+// { type:'group', card } where card = buildVersionCard(group).
 function cardItems() {
   if (phase !== 1) return included().map(entry => ({ type:'single', entry }));
-  // Only the existing 1:1 card is rendered here (the durable-key swap). A group of
-  // exactly two members renders as one version card with members in release order
-  // (original = earliest, remake = next); #55 owns the N-member UX, so larger groups
-  // fall through to per-Entry single cards.
-  const groups = deriveVersionGroups(ENTRIES).filter(g => g.members.length === 2);
-  const memberIds = new Set();
-  const anchorPair = new Map();   // remake id → { original, remake }, anchoring the card
+  // Every durable version group (>=2 members) folds into ONE card, regardless of size
+  // — the N-member generalization of the retired 1:1 pair card. The card anchors at the
+  // earliest member's slot (latest-anchor was rejected); all other members are folded
+  // out of the single-card stream.
+  const groups = deriveVersionGroups(ENTRIES);
+  const anchorCard = new Map();   // earliest-member id → card model, anchoring the slot
+  const folded = new Set();       // every member id, to skip standalone cards
   for (const g of groups) {
-    const [original, remake] = g.members;
-    memberIds.add(original.id); memberIds.add(remake.id);
-    anchorPair.set(remake.id, { original, remake });
+    const card = buildVersionCard(g);
+    anchorCard.set(g.members[0].id, card);
+    for (const m of g.members) folded.add(m.id);
   }
   const items = [];
   for (const entry of ENTRIES) {
-    const pair = anchorPair.get(entry.id);
-    if (pair) { items.push({ type:'pair', ...pair }); continue; }
-    if (memberIds.has(entry.id)) continue;   // folded into its version card
+    const card = anchorCard.get(entry.id);
+    if (card) { items.push({ type:'group', card }); continue; }   // earliest member: the card's slot
+    if (folded.has(entry.id)) continue;                           // a later member: folded into its card
     items.push({ type:'single', entry });
   }
   return items;
 }
-// 3-way (+ exclude-both) state, derived from / written to the two entries' _drop flags.
-// Default Both: untouched _drop=false on both → nothing is excluded until the maintainer picks.
-function pairChoice(o, r) {
-  const keepO = !o._drop, keepR = !r._drop;
-  return keepO && keepR ? 'both' : keepO ? 'original' : keepR ? 'remake' : 'exclude';
+// The card's exclude-state is DERIVED from the members' durable `excluded` flags
+// (ADR-0014), not a separate scratch store: the Set of member ids currently excluded.
+// All shown by default (excluded:false everywhere) — nothing dropped until the
+// maintainer acts. Writing back flips each member's durable `excluded` to match the Set.
+function cardExcludeState(card) {
+  return new Set(card.members.filter(m => m.excluded).map(m => m.id));
 }
-function setPairChoice(o, r, choice) {
-  o._drop = (choice === 'remake' || choice === 'exclude');
-  r._drop = (choice === 'original' || choice === 'exclude');
+function writeCardExcludeState(card, state) {
+  card.members.forEach(m => { m.excluded = state.has(m.id); });
 }
 function progressBar(n, total) {
   return `<div class="progress">${n} / ${total}<span class="bar"><i style="width:${Math.round((n-1)/total*100)}%"></i></span></div>`;
@@ -317,7 +331,7 @@ function renderCardPhase() {
     return;
   }
   const item = items[cursor];
-  if (item.type === 'pair') return renderPairCard(item, items.length);
+  if (item.type === 'group') return renderGroupCard(item.card, items.length);
 
   const e = item.entry, side = cfg.state(e);
   main.innerHTML = `
@@ -336,47 +350,66 @@ function renderCardPhase() {
     </div>`;
   document.querySelectorAll('.opt').forEach(o => o.onclick = () => { cfg.set(e, o.dataset.side); cursor++; stage(); render(); });
 }
-// Variant C: original and remake collapsed into one card; the decision reads as "which
-// version(s) of this work do I track," not two independent keep/drops. Default Both.
-function renderPairCard(item, total) {
+// The N-member version card (#55): every member of a durable version group on one card,
+// anchored at the earliest member. The decision reads "which version(s) of this work do I
+// track," not N independent keep/drops. A "release timeline" rail shows each member as a
+// solid node (shown) or dashed-ghost node (excluded), with a shared "Readers will see"
+// readout beneath. All shown by default; per-member click toggles, mirroring the keyboard.
+function renderGroupCard(card, total) {
   const main = document.getElementById('main');
-  const { original, remake } = item;
-  const choice = pairChoice(original, remake);
-  const base = esc(stripYear(original.title));
-  // versionNote is still a draft-scratch field during curation (stripped at publish);
-  // surface it as the card's note when research supplied one.
-  const note = remake.versionNote || original.versionNote || '';
-  const ver = (label, e, keep) => `<div class="ver ${keep?'keep':''}">
-      <div class="vlabel">${label}</div><div class="vtitle">${esc(e.title)}</div>
-      <div class="vmeta"><span class="date">${esc(e.releaseDate||'')}</span>${mb(e)}</div></div>`;
+  const state = cardExcludeState(card);
+  const proj = projectExclusions(card.members, state);
+  const isOut = id => proj.find(p => p.id === id).excluded;
+  const outcome = readerOutcome(card, state);
+  const tooMany = card.count > 9;   // digit keys cap at 9; 10+ is click-only
+
+  // Release-timeline rail: one node per member in release order, numbered 1..N (the
+  // key that toggles it, while it's <=9). Solid = shown, dashed-ghost = excluded.
+  const nodes = card.members.map((m, i) => {
+    const out = isOut(m.id);
+    const n = i + 1;
+    const key = n <= 9 ? `<span class="vk">${n}</span>` : '<span class="vk none">&middot;</span>';
+    return `<button class="vnode ${out?'ghost-out':'solid'}" data-toggle="${esc(m.id)}" title="${out?'excluded':'shown'} — click to toggle">
+        ${key}
+        <span class="vtitle">${esc(m.title)}</span>
+        <span class="vmeta"><span class="date">${esc(m.releaseDate||'')}</span>${mb(m)}</span>
+      </button>`;
+  }).join('<span class="vrail-link"></span>');
+
+  const seeList = list => list.length ? list.map(t => esc(t)).join(' &middot; ') : '<i>nothing</i>';
+  const keyHint = tooMany
+    ? 'Too many versions for number keys &mdash; click a node to toggle.'
+    : `<b>1&ndash;${Math.min(card.count,9)}</b> toggle a version`;
+
   main.innerHTML = `
     <div class="stage">
       ${progressBar(cursor+1, total)}
       <div class="card vcard">
-        <p class="ctitle">${base} — which version(s)?</p>
-        <div class="vnote">Research flagged these as versions of one work${note ? `: ${esc(note)}` : ''}.</div>
-        <div class="versions">
-          ${ver('Original', original, choice==='original'||choice==='both')}
-          ${ver('Remake', remake, choice==='remake'||choice==='both')}
+        <p class="ctitle">${esc(card.title)}</p>
+        <div class="cmeta"><span>${card.count} versions</span><span class="date">${esc(card.dateRange)}</span></div>
+        <div class="vrail">${nodes}</div>
+        <div class="readers">
+          <div class="readers-line"><b>Readers will see</b> &mdash; ${outcome.visibleCount} of ${card.count}: ${seeList(outcome.visibleTitles)}</div>
+          ${outcome.hiddenCount ? `<div class="readers-hidden">Hidden: ${seeList(outcome.hiddenTitles)}</div>` : ''}
         </div>
       </div>
-      <div class="threeway">
-        <button data-choice="original" class="${choice==='original'?'sel':''}">Original only</button>
-        <button data-choice="both" class="${choice==='both'?'sel':''}">Both</button>
-        <button data-choice="remake" class="${choice==='remake'?'sel':''}">Remake only</button>
-      </div>
-      <button class="exclude-both ${choice==='exclude'?'sel':''}" data-choice="exclude">&#10005; Exclude both</button>
-      <div class="hint">Nothing is dropped until you pick &mdash; default keeps <b>Both</b>. &nbsp;1 Original &middot; 2 Both &middot; 3 Remake &nbsp;&middot;&nbsp; Space skip &middot; Esc back</div>
+      <div class="hint">Nothing is hidden until you act &mdash; all shown by default. &nbsp;${keyHint} &middot; <b>0</b> show all &middot; <b>x</b> hide all &nbsp;&middot;&nbsp; &rarr;/Enter commit &middot; &larr; back &middot; Space skip</div>
     </div>`;
-  main.querySelectorAll('[data-choice]').forEach(b => b.onclick = () => { setPairChoice(original, remake, b.dataset.choice); cursor++; stage(); render(); });
+  // Click a node = the same toggle the number key performs (toggle then write through).
+  main.querySelectorAll('[data-toggle]').forEach(b => b.onclick = () => {
+    const id = b.dataset.toggle;
+    const next = new Set(state);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    writeCardExcludeState(card, next); stage(); render();
+  });
 }
-// Match both ev.key (US layout) and ev.code (Digit/Numpad) so the 1/2/3 shortcut works
-// on layouts where the unshifted top-row keys don't produce digit characters (e.g. AZERTY).
-const PAIR_KEY_CHOICE = {
-  '1':'original', '2':'both', '3':'remake',
-  Digit1:'original', Digit2:'both', Digit3:'remake',
-  Numpad1:'original', Numpad2:'both', Numpad3:'remake',
-};
+// Normalize a key event to the reducer's key vocabulary, honoring ev.code (Digit/Numpad)
+// so the 1-9 digit shortcuts work on layouts where the unshifted top-row keys don't
+// produce digit characters (e.g. AZERTY). Returns ev.key for non-digit keys.
+function normalizeCardKey(ev) {
+  const m = /^(?:Digit|Numpad)([0-9])$/.exec(ev.code);
+  return m ? m[1] : ev.key;
+}
 function onKey(ev) {
   if (phase > LAST_CARD_PHASE) return;
   const items = cardItems();
@@ -386,12 +419,19 @@ function onKey(ev) {
   }
   const item = items[cursor];
   if (ev.key === 'Escape' || ev.key === 'Backspace') { ev.preventDefault(); cursor = Math.max(0, cursor - 1); render(); return; }
-  if (ev.key === ' ') { ev.preventDefault(); cursor++; render(); return; }   // skip (keeps current choice)
-  if (item.type === 'pair') {
-    const c = PAIR_KEY_CHOICE[ev.key] || PAIR_KEY_CHOICE[ev.code];
-    if (c) { ev.preventDefault(); setPairChoice(item.original, item.remake, c); cursor++; stage(); render(); }
-    return;   // arrows do not apply to the 3-way card
+  if (item.type === 'group') {
+    // Uniform accumulate-then-advance for ALL group sizes (#55): digit keys toggle ONE
+    // member and STAY; 0 shows all, x hides all; ArrowRight/Enter commit, ArrowLeft back,
+    // Space skip. The pure reducer owns the model; this only translates its action.
+    const card = item.card;
+    const { state, action } = reduceCardKey(cardExcludeState(card), normalizeCardKey(ev), card);
+    if (action === 'stay') { ev.preventDefault(); writeCardExcludeState(card, state); stage(); render(); }
+    else if (action === 'advance') { ev.preventDefault(); cursor++; stage(); render(); }
+    else if (action === 'back') { ev.preventDefault(); cursor = Math.max(0, cursor - 1); render(); }
+    else if (action === 'skip') { ev.preventDefault(); cursor++; render(); }
+    return;
   }
+  if (ev.key === ' ') { ev.preventDefault(); cursor++; render(); return; }   // skip (keeps current choice)
   const cfg = cardConfig(), e = item.entry;
   if (ev.key === 'ArrowRight') { ev.preventDefault(); cfg.set(e, 'right'); cursor++; stage(); render(); }
   else if (ev.key === 'ArrowLeft') { ev.preventDefault(); cfg.set(e, 'left'); cursor++; stage(); render(); }
