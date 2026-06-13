@@ -62,6 +62,7 @@ Rules:
 - **Carry forward existing ids** on matches — do not re-derive.
 - **Mint new stable ids** (via `deriveEntryId`) only for genuinely new Entries in `unmatched`.
 - A re-worded title that clearly refers to the same Entry must align, not appear as new.
+- **Excluded entries are retained existing Entries (ADR-0014) — align them like any other.** An entry the maintainer deliberately excluded (`excluded: true`) is still in `data.json` and still in `existingSeries.entries`, so it MUST appear in `matches`. When re-research re-discovers that work, pair the fresh candidate onto the excluded Entry's **existing id** — do NOT emit it in `unmatched`/`new`. This is what stops a deliberately-omitted original (or dropped tie-in) from re-surfacing as a new entry on every update. The exclusion is remembered through the card; it is never re-litigated as a new discovery.
 - Present the alignment to the user for confirmation before proceeding.
 
 ### 3. Diff
@@ -120,7 +121,7 @@ const approvedDiff = { new: diff.new, changed: diff.changed, unchanged: diff.unc
 
 Then follow **[curate-series](../curate-series/SKILL.md)** from its Step 1. It runs
 `mergeCuration(startingEntries, approvedDiff)` **before** the wizard (preserving `status`,
-`recommendedOrder`, `recommendedReason`, `chronologicalOrder` per ADR-0009), writes the
+`recommendedOrder`, `recommendedReason`, `chronologicalOrder`, and `excluded` per ADR-0009/ADR-0014), writes the
 Draft, runs the 6-phase wizard, and on "Publish" **projects through `draftToSeriesData`**
 then the `parseSeries` gate before writing `series/<slug>/data.json`.
 
@@ -144,3 +145,4 @@ that the Chronological lens reflects any rank edits.
 - **Stable ids** — `deriveEntryId` for new Entries, never positional
 - **Every Entry needs at least one Source URL**
 - **Remakes are distinct** — each gets its own Entry (ADR-0007)
+- **Exclusions are remembered (ADR-0014, #54)** — a deliberately-excluded Entry is retained in `data.json`; align a re-discovered candidate onto its existing id (never `new`), and `mergeCuration` preserves its `excluded: true`. A re-research can never un-exclude it or re-surface it as a new entry.
