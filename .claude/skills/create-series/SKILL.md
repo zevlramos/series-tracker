@@ -40,7 +40,7 @@ Merge all subagent results into a flat Entry list (you, the orchestrator — not
 
 1. Parse each subagent's JSON (strip code fences/prose first). Failed media → note them and tell the user; don't retry automatically.
 2. Mint ids with `deriveEntryId(title)` for every Entry.
-3. Assign a provisional `recommendedOrder` (1-based, mainline first, then spinoffs) and a `recommendedReason` per Entry — the maintainer refines both in the wizard's Order phase.
+3. Seed a provisional `recommendedOrder` from **release order** — the create baseline: sort by `releaseDate` (undated Entries last) and number 1-based. Use `computeReleaseOrder` from `src/modules/order-lens.js` so the seed matches the Order phase's release-floor lens exactly. Add a one-line `recommendedReason` per Entry. The maintainer refines both in the wizard's Order phase. The old **mainline-first seed is retired** (ADR-0013): grouping all mainline ahead of all spinoffs regardless of date is what stranded mid-timeline spinoffs (e.g. Resident Evil Outbreak after a far-later mainline Entry).
 4. Set `status: false`, `image: null`, `loreDate: null`, `chronologicalOrder: null` on each Entry.
 
 ### 4. Delegate to curate-series (empty starting set)

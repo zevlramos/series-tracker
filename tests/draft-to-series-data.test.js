@@ -31,6 +31,22 @@ describe('draftToSeriesData', () => {
     assert.equal('incompleteMedia' in data, false);
   });
 
+  it('drops every _-prefixed scratch field, top-level and per-entry (#40 lenses / #47 pairings)', () => {
+    const draft = {
+      ...validDraft,
+      _orderResearch: { consensus: { label: 'Fan order', order: [], sources: ['x'] }, alternatives: [] },
+      _pairings: [{ originalId: 'a', remakeId: 'b', note: 'remake' }],
+      entries: validDraft.entries.map(e => ({ ...e, _mergeStatus: 'new', _drop: false, _proposedSummary: 'x', _orderDriftDismissed: true })),
+    };
+    const data = draftToSeriesData(draft);
+    assert.equal('_orderResearch' in data, false);
+    assert.equal('_pairings' in data, false);
+    assert.equal(Object.keys(data).every(k => !k.startsWith('_')), true);
+    for (const entry of data.entries) {
+      assert.equal(Object.keys(entry).some(k => k.startsWith('_')), false, `entry ${entry.id} leaked a _ field`);
+    }
+  });
+
   it('preserves all 14 data.json fields per entry', () => {
     const data = draftToSeriesData(validDraft);
     const entry = data.entries[0];

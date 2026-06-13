@@ -1,0 +1,71 @@
+// Advisory original⇄remake pairing for the Curation wizard (ADR-0007): remakes are
+// curation not schema, so this Draft-scratch metadata flags pairs and dies at publish.
+
+const YEAR_SUFFIX = /\s*\(\d{4}\)\s*$/;
+
+// Title minus a trailing 4-digit year parenthetical; preserves case/whitespace for display.
+// Single source of truth for the contract's strip pattern, shared with the wizard card.
+export function stripYear(title) {
+  return String(title).replace(YEAR_SUFFIX, '');
+}
+
+// Base title for matching: year stripped, trimmed, lowercased for case-insensitive compare.
+function baseTitle(title) {
+  return stripYear(title).trim().toLowerCase();
+}
+
+// A remake/remaster is any entry whose versionNote is a non-empty string.
+function isRemake(entry) {
+  return typeof entry.versionNote === 'string' && entry.versionNote !== '';
+}
+
+// Orders candidate originals: earliest releaseDate first, null sorts last; among equal
+// dates prefer a non-remake (empty versionNote); final tie-break by input order.
+function compareOriginals(a, b) {
+  if (a.releaseDate !== b.releaseDate) {
+    if (a.releaseDate === null) return 1;
+    if (b.releaseDate === null) return -1;
+    return a.releaseDate < b.releaseDate ? -1 : 1;
+  }
+  const aRemake = isRemake(a.entry);
+  const bRemake = isRemake(b.entry);
+  if (aRemake !== bRemake) return aRemake ? 1 : -1;
+  return a.index - b.index;
+}
+
+// derivePairings(entries) -> Array<{ originalId, remakeId, note }>, one per remake that
+// has a same-base/same-medium original; ordered by remake input position, deduped, pure.
+export function derivePairings(entries) {
+  const indexed = entries.map((entry, index) => ({
+    entry,
+    index,
+    base: baseTitle(entry.title),
+    releaseDate: entry.releaseDate ?? null,
+  }));
+
+  const pairings = [];
+  const seen = new Set();
+
+  for (const remake of indexed) {
+    if (!isRemake(remake.entry)) continue;
+
+    const candidates = indexed.filter(
+      (c) => c !== remake && c.base === remake.base && c.entry.medium === remake.entry.medium,
+    );
+    if (candidates.length === 0) continue;
+
+    const original = candidates.sort(compareOriginals)[0];
+
+    const key = `${original.entry.id}\0${remake.entry.id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    pairings.push({
+      originalId: original.entry.id,
+      remakeId: remake.entry.id,
+      note: remake.entry.versionNote,
+    });
+  }
+
+  return pairings;
+}
