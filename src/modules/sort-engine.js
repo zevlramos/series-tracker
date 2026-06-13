@@ -1,3 +1,10 @@
+// The reader's single entry-consumption chokepoint (ADR-0014): excluded entries
+// are retained in data.json but never shown. Only `excluded === true` is hidden;
+// absent/false stay visible (backward-compatible default).
+export function visibleEntries(entries) {
+  return entries.filter(e => e.excluded !== true);
+}
+
 export function availableSorts(series) {
   const sorts = ['recommended'];
 
