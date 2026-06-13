@@ -112,6 +112,29 @@ until an explicit per-entry accept or a drag.
   `draftToSeriesData` strips it at publish (it rebuilds from `{slug,name,entries}` + the 14-field
   whitelist, so top-level and per-entry `_`-fields both vanish).
 
+## Include-phase version card (`_pairings` scratch, #47 / ADR-0007)
+
+When research finds an Entry supersedes another (a remake/remaster of an original), the Include
+phase surfaces them as a single **merged version card** — "which version(s) of this work do I
+track," not two independent keep/drops.
+
+- **Derived, not researched.** Step 1.6 calls `derivePairings(draftEntries)` from
+  `src/modules/version-pairing.js` — pure, deterministic, off the remake identification research
+  already produced (year-disambiguated title + `versionNote`). It writes top-level
+  `_pairings = [{ originalId, remakeId, note }]` to the Draft.
+- **3-way + escape.** The card offers *Original only · Both · Remake only* plus a secondary
+  **✕ Exclude both** (rare; kept out of the symmetric 3-way). The choice writes the two Entries'
+  `_drop` flags; **default Both** (untouched `_drop=false`) means nothing is excluded until the
+  maintainer picks. Keyboard: `1` Original · `2` Both · `3` Remake · Space skip · Esc back.
+- **Pairing is curation, not schema (ADR-0007).** No structural link in `data.json`; `_pairings`
+  is `_`-prefixed scratch that `draftToSeriesData` strips at publish, same as `_orderResearch`.
+- The phase-1 card sequence folds each pair into one card at the remake's position; the original
+  gets no standalone card. Phases 2–3 (Branch/Consumed) still treat the two as distinct Entries.
+- **One card per original.** If `derivePairings` reports multiple remakes for one original (a
+  remaster *and* a remake), only the first remake anchors the version card; the rest appear as
+  their own Include cards. This keeps every original's `_drop` written by a single card. A unified
+  multi-version card is a possible future refinement (kept out of the validated 1:1 Variant C).
+
 ## Drift advisories (Timeline phase)
 
 - **Secondary (rank-vs-lore)** — a chronological rank that contradicts its own lore date.

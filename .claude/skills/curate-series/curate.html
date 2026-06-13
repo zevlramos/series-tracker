@@ -52,6 +52,19 @@
   .decision .opt .v { font-size:15px; font-weight:600; }
   .decision .opt.sel-left { border-color:#a8513e; background:#3a201a; }
   .decision .opt.sel-right { border-color:#5f8a4e; background:#1f2c1a; }
+  /* include-phase merged version card (#47) — one original⇄remake pair as a single card */
+  .vcard .vnote { color:#c98b54; font-size:12px; margin:-2px 0 14px; }
+  .versions { display:flex; gap:14px; }
+  .ver { flex:1; border:1px solid #3a322b; border-radius:10px; padding:12px 14px; background:#181410; opacity:.5; transition:opacity .12s, border-color .12s; }
+  .ver.keep { opacity:1; border-color:#5f8a4e; background:#1b231a; }
+  .ver .vlabel { font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:#8a7f75; margin-bottom:4px; }
+  .ver .vtitle { font-weight:600; margin-bottom:4px; }
+  .ver .vmeta { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .threeway { display:flex; gap:10px; width:100%; max-width:680px; }
+  .threeway button { flex:1; padding:12px; font-size:14px; font-weight:600; }
+  .threeway button.sel { background:#5f8a4e; border-color:#7fc6a0; color:#fff; }
+  .exclude-both { font-size:12px; color:#a89c90; border-color:#3a322b; background:transparent; }
+  .exclude-both.sel { color:#e08a7a; border-color:#8a4a3a; background:#2a1714; }
   .done-screen { text-align:center; padding:40px 0; }
   .done-screen h2 { color:#c98b54; }
   .done-screen .tally { color:#b3a89d; margin:14px 0 22px; }
@@ -60,6 +73,7 @@
   .row { display:grid; grid-template-columns:26px 30px 1fr; gap:10px; align-items:start; padding:10px 8px; border:1px solid #2a241f; border-radius:8px; margin:6px 0; background:#1a1613; }
   .row.newrow { border-color:#3a6c8f; }
   .row.dragging { outline:2px dashed #a85a37; }
+  .row.dropbefore { box-shadow:inset 0 3px 0 #a85a37; }   /* insertion line: drop lands before this row */
   .row .pos { color:#7a7068; font-size:12px; text-align:right; padding-top:3px; }
   .handle { cursor:grab; color:#6a605a; text-align:center; padding-top:2px; user-select:none; }
   .rmain { min-width:0; display:flex; flex-direction:column; gap:6px; }
@@ -136,6 +150,7 @@
 import { esc } from '/src/modules/escape.js';
 import { parseLoreDate, formatLoreDate, compareLoreDate } from '/src/modules/lore-date.js';
 import { shapeLenses } from '/src/modules/order-lens.js';
+import { stripYear } from '/src/modules/version-pairing.js';
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 // Primary-drift threshold: only flag recommended-vs-lore gaps this large (years),
@@ -232,24 +247,67 @@ function renderTabs() {
 // ---- card phases (1 include, 2 branch, 3 consumed) ----
 function cardConfig() {
   if (phase === 1) return {
-    list: ENTRIES, left:{label:'Exclude'}, right:{label:'Include'},
+    left:{label:'Exclude'}, right:{label:'Include'},
     state: e => e._drop ? 'left' : 'right',
     set: (e, side) => { e._drop = (side === 'left'); },
   };
   if (phase === 2) return {
-    list: included(), left:{label:'Spinoff'}, right:{label:'Mainline'},
+    left:{label:'Spinoff'}, right:{label:'Mainline'},
     state: e => e.branch === 'mainline' ? 'right' : 'left',
     set: (e, side) => { e.branch = side === 'right' ? 'mainline' : 'spinoff'; },
   };
   return { // phase 3
-    list: included(), left:{label:'Not consumed'}, right:{label:'Consumed'},
+    left:{label:'Not consumed'}, right:{label:'Consumed'},
     state: e => e.status ? 'right' : 'left',
     set: (e, side) => { e.status = (side === 'right'); },
   };
 }
+// The card sequence for the current phase. Phase 1 (Include) collapses each researched
+// original⇄remake pair (_pairings scratch) into ONE merged version card (#47); phases 2-3
+// are per-Entry over the included set. Each item is { type:'single', entry } or
+// { type:'pair', pairing, original, remake }.
+function cardItems() {
+  if (phase !== 1) return included().map(entry => ({ type:'single', entry }));
+  const pairs = DATA._pairings || [];
+  const has = id => ENTRIES.some(e => e.id === id);
+  const remakePair = new Map(pairs.map(p => [p.remakeId, p]));
+  // Each original anchors AT MOST ONE version card — the first of its remakes in entry order.
+  // Any further remakes of the same original degrade to their own Include cards, so no two
+  // cards ever write the same original's _drop (which would let a later card silently re-include
+  // an original an earlier card dropped). The validated 1:1 case is unchanged.
+  const pairedOriginals = new Set();
+  const opensPair = new Map();   // remakeId → pairing, for the remake that anchors a card
+  for (const entry of ENTRIES) {
+    const p = remakePair.get(entry.id);
+    if (p && has(p.originalId) && !pairedOriginals.has(p.originalId)) {
+      opensPair.set(entry.id, p); pairedOriginals.add(p.originalId);
+    }
+  }
+  const items = [];
+  for (const entry of ENTRIES) {
+    const p = opensPair.get(entry.id);
+    if (p) { items.push({ type:'pair', pairing:p, original: ENTRIES.find(x => x.id === p.originalId), remake:entry }); continue; }
+    if (pairedOriginals.has(entry.id)) continue;   // folded into its single version card
+    items.push({ type:'single', entry });
+  }
+  return items;
+}
+// 3-way (+ exclude-both) state, derived from / written to the two entries' _drop flags.
+// Default Both: untouched _drop=false on both → nothing is excluded until the maintainer picks.
+function pairChoice(o, r) {
+  const keepO = !o._drop, keepR = !r._drop;
+  return keepO && keepR ? 'both' : keepO ? 'original' : keepR ? 'remake' : 'exclude';
+}
+function setPairChoice(o, r, choice) {
+  o._drop = (choice === 'remake' || choice === 'exclude');
+  r._drop = (choice === 'original' || choice === 'exclude');
+}
+function progressBar(n, total) {
+  return `<div class="progress">${n} / ${total}<span class="bar"><i style="width:${Math.round((n-1)/total*100)}%"></i></span></div>`;
+}
 function renderCardPhase() {
-  const cfg = cardConfig(), list = cfg.list, main = document.getElementById('main');
-  if (cursor >= list.length) {
+  const cfg = cardConfig(), items = cardItems(), main = document.getElementById('main');
+  if (cursor >= items.length) {
     const incl = included().length;
     const tally = phase === 1 ? `${incl} included, ${ENTRIES.length - incl} excluded`
       : phase === 2 ? `${included().filter(e => e.branch === 'mainline').length} mainline, ${included().filter(e => e.branch === 'spinoff').length} spinoff`
@@ -261,10 +319,13 @@ function renderCardPhase() {
     if (next) document.getElementById('next').onclick = () => { phase = next.n; cursor = 0; render(); };
     return;
   }
-  const e = list[cursor], side = cfg.state(e);
+  const item = items[cursor];
+  if (item.type === 'pair') return renderPairCard(item, items.length);
+
+  const e = item.entry, side = cfg.state(e);
   main.innerHTML = `
     <div class="stage">
-      <div class="progress">${cursor+1} / ${list.length}<span class="bar"><i style="width:${Math.round(cursor/list.length*100)}%"></i></span></div>
+      ${progressBar(cursor+1, items.length)}
       <div class="card ${side==='left'?'on-left':'on-right'}">
         <p class="ctitle">${esc(e.title)}</p>
         <div class="cmeta"><span class="badge">${esc(e.medium)}</span><span class="date">${esc(e.releaseDate||'')}</span>${mb(e)}<span>branch: ${esc(e.branch)}</span></div>
@@ -278,18 +339,62 @@ function renderCardPhase() {
     </div>`;
   document.querySelectorAll('.opt').forEach(o => o.onclick = () => { cfg.set(e, o.dataset.side); cursor++; stage(); render(); });
 }
+// Variant C: original and remake collapsed into one card; the decision reads as "which
+// version(s) of this work do I track," not two independent keep/drops. Default Both.
+function renderPairCard(item, total) {
+  const main = document.getElementById('main');
+  const { original, remake, pairing } = item;
+  const choice = pairChoice(original, remake);
+  const base = esc(stripYear(original.title));
+  const ver = (label, e, keep) => `<div class="ver ${keep?'keep':''}">
+      <div class="vlabel">${label}</div><div class="vtitle">${esc(e.title)}</div>
+      <div class="vmeta"><span class="date">${esc(e.releaseDate||'')}</span>${mb(e)}</div></div>`;
+  main.innerHTML = `
+    <div class="stage">
+      ${progressBar(cursor+1, total)}
+      <div class="card vcard">
+        <p class="ctitle">${base} — which version(s)?</p>
+        <div class="vnote">Research flagged these as versions of one work${pairing.note ? `: ${esc(pairing.note)}` : ''}.</div>
+        <div class="versions">
+          ${ver('Original', original, choice==='original'||choice==='both')}
+          ${ver('Remake', remake, choice==='remake'||choice==='both')}
+        </div>
+      </div>
+      <div class="threeway">
+        <button data-choice="original" class="${choice==='original'?'sel':''}">Original only</button>
+        <button data-choice="both" class="${choice==='both'?'sel':''}">Both</button>
+        <button data-choice="remake" class="${choice==='remake'?'sel':''}">Remake only</button>
+      </div>
+      <button class="exclude-both ${choice==='exclude'?'sel':''}" data-choice="exclude">&#10005; Exclude both</button>
+      <div class="hint">Nothing is dropped until you pick &mdash; default keeps <b>Both</b>. &nbsp;1 Original &middot; 2 Both &middot; 3 Remake &nbsp;&middot;&nbsp; Space skip &middot; Esc back</div>
+    </div>`;
+  main.querySelectorAll('[data-choice]').forEach(b => b.onclick = () => { setPairChoice(original, remake, b.dataset.choice); cursor++; stage(); render(); });
+}
+// Match both ev.key (US layout) and ev.code (Digit/Numpad) so the 1/2/3 shortcut works
+// on layouts where the unshifted top-row keys don't produce digit characters (e.g. AZERTY).
+const PAIR_KEY_CHOICE = {
+  '1':'original', '2':'both', '3':'remake',
+  Digit1:'original', Digit2:'both', Digit3:'remake',
+  Numpad1:'original', Numpad2:'both', Numpad3:'remake',
+};
 function onKey(ev) {
   if (phase > LAST_CARD_PHASE) return;
-  const cfg = cardConfig();
-  if (cursor >= cfg.list.length) {
-    if (ev.key === 'ArrowLeft' || ev.key === 'Escape' || ev.key === 'Backspace') { ev.preventDefault(); cursor = Math.max(0, cfg.list.length - 1); render(); }
+  const items = cardItems();
+  if (cursor >= items.length) {
+    if (ev.key === 'ArrowLeft' || ev.key === 'Escape' || ev.key === 'Backspace') { ev.preventDefault(); cursor = Math.max(0, items.length - 1); render(); }
     return;
   }
-  const e = cfg.list[cursor];
+  const item = items[cursor];
+  if (ev.key === 'Escape' || ev.key === 'Backspace') { ev.preventDefault(); cursor = Math.max(0, cursor - 1); render(); return; }
+  if (ev.key === ' ') { ev.preventDefault(); cursor++; render(); return; }   // skip (keeps current choice)
+  if (item.type === 'pair') {
+    const c = PAIR_KEY_CHOICE[ev.key] || PAIR_KEY_CHOICE[ev.code];
+    if (c) { ev.preventDefault(); setPairChoice(item.original, item.remake, c); cursor++; stage(); render(); }
+    return;   // arrows do not apply to the 3-way card
+  }
+  const cfg = cardConfig(), e = item.entry;
   if (ev.key === 'ArrowRight') { ev.preventDefault(); cfg.set(e, 'right'); cursor++; stage(); render(); }
   else if (ev.key === 'ArrowLeft') { ev.preventDefault(); cfg.set(e, 'left'); cursor++; stage(); render(); }
-  else if (ev.key === ' ') { ev.preventDefault(); cursor++; render(); }
-  else if (ev.key === 'Escape' || ev.key === 'Backspace') { ev.preventDefault(); cursor = Math.max(0, cursor - 1); render(); }
 }
 
 // ---- phase 4: recommended order + reason, with refusable fandom-order lenses (#40) ----
@@ -369,9 +474,10 @@ function renderOrder() {
     if (moveBtn) moveBtn.onclick = () => moveToPosition(e, +moveBtn.dataset.move);
     row.querySelector('.reason').oninput = ev => { e.recommendedReason = ev.target.value; stage(); };
     row.ondragstart = ev => { ev.dataTransfer.setData('text/plain', e.id); row.classList.add('dragging'); };
-    row.ondragend = () => row.classList.remove('dragging');
-    row.ondragover = ev => ev.preventDefault();
-    row.ondrop = ev => { ev.preventDefault(); dropBeforeOrder(ev.dataTransfer.getData('text/plain'), e.id); };
+    row.ondragend = () => { row.classList.remove('dragging'); wrap.querySelectorAll('.dropbefore').forEach(r => r.classList.remove('dropbefore')); };
+    row.ondragover = ev => { ev.preventDefault(); if (!row.classList.contains('dragging')) row.classList.add('dropbefore'); };
+    row.ondragleave = () => row.classList.remove('dropbefore');
+    row.ondrop = ev => { ev.preventDefault(); row.classList.remove('dropbefore'); dropBeforeOrder(ev.dataTransfer.getData('text/plain'), e.id); };
     wrap.appendChild(row);
   });
   main.querySelectorAll('[data-lens]').forEach(p => p.onclick = () => { activeLensKey = p.dataset.lens; render(); });
