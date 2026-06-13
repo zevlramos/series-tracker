@@ -33,8 +33,10 @@ export function deriveVersionGroups(entries) {
   const bySlug = new Map();
 
   for (const entry of entries) {
-    const slug = entry.versionGroup ?? null;
-    if (slug === null) continue;
+    // Falsy slug (null/undefined/empty) is ungrouped. The gate rejects empty-string
+    // versionGroup, but the wizard runs this on in-flight draft entries too.
+    const slug = entry.versionGroup;
+    if (!slug) continue;
     if (!bySlug.has(slug)) bySlug.set(slug, []);
     bySlug.get(slug).push(entry);
   }

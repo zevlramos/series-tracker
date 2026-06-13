@@ -6,6 +6,7 @@ import { validateDraft } from '../pipeline/validate-draft.js';
 import { draftToSeriesData } from '../pipeline/draft-to-series-data.js';
 import { mergeCuration } from '../pipeline/mergeCuration.js';
 import { CURATION_FIELDS } from '../pipeline/curation-fields.js';
+import { deriveVersionGroups } from '../src/modules/version-pairing.js';
 
 // Issue #53 — durable `versionGroup` key. ADR-0014:
 //  - versionGroup is a string|null Entry field, default null, zero migration;
@@ -246,5 +247,39 @@ describe('#53 versionGroup — PUBLISH whitelist carries it through', () => {
       assert.ok('versionGroup' in entry, `entry ${entry.id} should carry versionGroup`);
       assert.equal(entry.versionGroup, null, `entry ${entry.id} should default to null`);
     }
+  });
+});
+
+// Review-gate hardening (code-review on #53): an empty-string slug is not a real
+// group key — the gate rejects it, and the group-by skips falsy slugs so two
+// entries with versionGroup:'' never form a phantom card.
+describe('#53 versionGroup — gate hardening: empty string is not a slug', () => {
+  it('REJECTS an empty-string versionGroup at the publish gate', () => {
+    const series = { ...validSeries, entries: [{ ...validEntry, id: 'bad', versionGroup: '' }] };
+    const result = parseSeries(JSON.stringify(series));
+    assert.equal(result.ok, false, 'empty-string versionGroup must be rejected');
+  });
+
+  it('REJECTS an empty-string versionGroup at the draft gate', () => {
+    const draft = {
+      slug: 's', name: 'S', orderRationale: 'r', incompleteMedia: [],
+      entries: [{
+        id: 'x', title: 'X', medium: 'game', branch: 'mainline',
+        recommendedOrder: 1, recommendedReason: 'r', summary: 's',
+        sources: ['https://example.com'], status: false,
+        confidence: 'high', confidenceReason: null, versionNote: null, sourceNotes: null,
+        versionGroup: ''
+      }]
+    };
+    assert.equal(validateDraft(draft).ok, false, 'draft gate must reject empty-string versionGroup too');
+  });
+
+  it('deriveVersionGroups does NOT group entries on a falsy slug', () => {
+    const groups = deriveVersionGroups([
+      { id: 'a', versionGroup: '', releaseDate: '1996-01-01' },
+      { id: 'b', versionGroup: '', releaseDate: '2002-01-01' },
+      { id: 'c', versionGroup: null, releaseDate: '2015-01-01' }
+    ]);
+    assert.deepEqual(groups, [], 'empty-string and null slugs must never form a group');
   });
 });

@@ -49,14 +49,15 @@ create there are no changed entries, so this seam is inert.
 entry after applying accepted deltas — which is exactly why it must run **before** the
 wizard edits those fields, and never again after.
 
-## Published entry shape — the 14-field whitelist
+## Published entry shape — the 16-field whitelist
 
 `draftToSeriesData` rebuilds each entry from exactly these keys (any other field, including
 every `_`-prefixed UI field, is dropped):
 
 ```
 id, title, medium, branch, releaseDate, recommendedOrder, recommendedReason,
-chronologicalOrder, loreDate, summary, image, imageUrl, status, sources
+chronologicalOrder, loreDate, summary, image, imageUrl, status, excluded,
+versionGroup, sources
 ```
 
 Field rules enforced by `parseSeries` (the gate):
@@ -66,6 +67,8 @@ Field rules enforced by `parseSeries` (the gate):
 - `releaseDate` — string|null. `image`/`imageUrl` — any|null (never type-checked).
 - `loreDate` — null, or a string that `parseLoreDate` accepts (`YYYY` / `YYYY-MM` / `YYYY-MM-DD`).
 - `chronologicalOrder` — integer|null. **`0` is a real rank distinct from null** — never coerce empty→0 or 0→null. The Chronological lens turns on as soon as **any** Entry has a non-null rank (`0` counts); unranked (`null`) Entries sort last.
+- `excluded` — boolean (default `false`, ADR-0014). An excluded Entry is retained but reader-hidden, so the gate **exempts** it from the `recommendedReason`/`recommendedOrder` requirements and sorts null-order Entries last.
+- `versionGroup` — string|null (default `null`, ADR-0014). A content-derived slug shared by the Entries that are alternative versions of one work; the Include-phase version card is an emergent group-by on it. Both `excluded` and `versionGroup` are curation fields, preserved across `update-series`.
 
 ## The committed tooling
 
@@ -109,7 +112,7 @@ until an explicit per-entry accept or a drag.
   (one distinct researched ordering), `contested` (≥2 distinct — a real split to adjudicate).
 - **Scratch survival.** `_orderResearch` is `_`-prefixed and lives top-level on the Draft. The wizard's
   autosave (`draftDoc`) carries every top-level `_`-field verbatim so a later phase never drops it;
-  `draftToSeriesData` strips it at publish (it rebuilds from `{slug,name,entries}` + the 14-field
+  `draftToSeriesData` strips it at publish (it rebuilds from `{slug,name,entries}` + the 16-field
   whitelist, so top-level and per-entry `_`-fields both vanish).
 
 ## Include-phase version card (`versionGroup` group-by, #47 / ADR-0014)
