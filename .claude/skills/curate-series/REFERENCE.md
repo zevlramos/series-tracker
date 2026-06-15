@@ -115,11 +115,12 @@ until an explicit per-entry accept or a drag.
   `draftToSeriesData` strips it at publish (it rebuilds from `{slug,name,entries}` + the 16-field
   whitelist, so top-level and per-entry `_`-fields both vanish).
 
-## Include-phase version card (`versionGroup` group-by, #47 / ADR-0014)
+## Include-phase version card (`versionGroup` group-by, #47 / #55 / ADR-0014)
 
-When two Entries are alternative versions of one underlying work, the Include phase surfaces
-them as a single **merged version card** — "which version(s) of this work do I track," not two
-independent keep/drops.
+When ≥2 Entries are alternative versions of one underlying work, the Include phase surfaces
+them as a single **N-member version card** — "which version(s) of this work do I track," not N
+independent keep/drops. The pure logic lives in `src/modules/version-card.js` (unit-tested under
+`node --test`); `curate.html` imports it and owns only the DOM render and raw key-event wiring.
 
 - **Grouped by the durable `versionGroup` field.** Each member carries a shared, content-derived
   `versionGroup` slug (ADR-0014); the card is an emergent group-by, not a pre-derived scratch
@@ -130,19 +131,30 @@ independent keep/drops.
   one entry per slug shared by ≥2 entries, members in release order (nulls last). This replaces
   the retired title-matching matcher (`stripYear` + base-title equality + a publish-stripped
   `versionNote`), which produced zero pairings on update once titles were decorated.
-- **3-way + escape.** The card offers *Original only · Both · Remake only* plus a secondary
-  **✕ Exclude both** (rare; kept out of the symmetric 3-way). The choice writes the two Entries'
-  `_drop` flags; **default Both** (untouched `_drop=false`) means nothing is excluded until the
-  maintainer picks. Keyboard: `1` Original · `2` Both · `3` Remake · Space skip · Esc back.
-- **Group membership is durable; the card decision is curation (ADR-0014).** `versionGroup` is a
-  whitelisted, preserved curation field that survives publish → re-import. The per-card `_drop`
-  flag is still `_`-prefixed scratch that `draftToSeriesData` strips at publish.
-- The phase-1 card sequence folds each group into one card; the earlier member gets no standalone
-  card. Phases 2–3 (Branch/Consumed) still treat the members as distinct Entries.
-- **Exactly-two members render as the version card.** `curate.html` filters
-  `deriveVersionGroups(...)` to groups of `members.length === 2` — the validated 1:1 version card
-  (#47). Groups of N>2 members are not collapsed here; the N-member version card is a deferred
-  generalization (#55).
+- **Anchored at the earliest member.** `buildVersionCard(group)` folds the group into the deck at
+  the **earliest** member's release slot (latest-anchor was considered and rejected), titled by
+  the base work, e.g. "Resident Evil — which version(s)? · 3 versions · 1996–2015". Members are
+  listed sorted by release date.
+- **All shown by default; per-member show/exclude.** Nothing is hidden until the maintainer acts.
+  A **release-timeline** rail shows each member as a numbered circle node connected horizontally —
+  green (shown) or grey (excluded), with its title and release date beneath each — plus a shared
+  **"Readers will see"** readout (`readerOutcome`) that reflects the live toggle state.
+- **Keyboard — uniform accumulate-then-advance for ALL group sizes, including N=2** (this replaces
+  #47's modal one-press-commit, where `1`/`2`/`3` committed a finished state and advanced). The
+  pure reducer is `reduceCardKey(state, key, card)`:
+  `1`–`N` toggle member N (date order) and **stay** on the card · `0` show all · `x` exclude all ·
+  `→`/`Enter` advance (commit) · `←` back · `Space` skip. Number keys cap at 9; groups of 10+ fall
+  back to click (the card says so).
+- **Projects to durable `excluded`, not `_drop`.** Each member's show/exclude toggle writes the
+  member Entry's durable `excluded` flag (`projectExclusions`). At publish, `selectPublishEntries`
+  performs the 3-state projection: a `_drop` entry (a Tinder swipe-left on a non-grouped Entry) is
+  genuinely removed; an `excluded:true` member is **retained** with `recommendedOrder: null` (the
+  gate exempts it, #52); a visible Entry keeps `excluded:false` and is renumbered across the
+  visible set only (excluded members consume no `recommendedOrder` slot). `versionGroup` and
+  `excluded` are whitelisted, preserved curation fields that survive publish → re-import.
+- The phase-1 card sequence folds each group into one card at the earliest member's slot; the
+  other members get no standalone card. Phases 2–3 (Branch/Consumed) and 4–6 operate over the
+  working visible set (`included()` = not `_drop` and not `excluded`).
 
 ## Drift advisories (Timeline phase)
 
