@@ -1,6 +1,6 @@
 import { parseSeries } from './modules/parse-series.js';
 import { Pager } from './modules/pager.js';
-import { availableSorts, sortEntries } from './modules/sort-engine.js';
+import { availableSorts, sortEntries, visibleEntries } from './modules/sort-engine.js';
 import { presentEntry } from './modules/present-entry.js';
 import { themeToCssVars } from './modules/theme-mapper.js';
 import { validateTheme } from '../pipeline/validate-theme.js';
@@ -28,6 +28,10 @@ export async function initShell(root, seriesPath) {
   }
 
   const series = result.series;
+  // Single reader chokepoint: drop excluded entries before anything consumes the
+  // set, so availableSorts, progress counts, and every sort toggle see only the
+  // visible entries (ADR-0014).
+  series.entries = visibleEntries(series.entries);
 
   let pageTurn3d = false;
   if (themeResult && themeResult.ok) {

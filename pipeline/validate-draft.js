@@ -44,14 +44,20 @@ export function validateDraft(draft) {
 function validateDraftEntry(e, prefix, seenIds) {
   if (typeof e !== 'object' || e === null) return `${prefix}: not an object`;
 
-  const requiredStrings = ['id', 'title', 'medium', 'branch', 'recommendedReason', 'summary'];
+  // Excluded entries are exempt from recommendedReason + recommendedOrder, exactly
+  // as the publish gate (parse-series) is — a newly-excluded draft entry has
+  // neither. Strict `=== true` so absent/false still require both (ADR-0014).
+  const exempt = e.excluded === true;
+
+  const requiredStrings = ['id', 'title', 'medium', 'branch', 'summary'];
+  if (!exempt) requiredStrings.push('recommendedReason');
   for (const field of requiredStrings) {
     if (typeof e[field] !== 'string' || !e[field]) {
       return `${prefix}: missing or invalid "${field}"`;
     }
   }
 
-  if (typeof e.recommendedOrder !== 'number' || !Number.isInteger(e.recommendedOrder)) {
+  if (!exempt && (typeof e.recommendedOrder !== 'number' || !Number.isInteger(e.recommendedOrder))) {
     return `${prefix}: missing or invalid "recommendedOrder" — must be an integer`;
   }
 
@@ -77,6 +83,10 @@ function validateDraftEntry(e, prefix, seenIds) {
 
   if (typeof e.status !== 'boolean') {
     return `${prefix}: invalid "status" — must be a boolean`;
+  }
+
+  if (e.excluded != null && typeof e.excluded !== 'boolean') {
+    return `${prefix}: "excluded" must be a boolean`;
   }
 
   if (seenIds.has(e.id)) {

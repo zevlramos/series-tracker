@@ -52,13 +52,21 @@ function flagReasons(entry) {
 }
 
 function renderEntry(lines, entry) {
-  lines.push(`### ${entry.recommendedOrder}. ${entry.title}`);
+  // Excluded entries are retained but carry no recommended position (ADR-0014),
+  // so render them without an order number or placement reason rather than
+  // emitting literal `null`/`undefined`.
+  const heading = entry.excluded
+    ? `${entry.title} _(excluded)_`
+    : `${entry.recommendedOrder}. ${entry.title}`;
+  lines.push(`### ${heading}`);
   lines.push('');
   lines.push(`- **Medium:** ${entry.medium} | **Branch:** ${entry.branch}`);
   if (entry.releaseDate) {
     lines.push(`- **Release:** ${entry.releaseDate}`);
   }
-  lines.push(`- **Reason for placement:** ${entry.recommendedReason}`);
+  if (entry.recommendedReason) {
+    lines.push(`- **Reason for placement:** ${entry.recommendedReason}`);
+  }
   lines.push(`- **Summary:** ${entry.summary}`);
   if (entry.imageUrl) {
     lines.push(`- **Cover URL:** ${entry.imageUrl}`);
