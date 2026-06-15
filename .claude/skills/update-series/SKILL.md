@@ -52,7 +52,16 @@ const alignment = {
     // ...
   ],
   unmatched: [
-    { id: 'resident-evil-5', /* genuinely new Entry */ }
+    { id: 'resident-evil-5', /* genuinely new Entry, standalone work */ },
+    // A new version of an already-tracked work: genuinely new (own id), but joins the
+    // existing group and is flagged redundant — never matched onto the original's id,
+    // never excluded by research (ADR-0014):
+    {
+      id: 'resident-evil-2-2019',
+      versionGroup: 're2',                  // = the existing member's slug
+      redundantWith: 'resident-evil-1998',  // surfaced as "redundant with X" in review
+      /* other fresh fields */
+    }
   ]
 };
 ```
@@ -63,7 +72,8 @@ Rules:
 - **Mint new stable ids** (via `deriveEntryId`) only for genuinely new Entries in `unmatched`.
 - A re-worded title that clearly refers to the same Entry must align, not appear as new.
 - **Excluded entries are retained existing Entries (ADR-0014) — align them like any other.** An entry the maintainer deliberately excluded (`excluded: true`) is still in `data.json` and still in `existingSeries.entries`, so it MUST appear in `matches`. When re-research re-discovers that work, pair the fresh candidate onto the excluded Entry's **existing id** — do NOT emit it in `unmatched`/`new`. This is what stops a deliberately-omitted original (or dropped tie-in) from re-surfacing as a new entry on every update. The exclusion is remembered through the card; it is never re-litigated as a new discovery.
-- Present the alignment to the user for confirmation before proceeding.
+- **Flag redundancy: a genuinely-new entry that is another version of an already-tracked work (ADR-0014).** A freshly-released remaster or remake of a work already in `existingSeries.entries` is a *distinct* Entry — it is genuinely new, so it lands in `unmatched`/`new` with its own minted id (do NOT match it onto the original's id). But it is **the same underlying work** as a tracked version, so it is not independent of it. Seed its `versionGroup` with the **existing member's** `versionGroup` slug (joining the durable group), and attach a redundancy flag — `redundantWith: <existing id>` — describing it in the alignment review as "redundant with X" (e.g. "redundant with Resident Evil 2 (1998) — same work, 2019 remake"). This is a **flag only**: it seeds the version card so the maintainer can decide which version(s) to track. Do NOT set `excluded` — research never excludes; inclusion is the maintainer's decision on the card (#55).
+- Present the alignment to the user for confirmation before proceeding — the redundancy flag is surfaced **inside this review the maintainer already confirms**, not acted on automatically.
 
 ### 3. Diff
 
@@ -107,7 +117,11 @@ change.fields.releaseDate.accepted = false;  // user wants to keep the old date
 
 **New entries** (`diff.new`) — placement and reasons are the maintainer's job in the
 wizard's Order phase; you don't need to pre-assign `recommendedOrder` here. New entries
-default to `status: false` in the merge.
+default to `status: false` in the merge. A new entry that carries a `versionGroup` slug
+(a fresh version of an already-tracked work) joins that durable group and seeds the
+Include-phase version card, so the maintainer decides inclusion there — never pre-set
+`excluded`. The `redundantWith` flag is review scratch (it surfaces the "redundant with X"
+note in this approval); only the durable `versionGroup` is carried into the merge.
 
 Continue until the user approves. The result is the `approvedDiff` —
 `{ new: diff.new, changed: diff.changed (now with accepted flags), unchanged: diff.unchanged }`.
@@ -146,3 +160,4 @@ that the Chronological lens reflects any rank edits.
 - **Every Entry needs at least one Source URL**
 - **Remakes are distinct** — each gets its own Entry (ADR-0007)
 - **Exclusions are remembered (ADR-0014, #54)** — a deliberately-excluded Entry is retained in `data.json`; align a re-discovered candidate onto its existing id (never `new`), and `mergeCuration` preserves its `excluded: true`. A re-research can never un-exclude it or re-surface it as a new entry.
+- **Alignment flags redundancy, never excludes (ADR-0014, #56)** — a fresh version of an already-tracked work is flagged "redundant with X" inside the alignment review and seeded into the existing `versionGroup`, but stays a genuinely-new Entry with its own id. Research/alignment **never** sets `excluded`; inclusion is the maintainer's decision on the version card.

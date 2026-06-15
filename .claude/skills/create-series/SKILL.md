@@ -32,6 +32,8 @@ Proceed after the user confirms. If they add a medium, include it. If they narro
 
 Dispatch one `Agent` call per confirmed medium, all **in parallel**. Use `subagent_type: "general-purpose"`, named descriptively (e.g. `"research-games"`). See [REFERENCE.md](REFERENCE.md) for the subagent prompt template.
 
+Each subagent also **classifies version lineage**: when several titles it returns are alternative versions of one underlying work (an original and its remake/remaster/port — e.g. the 1996, 2002, and 2015 releases of Resident Evil 1), it tags them with a shared, content-derived `versionGroup` slug (`re1`) — the same value on every member. The slug is minted once from the base work, same philosophy as Entry ids (ADR-0009), not parsed from id prefixes; standalone works get `versionGroup: null`. This is a **flag, not a decision**: research proposes the grouping, but inclusion stays the maintainer's call — research **never** sets `excluded`. The version card decides that downstream (Step 4 → the Include phase). See [REFERENCE.md](REFERENCE.md) for how the prompt asks for this.
+
 If a subagent errors or returns unparseable results, note that medium as incomplete and tell the user at handoff — don't retry automatically.
 
 ### 3. Consolidate the researched Entries
@@ -41,7 +43,8 @@ Merge all subagent results into a flat Entry list (you, the orchestrator — not
 1. Parse each subagent's JSON (strip code fences/prose first). Failed media → note them and tell the user; don't retry automatically.
 2. Mint ids with `deriveEntryId(title)` for every Entry.
 3. Seed a provisional `recommendedOrder` from **release order** — the create baseline: sort by `releaseDate` (undated Entries last) and number 1-based. Use `computeReleaseOrder` from `src/modules/order-lens.js` so the seed matches the Order phase's release-floor lens exactly. Add a one-line `recommendedReason` per Entry. The maintainer refines both in the wizard's Order phase. The old **mainline-first seed is retired** (ADR-0013): grouping all mainline ahead of all spinoffs regardless of date is what stranded mid-timeline spinoffs (e.g. Resident Evil Outbreak after a far-later mainline Entry).
-4. Set `status: false`, `image: null`, `loreDate: null`, `chronologicalOrder: null` on each Entry.
+4. Set `status: false`, `image: null`, `loreDate: null`, `chronologicalOrder: null`, and `excluded: false` on each Entry.
+5. Carry the researched `versionGroup` slug onto each Entry; standalone works (no version siblings) get `versionGroup: null`. The slug is **provisional** — research only flags the grouping; the maintainer confirms it (and decides which members to include/exclude) on the Include phase's version card. Research never sets `excluded`.
 
 ### 4. Delegate to curate-series (empty starting set)
 
@@ -100,6 +103,7 @@ Do not silently bake structural asks into `theme.css`. The classification must b
 - **No schema changes** — output conforms to existing `data.json` / `theme.json`
 - **Layout mode** — always `"paged"` (ADR-0006)
 - **Every Entry needs ≥1 Source URL** — the user must be able to verify claims
-- **Remakes are distinct** — each gets its own Entry with a `versionNote` (ADR-0007)
+- **Remakes are distinct** — each gets its own Entry, never collapsed with the original (ADR-0007)
+- **Versions are grouped, never excluded by research** — research tags the versions of one work with a shared provisional `versionGroup` slug (ADR-0014); it only **flags** the lineage. It never sets `excluded` — inclusion is the maintainer's decision on the version card
 - **Cover URLs recorded, never downloaded** — `imageUrl` only (ADR-0005)
 - **Failed media surfaced** — tell the user which media didn't research; never silently dropped

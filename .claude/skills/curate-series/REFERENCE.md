@@ -119,7 +119,11 @@ until an explicit per-entry accept or a drag.
 
 When ≥2 Entries are alternative versions of one underlying work, the Include phase surfaces
 them as a single **N-member version card** — "which version(s) of this work do I track," not N
-independent keep/drops. The pure logic lives in `src/modules/version-card.js` (unit-tested under
+independent keep/drops. The `versionGroup` slug the card groups by is **seeded by research** (#56):
+create-series tags the versions of one work with a shared provisional slug, and update-series
+alignment flags a fresh version of an already-tracked work as "redundant with X" and seeds it
+into the existing group. Research only **flags** — it never sets `excluded`; this card is where
+the maintainer actually decides inclusion. The pure logic lives in `src/modules/version-card.js` (unit-tested under
 `node --test`); `curate.html` imports it and owns only the DOM render and raw key-event wiring.
 
 - **Grouped by the durable `versionGroup` field.** Each member carries a shared, content-derived
