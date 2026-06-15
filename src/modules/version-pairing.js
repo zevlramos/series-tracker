@@ -5,14 +5,6 @@
 // update once titles were decorated. Pairing is now a trivial group-by that scales
 // from two members to N with no new logic.
 
-const YEAR_SUFFIX = /\s*\(\d{4}\)\s*$/;
-
-// Title minus a trailing 4-digit year parenthetical; preserves case/whitespace for display.
-// Single source of truth for the contract's strip pattern, shared with the wizard card.
-export function stripYear(title) {
-  return String(title).replace(YEAR_SUFFIX, '');
-}
-
 // Orders members within a group: earliest releaseDate first, null sorts last
 // (mirroring the gate's nulls-last treatment); equal dates keep input order.
 function compareByReleaseDate(a, b) {

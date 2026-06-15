@@ -9,10 +9,16 @@
 // reducer, projects per-member show/exclude to the durable `excluded` field, and
 // performs the 3-state publish selection (drop / excluded / visible + renumber).
 
-import { stripYear } from './version-pairing.js';
-
 // Digit keys cap at 9 (issue #55): a 10th+ member can only be toggled by click.
 const MAX_DIGIT_MEMBER = 9;
+
+const YEAR_SUFFIX = /\s*\(\d{4}\)\s*$/;
+
+// Title minus a trailing 4-digit year parenthetical; preserves case/whitespace for
+// display. Used to build the version-card heading from the earliest member's title.
+function stripYear(title) {
+  return String(title).replace(YEAR_SUFFIX, '');
+}
 
 // The year of a releaseDate string, or null when undated.
 function releaseYear(releaseDate) {

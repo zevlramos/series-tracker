@@ -15,8 +15,8 @@ import assert from 'node:assert/strict';
 // We use the dynamic-import + `typeof` pattern (mirroring
 // excluded-entries.test.js's Shell-helper spec) so a missing export fails as a
 // clean per-spec assertion rather than an ESM link error that drops the whole
-// file. The module path is unchanged (version-pairing.js) because curate.html
-// still imports `stripYear` from it for display.
+// file. The module path is unchanged (version-pairing.js) because that is where
+// `deriveVersionGroups` lives.
 //
 // CONTRACT under test (the implementer defines the export):
 //   deriveVersionGroups(entries) -> Array<{ versionGroup, members }>
