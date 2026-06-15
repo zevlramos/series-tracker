@@ -49,14 +49,15 @@ create there are no changed entries, so this seam is inert.
 entry after applying accepted deltas — which is exactly why it must run **before** the
 wizard edits those fields, and never again after.
 
-## Published entry shape — the 14-field whitelist
+## Published entry shape — the 16-field whitelist
 
 `draftToSeriesData` rebuilds each entry from exactly these keys (any other field, including
 every `_`-prefixed UI field, is dropped):
 
 ```
 id, title, medium, branch, releaseDate, recommendedOrder, recommendedReason,
-chronologicalOrder, loreDate, summary, image, imageUrl, status, sources
+chronologicalOrder, loreDate, summary, image, imageUrl, status, excluded,
+versionGroup, sources
 ```
 
 Field rules enforced by `parseSeries` (the gate):
@@ -66,6 +67,8 @@ Field rules enforced by `parseSeries` (the gate):
 - `releaseDate` — string|null. `image`/`imageUrl` — any|null (never type-checked).
 - `loreDate` — null, or a string that `parseLoreDate` accepts (`YYYY` / `YYYY-MM` / `YYYY-MM-DD`).
 - `chronologicalOrder` — integer|null. **`0` is a real rank distinct from null** — never coerce empty→0 or 0→null. The Chronological lens turns on as soon as **any** Entry has a non-null rank (`0` counts); unranked (`null`) Entries sort last.
+- `excluded` — boolean (default `false`, ADR-0014). An excluded Entry is retained but reader-hidden, so the gate **exempts** it from the `recommendedReason`/`recommendedOrder` requirements and sorts null-order Entries last.
+- `versionGroup` — string|null (default `null`, ADR-0014). A content-derived slug shared by the Entries that are alternative versions of one work; the Include-phase version card is an emergent group-by on it. Both `excluded` and `versionGroup` are curation fields, preserved across `update-series`.
 
 ## The committed tooling
 
@@ -109,31 +112,37 @@ until an explicit per-entry accept or a drag.
   (one distinct researched ordering), `contested` (≥2 distinct — a real split to adjudicate).
 - **Scratch survival.** `_orderResearch` is `_`-prefixed and lives top-level on the Draft. The wizard's
   autosave (`draftDoc`) carries every top-level `_`-field verbatim so a later phase never drops it;
-  `draftToSeriesData` strips it at publish (it rebuilds from `{slug,name,entries}` + the 14-field
+  `draftToSeriesData` strips it at publish (it rebuilds from `{slug,name,entries}` + the 16-field
   whitelist, so top-level and per-entry `_`-fields both vanish).
 
-## Include-phase version card (`_pairings` scratch, #47 / ADR-0007)
+## Include-phase version card (`versionGroup` group-by, #47 / ADR-0014)
 
-When research finds an Entry supersedes another (a remake/remaster of an original), the Include
-phase surfaces them as a single **merged version card** — "which version(s) of this work do I
-track," not two independent keep/drops.
+When two Entries are alternative versions of one underlying work, the Include phase surfaces
+them as a single **merged version card** — "which version(s) of this work do I track," not two
+independent keep/drops.
 
-- **Derived, not researched.** Step 1.6 calls `derivePairings(draftEntries)` from
-  `src/modules/version-pairing.js` — pure, deterministic, off the remake identification research
-  already produced (year-disambiguated title + `versionNote`). It writes top-level
-  `_pairings = [{ originalId, remakeId, note }]` to the Draft.
+- **Grouped by the durable `versionGroup` field.** Each member carries a shared, content-derived
+  `versionGroup` slug (ADR-0014); the card is an emergent group-by, not a pre-derived scratch
+  array. `curate.html` calls `deriveVersionGroups(ENTRIES)` from `src/modules/version-pairing.js`
+  — pure, deterministic — **at render time** every phase-1 paint, keyed off the entries' own
+  `versionGroup`. There is no pre-wizard pairing step and nothing extra written to the Draft.
+- **Render-time, not persisted.** `deriveVersionGroups` returns `[{ versionGroup, members }]`,
+  one entry per slug shared by ≥2 entries, members in release order (nulls last). This replaces
+  the retired title-matching matcher (`stripYear` + base-title equality + a publish-stripped
+  `versionNote`), which produced zero pairings on update once titles were decorated.
 - **3-way + escape.** The card offers *Original only · Both · Remake only* plus a secondary
   **✕ Exclude both** (rare; kept out of the symmetric 3-way). The choice writes the two Entries'
   `_drop` flags; **default Both** (untouched `_drop=false`) means nothing is excluded until the
   maintainer picks. Keyboard: `1` Original · `2` Both · `3` Remake · Space skip · Esc back.
-- **Pairing is curation, not schema (ADR-0007).** No structural link in `data.json`; `_pairings`
-  is `_`-prefixed scratch that `draftToSeriesData` strips at publish, same as `_orderResearch`.
-- The phase-1 card sequence folds each pair into one card at the remake's position; the original
-  gets no standalone card. Phases 2–3 (Branch/Consumed) still treat the two as distinct Entries.
-- **One card per original.** If `derivePairings` reports multiple remakes for one original (a
-  remaster *and* a remake), only the first remake anchors the version card; the rest appear as
-  their own Include cards. This keeps every original's `_drop` written by a single card. A unified
-  multi-version card is a possible future refinement (kept out of the validated 1:1 Variant C).
+- **Group membership is durable; the card decision is curation (ADR-0014).** `versionGroup` is a
+  whitelisted, preserved curation field that survives publish → re-import. The per-card `_drop`
+  flag is still `_`-prefixed scratch that `draftToSeriesData` strips at publish.
+- The phase-1 card sequence folds each group into one card; the earlier member gets no standalone
+  card. Phases 2–3 (Branch/Consumed) still treat the members as distinct Entries.
+- **Exactly-two members render as the version card.** `curate.html` filters
+  `deriveVersionGroups(...)` to groups of `members.length === 2` — the validated 1:1 version card
+  (#47). Groups of N>2 members are not collapsed here; the N-member version card is a deferred
+  generalization (#55).
 
 ## Drift advisories (Timeline phase)
 

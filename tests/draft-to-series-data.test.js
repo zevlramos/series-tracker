@@ -47,18 +47,18 @@ describe('draftToSeriesData', () => {
     }
   });
 
-  it('preserves all 15 data.json fields per entry', () => {
+  it('preserves all 16 data.json fields per entry', () => {
     const data = draftToSeriesData(validDraft);
     const entry = data.entries[0];
     const expectedFields = [
       'id', 'title', 'medium', 'branch', 'releaseDate',
       'recommendedOrder', 'recommendedReason', 'chronologicalOrder', 'loreDate',
-      'summary', 'image', 'imageUrl', 'status', 'excluded', 'sources'
+      'summary', 'image', 'imageUrl', 'status', 'excluded', 'versionGroup', 'sources'
     ];
     for (const field of expectedFields) {
       assert.ok(field in entry, `entry should have "${field}"`);
     }
-    assert.equal(Object.keys(entry).length, 15);
+    assert.equal(Object.keys(entry).length, 16);
   });
 
   it('carries loreDate through, defaulting absent to null', () => {

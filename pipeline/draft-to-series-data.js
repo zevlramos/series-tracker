@@ -17,6 +17,7 @@ export function draftToSeriesData(draft) {
       imageUrl: entry.imageUrl ?? null,
       status: entry.status,
       excluded: entry.excluded ?? false,
+      versionGroup: entry.versionGroup ?? null,
       sources: entry.sources
     }))
   };
