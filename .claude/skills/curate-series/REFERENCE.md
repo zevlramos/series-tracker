@@ -136,9 +136,9 @@ independent keep/drops. The pure logic lives in `src/modules/version-card.js` (u
   the base work, e.g. "Resident Evil — which version(s)? · 3 versions · 1996–2015". Members are
   listed sorted by release date.
 - **All shown by default; per-member show/exclude.** Nothing is hidden until the maintainer acts.
-  A **release-timeline** rail shows each member as a solid node (shown) or dashed-ghost node
-  (excluded), with a shared **"Readers will see"** readout (`readerOutcome`) beneath that reflects
-  the live toggle state.
+  A **release-timeline** rail shows each member as a numbered circle node connected horizontally —
+  green (shown) or grey (excluded), with its title and release date beneath each — plus a shared
+  **"Readers will see"** readout (`readerOutcome`) that reflects the live toggle state.
 - **Keyboard — uniform accumulate-then-advance for ALL group sizes, including N=2** (this replaces
   #47's modal one-press-commit, where `1`/`2`/`3` committed a finished state and advanced). The
   pure reducer is `reduceCardKey(state, key, card)`:

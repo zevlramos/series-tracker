@@ -56,18 +56,24 @@
      version group on one card; a release-timeline rail of solid (shown) vs dashed-ghost
      (excluded) nodes, with a shared "Readers will see" readout. */
   .vcard .vnote { color:#c98b54; font-size:12px; margin:-2px 0 14px; }
-  .vrail { display:flex; align-items:stretch; flex-wrap:wrap; gap:0; margin:4px 0 16px; }
-  .vrail-link { align-self:center; min-width:14px; flex:0 0 14px; height:2px; background:#3a322b; }
-  .vnode { flex:1 1 150px; min-width:140px; text-align:left; display:flex; flex-direction:column; gap:5px;
-    border:1px solid #5f8a4e; border-radius:10px; padding:11px 13px; background:#1b231a; color:#e8e2da;
-    cursor:pointer; transition:opacity .12s, border-color .12s, background .12s; }
-  .vnode.ghost-out { border-style:dashed; border-color:#6a5e54; background:#181410; opacity:.5; }
-  .vnode .vk { display:inline-block; min-width:18px; height:18px; line-height:18px; text-align:center;
-    border-radius:5px; font-size:11px; font-weight:700; background:#2a241f; color:#c98b54; }
-  .vnode.ghost-out .vk { background:#241a16; color:#8a7f75; }
-  .vnode .vk.none { background:transparent; color:#6a605a; }
-  .vnode .vtitle { font-weight:600; line-height:1.3; overflow-wrap:anywhere; }
-  .vnode .vmeta { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .vrail { display:flex; align-items:flex-start; gap:0; margin:14px 0 18px; overflow-x:auto; padding:2px 0 6px; }
+  .vnode { flex:1 1 0; min-width:92px; position:relative; display:flex; flex-direction:column; align-items:center;
+    gap:9px; padding:6px 8px 0; background:none; border:none; cursor:pointer; color:#e8e2da; text-align:center;
+    font:inherit; transition:opacity .12s; }
+  /* connector line joining adjacent circle centres, drawn behind the circles */
+  .vnode:not(:last-child)::after { content:''; position:absolute; top:23px; left:50%; width:100%; height:2px;
+    background:#3a322b; z-index:0; }
+  .vnode .vk { position:relative; z-index:1; width:34px; height:34px; box-sizing:border-box; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700;
+    background:#5f8a4e; color:#10140e; border:2px solid #5f8a4e;
+    transition:background .12s, border-color .12s, color .12s; }
+  .vnode.ghost-out { opacity:.9; }
+  .vnode.ghost-out .vk { background:#211c18; color:#7a6f64; border-color:#473d34; }
+  .vnode .vk.none { font-size:16px; }
+  .vnode .vlabel { display:flex; flex-direction:column; gap:2px; max-width:170px; }
+  .vnode .vtitle { font-weight:600; font-size:13px; line-height:1.25; overflow-wrap:anywhere; }
+  .vnode.ghost-out .vtitle { color:#7a6f64; }
+  .vnode .vdate { color:#8a7f75; font-size:11px; }
   .readers { border-top:1px solid #2a241f; padding-top:12px; }
   .readers-line { color:#c4bbb0; }
   .readers-line b { color:#7fc6a0; }
@@ -368,13 +374,15 @@ function renderGroupCard(card, total) {
   const nodes = card.members.map((m, i) => {
     const out = isOut(m.id);
     const n = i + 1;
-    const key = n <= 9 ? `<span class="vk">${n}</span>` : '<span class="vk none">&middot;</span>';
-    return `<button class="vnode ${out?'ghost-out':'solid'}" data-toggle="${esc(m.id)}" title="${out?'excluded':'shown'} — click to toggle">
-        ${key}
-        <span class="vtitle">${esc(m.title)}</span>
-        <span class="vmeta"><span class="date">${esc(m.releaseDate||'')}</span>${mb(m)}</span>
+    const key = n <= 9 ? `${n}` : '&middot;';
+    return `<button class="vnode ${out?'ghost-out':'solid'}" data-toggle="${esc(m.id)}" title="${out?'excluded — click to show':'shown — click to exclude'}">
+        <span class="vk${n<=9?'':' none'}">${key}</span>
+        <span class="vlabel">
+          <span class="vtitle">${esc(m.title)}</span>
+          <span class="vdate">${esc(m.releaseDate||'')}</span>
+        </span>
       </button>`;
-  }).join('<span class="vrail-link"></span>');
+  }).join('');
 
   const seeList = list => list.length ? list.map(t => esc(t)).join(' &middot; ') : '<i>nothing</i>';
   const keyHint = tooMany
