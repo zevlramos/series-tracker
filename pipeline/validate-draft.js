@@ -1,7 +1,6 @@
 import { parseLoreDate } from '../src/modules/lore-date.js';
+import { VALID_MEDIA, VALID_BRANCHES, isRecommendedExempt } from '../src/modules/entry-validation.js';
 
-const VALID_MEDIA = ['game', 'novel', 'comic', 'film', 'show', 'stagePlay', 'podcast', 'audio', 'video'];
-const VALID_BRANCHES = ['mainline', 'spinoff'];
 const VALID_CONFIDENCE = ['high', 'low'];
 
 export function validateDraft(draft) {
@@ -44,10 +43,7 @@ export function validateDraft(draft) {
 function validateDraftEntry(e, prefix, seenIds) {
   if (typeof e !== 'object' || e === null) return `${prefix}: not an object`;
 
-  // Excluded entries are exempt from recommendedReason + recommendedOrder, exactly
-  // as the publish gate (parse-series) is — a newly-excluded draft entry has
-  // neither. Strict `=== true` so absent/false still require both (ADR-0014).
-  const exempt = e.excluded === true;
+  const exempt = isRecommendedExempt(e);
 
   const requiredStrings = ['id', 'title', 'medium', 'branch', 'summary'];
   if (!exempt) requiredStrings.push('recommendedReason');

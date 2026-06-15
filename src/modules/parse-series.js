@@ -1,8 +1,6 @@
 import { parseLoreDate } from './lore-date.js';
 import { makeNullsLast } from './sort-engine.js';
-
-const VALID_MEDIA = ['game', 'novel', 'comic', 'film', 'show', 'stagePlay', 'podcast', 'audio', 'video'];
-const VALID_BRANCHES = ['mainline', 'spinoff'];
+import { VALID_MEDIA, VALID_BRANCHES, isRecommendedExempt } from './entry-validation.js';
 
 export function parseSeries(jsonString) {
   let data;
@@ -55,10 +53,7 @@ export function parseSeries(jsonString) {
 function validateEntry(e, prefix, seenIds) {
   if (typeof e !== 'object' || e === null) return `${prefix}: not an object`;
 
-  // Excluded entries are retained but Shell-hidden (ADR-0014): they have no place
-  // in the recommended order, so they're exempt from recommendedReason +
-  // recommendedOrder. Strict `=== true` so absent/false still require both.
-  const exempt = e.excluded === true;
+  const exempt = isRecommendedExempt(e);
 
   const requiredStrings = ['id', 'title', 'medium', 'branch', 'summary'];
   if (!exempt) requiredStrings.push('recommendedReason');
