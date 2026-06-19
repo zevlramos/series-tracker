@@ -87,13 +87,16 @@ describe('#53 versionGroup — backward-compat: shipped data.json validates unch
     new URL('../series/resident-evil/data.json', import.meta.url), 'utf8'
   ));
 
-  it('still validates with no versionGroup field anywhere', () => {
+  it('still validates', () => {
     const result = parseSeries(JSON.stringify(reData));
-    assert.equal(result.ok, true, `shipped data.json must validate unchanged: ${result.error}`);
+    assert.equal(result.ok, true, `shipped data.json must validate: ${result.error}`);
   });
 
-  it('normalizes every entry to versionGroup:null', () => {
-    const result = parseSeries(JSON.stringify(reData));
+  it('normalizes entries that omit versionGroup to versionGroup:null', () => {
+    // Strip the field to simulate pre-feature data — the shipped file now
+    // legitimately sets versionGroup on grouped versions (#41).
+    const stripped = { ...reData, entries: reData.entries.map(({ versionGroup, ...e }) => e) };
+    const result = parseSeries(JSON.stringify(stripped));
     assert.equal(result.ok, true, result.error);
     for (const entry of result.series.entries) {
       assert.equal(entry.versionGroup, null, `entry ${entry.id} should default versionGroup:null`);
