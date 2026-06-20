@@ -108,7 +108,7 @@ busy). They drive six phases, autosaving as they go:
 1. **Include** — keep/drop each Entry (Tinder card: → keep, ← drop). Entries that share a `versionGroup` slug (ADR-0014) collapse into one **merged version card** with a 3-way *Original only · Both · Remake only* choice (+ ✕ exclude both); default **Both** — nothing dropped until the maintainer picks.
 2. **Branch** — mainline / spinoff.
 3. **Consumed** — set `status`.
-4. **Order** — author the **recommended** order. A lens switcher offers the researched framings (release floor + fan-consensus + alternatives) as refusable suggestions; per-entry ghost chips show where the active lens would place each Entry, with a surgical **Move to #N** accept (green where it already agrees). Drag or nudge freely; **dismiss** falls back to the release floor. Nothing writes to the order until the maintainer accepts or drags. Edit each one-line reason.
+4. **Order** — author the **recommended** order. A lens switcher offers the researched framings (release floor + fan-consensus + alternatives) as refusable suggestions; per-entry ghost chips show where the active lens would place each Entry, with a surgical **Move to #N** accept (green where it already agrees). For a one-click baseline, each lens has an **Apply** button that reorders every Entry to that lens (reasons preserved, fully editable after) with an airtight one-level **Undo apply**. Drag or nudge freely; **dismiss** falls back to the release floor. Nothing writes to the order until the maintainer accepts, drags, or applies. Edit each one-line reason.
 5. **Timeline** — set `loreDate` (any precision) and the **chronological rank**; drift advisories flag large gaps, dismissable.
 6. **Summaries** — edit the per-Entry summary (AI-rewrite ↔ factual).
 

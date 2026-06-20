@@ -114,6 +114,14 @@
   .lens-pick.active { background:#7c3b22; border-color:#a85a37; color:#fff; }
   .lens-pick .src { opacity:.6; margin-left:5px; }
   .lens-bar .dismiss { margin-left:auto; }
+  /* per-lens "Apply as baseline" (#65) — its OWN row of action buttons, visually distinct from
+     the compare pills so the click target and the resulting confirmation are unambiguous. */
+  .apply-bar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:-6px 0 14px; }
+  .apply-bar .lbl { font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:#8a7f75; }
+  .apply-baseline { font-size:12px; font-weight:600; padding:5px 11px; border-radius:6px; border:1px solid #3a6c5a; background:#13211d; color:#7fc6a0; }
+  .apply-baseline:hover { border-color:#7fc6a0; background:#173028; }
+  .applied-note { margin-left:auto; font-size:12px; color:#7fc6a0; font-weight:600; }
+  .apply-bar .undo-apply { margin-left:8px; border-color:#7a5a2a; background:#241c10; color:#e0b46a; }
   /* per-entry ghost chip: where the active lens would place this entry */
   .ghost { display:inline-flex; gap:6px; align-items:center; font-size:11px; border-radius:8px; padding:1px 4px 1px 8px; border:1px solid #7a5a2a; background:#241c10; color:#e0b46a; }
   .ghost.agree { border-color:#3a6c5a; background:#13211d; color:#7fc6a0; }
@@ -185,6 +193,10 @@ let DATA = {}, ENTRIES = [], phase = 1, cursor = 0, saveTimer = null;
 // null → lead with the top researched suggestion. Lenses are recomputed each render from
 // _orderResearch over the CURRENT included set.
 let activeLensKey = null;
+// One-level undo for "Apply lens as baseline" (#65): the exact ENTRIES order snapshotted
+// just before the most recent apply, plus the applied lens's label for the button text.
+// null when there's nothing to undo. A second apply replaces it; an undo consumes it.
+let orderUndo = null, orderUndoLabel = '';
 
 // The working visible set for phases 2-6: neither swiped-away (_drop, a non-grouped
 // Tinder exclude) nor card-excluded (excluded:true, a reader-hidden group member,
@@ -479,6 +491,37 @@ function moveToPosition(entry, pos) {
   else { const inc = included(); ENTRIES.splice(inc.length ? ENTRIES.indexOf(inc[inc.length - 1]) + 1 : ENTRIES.length, 0, entry); }
   renumber(); stage(); render();
 }
+// Bulk-apply a lens as the working baseline (#65): reorder the included entries to match the
+// lens's normalized order, then renumber + stage. Non-included entries (dropped/excluded) keep
+// their exact slots; per-entry reasons are untouched and everything stays editable afterward.
+// This is identical on create and update (no if(create) branch) — a maintainer-initiated,
+// reversible apply is "authored," not the pre-wizard seed ADR-0013 rejects. The airtight
+// one-level undo (orderUndo snapshots the pre-apply order) is what keeps it non-destructive.
+function applyLens(idx, lenses) {
+  const lens = lenses[idx];
+  const inc = e => !e._drop && !e.excluded;
+  const byId = new Map(ENTRIES.map(e => [e.id, e]));
+  const ordered = lens.order.map(id => byId.get(id)).filter(Boolean);
+  // shapeLenses guarantees lens.order is a permutation of the included set; bail rather than
+  // corrupt ENTRIES if that ever fails to hold.
+  if (ordered.length !== ENTRIES.filter(inc).length) return;
+  orderUndo = ENTRIES.slice();
+  orderUndoLabel = lens.label;
+  let k = 0;
+  ENTRIES = ENTRIES.map(e => inc(e) ? ordered[k++] : e);
+  activeLensKey = String(idx);   // pin the applied lens so its ghost chips read all-green
+  renumber(); stage(); render();
+  setStatus(`Applied “${lens.label}” as baseline — ${ordered.length} entries reordered`);
+}
+// Restore the exact order snapshotted by the most recent apply, verbatim, then clear it.
+function undoApply() {
+  if (!orderUndo) return;
+  const label = orderUndoLabel;
+  ENTRIES = orderUndo;
+  orderUndo = null; orderUndoLabel = '';
+  renumber(); stage(); render();
+  setStatus(`Undid apply${label ? ` of “${label}”` : ''} — order restored`);
+}
 const HONESTY_COPY = {
   contested: n => ['Fans disagree', `${n} researched framings below — compare them and accept entry-by-entry, or author by hand. Nothing changes until you do.`],
   uncontested: () => ['One widely-agreed order', 'A single researched framing. Compare it, accept what you like, or dismiss to the release floor.'],
@@ -494,10 +537,15 @@ function renderOrder() {
 
   const switcher = lenses.map((L, i) => `<span class="lens-pick ${i===activeIdx?'active':''}" data-lens="${i}">${esc(L.label)}${L.sources.length?`<span class="src">${L.sources.length} src</span>`:''}</span>`).join('');
   const dismiss = lens.kind !== 'release' ? '<button class="dismiss tiny" id="dismissLens">Dismiss &mdash; author by hand</button>' : '';
+  // Apply lives on its own row: a labelled action button per lens, plus a persistent
+  // "Applied X" confirmation + Undo once one has run — so it's clear what you clicked and that it took.
+  const applyBtns = lenses.map((L, i) => `<button class="apply-baseline" data-apply="${i}" title="Reorder every entry to match ${esc(L.label)} — fully editable after, with one-level undo">Apply ${esc(L.label)}</button>`).join('');
+  const applied = orderUndo ? `<span class="applied-note">&#10003; Applied &ldquo;${esc(orderUndoLabel)}&rdquo;</span><button class="undo-apply tiny" id="undoApply">Undo apply</button>` : '';
 
-  main.innerHTML = `<p class="hint">The <b>recommended</b> order people are guided through (its own lens — independent of the in-universe Timeline). The framings below are <b>suggestions</b>: nothing is written to the order until you accept per entry or drag. Edit each one-line reason in the contents list.</p>
+  main.innerHTML = `<p class="hint">The <b>recommended</b> order people are guided through (its own lens — independent of the in-universe Timeline). The framings below are <b>suggestions</b>: nothing is written to the order until you accept per entry, drag, or apply a lens as the baseline. Edit each one-line reason in the contents list.</p>
     <div class="honesty ${honesty}"><h3>${esc(hTitle)}</h3><p>${esc(hBody)}</p></div>
     <div class="lens-bar"><span class="lbl">Compare against</span>${switcher}${dismiss}</div>
+    <div class="apply-bar"><span class="lbl">Apply as baseline</span>${applyBtns}${applied}</div>
     <div id="orderlist"></div>`;
   const wrap = document.getElementById('orderlist');
   const group = { last: '' };
@@ -531,6 +579,9 @@ function renderOrder() {
     wrap.appendChild(row);
   });
   main.querySelectorAll('[data-lens]').forEach(p => p.onclick = () => { activeLensKey = p.dataset.lens; render(); });
+  main.querySelectorAll('[data-apply]').forEach(b => b.onclick = () => applyLens(+b.dataset.apply, lenses));
+  const ua = document.getElementById('undoApply');
+  if (ua) ua.onclick = () => undoApply();
   const db = document.getElementById('dismissLens');
   if (db) db.onclick = () => { activeLensKey = '0'; render(); };   // 0 = release floor
 }
