@@ -22,6 +22,7 @@ export function computeReleaseOrder(entries) {
 export function shapeLenses({ includedEntries, research }) {
   const releaseOrder = computeReleaseOrder(includedEntries);
   const includedIds = new Set(includedEntries.map((e) => e.id));
+  const dateById = new Map(includedEntries.map((e) => [e.id, e.releaseDate ?? null]));
 
   const releaseLens = {
     kind: 'release',
@@ -50,7 +51,7 @@ export function shapeLenses({ includedEntries, research }) {
   const seen = new Set();
   const dedupedResearchedLenses = [];
   for (const { kind, source } of researched) {
-    const order = normalize(source.order, includedIds, releaseOrder);
+    const order = normalize(source.order, includedIds, releaseOrder, dateById);
     const key = order.join(' ');
     if (seen.has(key)) continue;
     seen.add(key);
@@ -69,15 +70,42 @@ export function shapeLenses({ includedEntries, research }) {
   return { lenses: [releaseLens, ...dedupedResearchedLenses], honesty };
 }
 
-// Permutation-only normalization: keep researched ids that are included (in order),
-// then append every included id still missing, in release order.
-function normalize(order, includedIds, releaseOrder) {
-  const present = new Set(order.filter((id) => includedIds.has(id)));
-  const kept = [...present];
-  for (const id of releaseOrder) {
-    if (!present.has(id)) kept.push(id);
+// Permutation-only normalization. Researched ids that are included keep their authored
+// order. Every included id the research omits (a "non-researched" entry) is woven in by
+// release date: it lands BEFORE the earliest researched entry whose releaseDate is strictly
+// later (scanning the authored order; null researched dates don't count as "later"). With no
+// such entry — or a null date of its own — it falls to the tail. Non-researched entries keep
+// release order among themselves. This stops mid-timeline entries (e.g. RE Outbreak) from
+// being block-appended after far-later researched entries (the stranding ADR-0013 retired).
+function normalize(order, includedIds, releaseOrder, dateById) {
+  const seen = new Set();
+  const researched = [];
+  for (const id of order) {
+    if (includedIds.has(id) && !seen.has(id)) { seen.add(id); researched.push(id); }
   }
-  return kept;
+  // Bucket each non-researched id (walked in release order) by its insertion slot — the
+  // index in `researched` of the first strictly-later entry, or the tail.
+  const buckets = new Map();
+  for (const id of releaseOrder) {
+    if (seen.has(id)) continue;
+    const d = dateById.get(id);
+    let slot = researched.length;
+    if (d != null) {
+      const i = researched.findIndex((rid) => {
+        const rd = dateById.get(rid);
+        return rd != null && cmp(rd, d) > 0;
+      });
+      if (i !== -1) slot = i;
+    }
+    if (!buckets.has(slot)) buckets.set(slot, []);
+    buckets.get(slot).push(id);
+  }
+  const result = [];
+  for (let i = 0; i <= researched.length; i++) {
+    if (buckets.has(i)) result.push(...buckets.get(i));
+    if (i < researched.length) result.push(researched[i]);
+  }
+  return result;
 }
 
 function cmp(a, b) {

@@ -276,25 +276,27 @@ describe('shapeLenses normalization', () => {
     assert.deepEqual(lenses[1].order, ['c', 'a', 'b']);
   });
 
-  it('appends included ids missing from the researched order, in release order', () => {
-    // Researched order only mentions 'c'; a and b are missing.
+  it('weaves missing included ids in BEFORE the earliest strictly-later researched entry', () => {
+    // Researched order only mentions 'c' (2022); a (2020) and b (2021) are missing and
+    // both release strictly before c, so each lands before c rather than after it.
     const research = {
       consensus: { label: 'Partial', order: ['c'], sources: [] },
       alternatives: []
     };
     const { lenses } = shapeLenses({ includedEntries: included, research });
-    // release order of included is [a, b, c]; missing-after-c are a then b.
-    assert.deepEqual(lenses[1].order, ['c', 'a', 'b']);
+    assert.deepEqual(lenses[1].order, ['a', 'b', 'c']);
   });
 
-  it('both drops a non-included id and appends a missing included id', () => {
-    // 'b' is missing, 'ghost' is foreign.
+  it('inserts before the earliest strictly-later researched entry IN AUTHORED ORDER, not by re-sorting', () => {
+    // 'b' (2021) is missing, 'ghost' is foreign. Researched authored order is [c, a]; the
+    // first entry strictly later than 2021 is c (2022) at index 0, so b lands before c —
+    // a (2020) stays last because the fan order, not the date, puts it after c.
     const research = {
       consensus: { label: 'Messy', order: ['c', 'ghost', 'a'], sources: [] },
       alternatives: []
     };
     const { lenses } = shapeLenses({ includedEntries: included, research });
-    assert.deepEqual(lenses[1].order, ['c', 'a', 'b']);
+    assert.deepEqual(lenses[1].order, ['b', 'c', 'a']);
   });
 
   it('every lens order is a permutation of exactly the included ids', () => {
@@ -327,6 +329,62 @@ describe('shapeLenses normalization', () => {
     const research = { consensus: { label: 'Empty', order: [], sources: [] }, alternatives: [] };
     const { lenses } = shapeLenses({ includedEntries: included, research });
     assert.deepEqual(lenses[1].order, computeReleaseOrder(included));
+  });
+});
+
+// --- shapeLenses: interleaving non-researched entries by release date (#65) ----
+
+describe('shapeLenses interleaves non-researched entries by release date', () => {
+  it('RE Outbreak case: a non-researched mid-timeline entry lands at its release slot, not the tail', () => {
+    // Mainline consensus omits Outbreak (2003). Old behavior block-appended it after the
+    // far-later mainline entries; now it weaves in before re4 (2005, the first strictly later).
+    const included = [
+      entry('re1', '1996-03-22'),
+      entry('re2', '1998-01-21'),
+      entry('re3', '1999-09-22'),
+      entry('outbreak', '2003-12-11'),
+      entry('re4', '2005-01-11'),
+      entry('re5', '2009-03-05')
+    ];
+    const research = {
+      consensus: { label: 'Mainline', order: ['re1', 're2', 're3', 're4', 're5'], sources: ['s'] },
+      alternatives: []
+    };
+    const { lenses } = shapeLenses({ includedEntries: included, research });
+    assert.deepEqual(lenses[1].order, ['re1', 're2', 're3', 'outbreak', 're4', 're5']);
+  });
+
+  it('weaves multiple non-researched entries into their own buckets, in release order, nulls to the tail', () => {
+    const included = [
+      entry('r1', '2000-01-01'),
+      entry('r2', '2010-01-01'),
+      entry('x', '2005-01-01'),
+      entry('y', '2015-01-01'),
+      entry('z', null)
+    ];
+    const research = {
+      consensus: { label: 'Fan', order: ['r1', 'r2'], sources: [] },
+      alternatives: []
+    };
+    const { lenses } = shapeLenses({ includedEntries: included, research });
+    // x (2005) before r2; y (2015) after r2; z (null) to the tail.
+    assert.deepEqual(lenses[1].order, ['r1', 'x', 'r2', 'y', 'z']);
+  });
+
+  it('treats "strictly later" strictly: an equal-dated non-researched entry falls to the tail, not before its twin', () => {
+    const included = [entry('p', '2020-01-01'), entry('q', '2020-01-01')];
+    const research = { consensus: { label: 'Fan', order: ['p'], sources: [] }, alternatives: [] };
+    const { lenses } = shapeLenses({ includedEntries: included, research });
+    // q shares p's date — not strictly later than itself — so it sits after p, not before.
+    assert.deepEqual(lenses[1].order, ['p', 'q']);
+  });
+
+  it('a non-researched entry whose only later researched entries are null-dated falls to the tail', () => {
+    const included = [entry('r', null), entry('x', '2005-01-01')];
+    const research = { consensus: { label: 'Fan', order: ['r'], sources: [] }, alternatives: [] };
+    const { lenses } = shapeLenses({ includedEntries: included, research });
+    // r has a null date (not "strictly later"), so x cannot insert before it → tail.
+    assert.deepEqual(lenses[1].order, ['r', 'x']);
   });
 });
 

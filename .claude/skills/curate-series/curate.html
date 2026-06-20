@@ -114,6 +114,25 @@
   .lens-pick.active { background:#7c3b22; border-color:#a85a37; color:#fff; }
   .lens-pick .src { opacity:.6; margin-left:5px; }
   .lens-bar .dismiss { margin-left:auto; }
+  /* "Preview as baseline" (#65) — preview-then-commit: a single action button on its own row
+     (acts on the active framing), and while previewing it swaps for a Keep/Cancel commit bar. */
+  .apply-bar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:-6px 0 14px; }
+  .apply-bar .lbl { font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:#8a7f75; }
+  .apply-baseline { font-size:12px; font-weight:600; padding:5px 11px; border-radius:6px; border:1px solid #3a6c5a; background:#13211d; color:#7fc6a0; }
+  .apply-baseline:hover { border-color:#7fc6a0; background:#173028; }
+  .applied-note { margin-left:auto; font-size:12px; color:#7fc6a0; font-weight:600; }
+  .apply-bar .undo-apply { margin-left:8px; border-color:#7a5a2a; background:#241c10; color:#e0b46a; }
+  /* commit bar shown while previewing a framing in place — prominent so it's clear nothing is
+     applied until Keep, and Cancel backs out with zero mutation. */
+  .preview-bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:-6px 0 14px; padding:8px 12px; border-radius:8px; border:1px solid #3a6c5a; background:#13211d; }
+  .preview-bar .pv-lbl { font-size:13px; color:#bdf0d3; font-weight:600; }
+  .preview-bar .pv-keep { margin-left:auto; font-weight:600; border-color:#3a6c5a; background:#16432f; color:#bdf0d3; }
+  .preview-bar .pv-keep:hover { background:#1c5a3e; border-color:#7fc6a0; }
+  .preview-bar .pv-cancel { background:#2a241f; }
+  /* preview rows: tinted, non-interactive — a look at the proposed order, not a commit */
+  .row.preview { outline:1px dashed #3a6c5a; outline-offset:-1px; background:#15201b; }
+  .row.preview .pos { color:#7fc6a0; }
+  .row.preview .reason { opacity:.6; }
   /* per-entry ghost chip: where the active lens would place this entry */
   .ghost { display:inline-flex; gap:6px; align-items:center; font-size:11px; border-radius:8px; padding:1px 4px 1px 8px; border:1px solid #7a5a2a; background:#241c10; color:#e0b46a; }
   .ghost.agree { border-color:#3a6c5a; background:#13211d; color:#7fc6a0; }
@@ -185,6 +204,13 @@ let DATA = {}, ENTRIES = [], phase = 1, cursor = 0, saveTimer = null;
 // null → lead with the top researched suggestion. Lenses are recomputed each render from
 // _orderResearch over the CURRENT included set.
 let activeLensKey = null;
+// One-level undo for "Apply lens as baseline" (#65): the exact ENTRIES order snapshotted
+// just before the most recent apply, plus the applied lens's label for the button text.
+// null when there's nothing to undo. A second apply replaces it; an undo consumes it.
+let orderUndo = null, orderUndoLabel = '';
+// Order phase preview/commit (#65): index of the lens currently being PREVIEWED in place
+// (list reordered, nothing committed) or null. Keep commits it; Cancel just clears it.
+let orderPreview = null;
 
 // The working visible set for phases 2-6: neither swiped-away (_drop, a non-grouped
 // Tinder exclude) nor card-excluded (excluded:true, a reader-hidden group member,
@@ -260,7 +286,7 @@ function renderTabs() {
   document.getElementById('phases').innerHTML = PHASES.map(p =>
     `<span class="phase-tab ${p.n===phase?'active':''}" data-phase="${p.n}"><span class="n">${p.n}</span>${p.label}</span>`
   ).join('');
-  document.querySelectorAll('.phase-tab').forEach(t => t.onclick = () => { phase = +t.dataset.phase; cursor = 0; render(); });
+  document.querySelectorAll('.phase-tab').forEach(t => t.onclick = () => { phase = +t.dataset.phase; cursor = 0; orderPreview = null; render(); });
 }
 
 // ---- card phases (1 include, 2 branch, 3 consumed) ----
@@ -479,58 +505,163 @@ function moveToPosition(entry, pos) {
   else { const inc = included(); ENTRIES.splice(inc.length ? ENTRIES.indexOf(inc[inc.length - 1]) + 1 : ENTRIES.length, 0, entry); }
   renumber(); stage(); render();
 }
+// Apply a lens as the working baseline (#65), preview-then-commit. Clicking "Preview" reorders
+// the included entries IN PLACE so the maintainer sees exactly what they'd get — but nothing is
+// committed until they Keep it; Cancel clears the preview with zero mutation. This is identical
+// on create and update (no if(create) branch) — a maintainer-initiated, reversible apply is
+// "authored," not the pre-wizard seed ADR-0013 rejects. Keep snapshots a one-level undo
+// (orderUndo); that, plus the no-mutation Cancel, is what keeps the whole flow non-destructive.
+function previewLens(idx) { orderPreview = idx; activeLensKey = String(idx); render(); }
+function cancelPreview() { orderPreview = null; render(); }   // nothing was mutated — just leave the preview
+function keepPreview() {
+  const { lenses } = orderLenses();
+  const lens = lenses[orderPreview];
+  const inc = e => !e._drop && !e.excluded;
+  const byId = new Map(ENTRIES.map(e => [e.id, e]));
+  const ordered = lens.order.map(id => byId.get(id)).filter(Boolean);
+  // shapeLenses guarantees lens.order is a permutation of the included set; bail rather than
+  // corrupt ENTRIES if that ever fails to hold.
+  if (ordered.length !== ENTRIES.filter(inc).length) { orderPreview = null; render(); return; }
+  orderUndo = ENTRIES.slice();
+  orderUndoLabel = lens.label;
+  let k = 0;
+  ENTRIES = ENTRIES.map(e => inc(e) ? ordered[k++] : e);
+  activeLensKey = String(orderPreview);   // pin the applied lens so its ghost chips read all-green
+  orderPreview = null;
+  renumber(); stage(); render();
+  setStatus(`Applied “${lens.label}” as baseline — ${ordered.length} entries reordered`);
+}
+// Restore the exact order snapshotted by the most recent apply, verbatim, then clear it.
+function undoApply() {
+  if (!orderUndo) return;
+  const label = orderUndoLabel;
+  ENTRIES = orderUndo;
+  orderUndo = null; orderUndoLabel = '';
+  renumber(); stage(); render();
+  setStatus(`Undid apply${label ? ` of “${label}”` : ''} — order restored`);
+}
 const HONESTY_COPY = {
   contested: n => ['Fans disagree', `${n} researched framings below — compare them and accept entry-by-entry, or author by hand. Nothing changes until you do.`],
   uncontested: () => ['One widely-agreed order', 'A single researched framing. Compare it, accept what you like, or dismiss to the release floor.'],
   thin: () => ['Little community guidance', 'No fan consensus surfaced — starting from the release-order floor. Author this one by hand; no authority is invented.'],
 };
+// FLIP the order list across a state change so a reorder is FELT, not just seen: snapshot each
+// row's position by id, run the mutation+render, then animate every row from its old slot to its
+// new one. Matching by data-id survives the full re-render (render() rebuilds the DOM nodes).
+function flipOrder(mutate) {
+  const before = new Map();
+  const w0 = document.getElementById('orderlist');
+  if (w0) w0.querySelectorAll('.row').forEach(r => before.set(r.dataset.id, r.getBoundingClientRect().top));
+  mutate();
+  const w1 = document.getElementById('orderlist');
+  if (!w1) return;
+  w1.querySelectorAll('.row').forEach(r => {
+    const old = before.get(r.dataset.id);
+    if (old == null) return;
+    const dy = old - r.getBoundingClientRect().top;
+    if (!dy) return;
+    r.style.transition = 'none';
+    r.style.transform = `translateY(${dy}px)`;
+    requestAnimationFrame(() => { r.style.transition = 'transform .42s cubic-bezier(.2,.8,.2,1)'; r.style.transform = ''; });
+  });
+}
 function renderOrder() {
   const main = document.getElementById('main'), list = included();
   const { lenses, honesty } = orderLenses();
-  const activeIdx = activeIndex(lenses);
+  // In preview mode the previewed lens IS the active one; otherwise the maintainer's compare pick.
+  const activeIdx = orderPreview != null ? orderPreview : activeIndex(lenses);
   const lens = lenses[activeIdx];
   const targetPos = new Map(lens.order.map((id, i) => [id, i + 1]));   // 1-based slot under the active lens
   const [hTitle, hBody] = HONESTY_COPY[honesty](lenses.length - 1);
+  const previewing = orderPreview != null;
 
+  // Pills double as the compare switcher (normal) and the preview switcher (in preview): click
+  // another framing while previewing to re-preview it in place.
   const switcher = lenses.map((L, i) => `<span class="lens-pick ${i===activeIdx?'active':''}" data-lens="${i}">${esc(L.label)}${L.sources.length?`<span class="src">${L.sources.length} src</span>`:''}</span>`).join('');
-  const dismiss = lens.kind !== 'release' ? '<button class="dismiss tiny" id="dismissLens">Dismiss &mdash; author by hand</button>' : '';
+  const dismiss = (!previewing && lens.kind !== 'release') ? '<button class="dismiss tiny" id="dismissLens">Dismiss &mdash; author by hand</button>' : '';
+  const applied = (!previewing && orderUndo) ? `<span class="applied-note">&#10003; Applied &ldquo;${esc(orderUndoLabel)}&rdquo;</span><button class="undo-apply tiny" id="undoApply">Undo apply</button>` : '';
 
-  main.innerHTML = `<p class="hint">The <b>recommended</b> order people are guided through (its own lens — independent of the in-universe Timeline). The framings below are <b>suggestions</b>: nothing is written to the order until you accept per entry or drag. Edit each one-line reason in the contents list.</p>
+  // Two action rows, mutually exclusive: a single "Preview as baseline" button (normal), or the
+  // sticky Keep/Cancel commit bar (while previewing). One preview button, not one per lens —
+  // it acts on whichever framing is active, so the click target is unambiguous.
+  const actionBar = previewing
+    ? `<div class="preview-bar"><span class="pv-lbl">&#9655; Previewing &ldquo;${esc(lens.label)}&rdquo; &mdash; not applied yet</span><button class="pv-keep" id="keepBtn">Keep this order</button><button class="pv-cancel tiny" id="cancelBtn">Cancel</button></div>`
+    : `<div class="apply-bar"><span class="lbl">Baseline</span><button class="apply-baseline" id="previewBtn" title="Preview ${esc(lens.label)} in place — keep it or cancel. Reversible, fully editable after.">&#9655; Preview &ldquo;${esc(lens.label)}&rdquo; as baseline</button>${applied}</div>`;
+
+  const lensLbl = previewing ? 'Previewing' : 'Compare against';
+  const hint = previewing
+    ? `Previewing how <b>${esc(lens.label)}</b> would order the list — nothing is committed yet. <b>Keep this order</b> to make it your baseline, or <b>Cancel</b> to go back. Click another framing to preview it instead.`
+    : `The <b>recommended</b> order people are guided through (its own lens — independent of the in-universe Timeline). The framings below are <b>suggestions</b>: nothing is written until you accept per entry, drag, or <b>preview</b> a framing and keep it. Edit each one-line reason in the contents list.`;
+
+  main.innerHTML = `<p class="hint">${hint}</p>
     <div class="honesty ${honesty}"><h3>${esc(hTitle)}</h3><p>${esc(hBody)}</p></div>
-    <div class="lens-bar"><span class="lbl">Compare against</span>${switcher}${dismiss}</div>
+    <div class="lens-bar"><span class="lbl">${lensLbl}</span>${switcher}${dismiss}</div>
+    ${actionBar}
     <div id="orderlist"></div>`;
   const wrap = document.getElementById('orderlist');
   const group = { last: '' };
-  list.forEach((e, idx) => {
-    groupHeader(wrap, e, group);
-    const tp = targetPos.get(e.id);
-    // Ghost chip only for a researched suggestion (the release floor shows none): green
-    // when the entry already sits where the lens would place it, amber + Move-to-#N otherwise.
-    const chip = (lens.kind === 'release' || tp == null) ? ''
-      : tp === idx + 1
-        ? `<span class="ghost agree" title="already where ${esc(lens.label)} places it">&#10003; <span class="at">#${tp}</span></span>`
-        : `<span class="ghost">${esc(lens.label)} &rarr; <span class="at">#${tp}</span> <button class="move tiny" data-move="${tp}">Move to #${tp}</button></span>`;
-    const row = document.createElement('div'); row.className = 'row' + (e._mergeStatus === 'new' ? ' newrow' : ''); row.draggable = true; row.dataset.id = e.id;
-    row.innerHTML = `<div class="handle">&#x283F;</div><div class="pos">${idx+1}</div>
-      <div class="rmain">
-        <div class="line1"><span class="rtitle">${esc(e.title)}</span><span class="badge">${esc(e.medium)}</span><span class="date">${esc(e.releaseDate||'')}</span>${mb(e)}
-          ${chip}
-          <span class="nudge"><button data-up>&uarr;</button><button data-down>&darr;</button></span></div>
-        <textarea class="reason" placeholder="why consume it here…">${esc(e.recommendedReason)}</textarea>
-      </div>`;
-    row.querySelector('[data-up]').onclick = () => moveAdjacent(e, -1);
-    row.querySelector('[data-down]').onclick = () => moveAdjacent(e, 1);
-    const moveBtn = row.querySelector('[data-move]');
-    if (moveBtn) moveBtn.onclick = () => moveToPosition(e, +moveBtn.dataset.move);
-    row.querySelector('.reason').oninput = ev => { e.recommendedReason = ev.target.value; stage(); };
-    row.ondragstart = ev => { ev.dataTransfer.setData('text/plain', e.id); row.classList.add('dragging'); };
-    row.ondragend = () => { row.classList.remove('dragging'); wrap.querySelectorAll('.dropbefore').forEach(r => r.classList.remove('dropbefore')); };
-    row.ondragover = ev => { ev.preventDefault(); if (!row.classList.contains('dragging')) row.classList.add('dropbefore'); };
-    row.ondragleave = () => row.classList.remove('dropbefore');
-    row.ondrop = ev => { ev.preventDefault(); row.classList.remove('dropbefore'); dropBeforeOrder(ev.dataTransfer.getData('text/plain'), e.id); };
-    wrap.appendChild(row);
+
+  if (previewing) {
+    // Preview rows: the included set rendered in the lens's order, tinted, NON-interactive
+    // (no drag/nudge/chips, reasons read-only) — it's a look, not a commit. Keep/Cancel decides.
+    const previewList = lens.order.map(id => list.find(e => e.id === id)).filter(Boolean);
+    previewList.forEach((e, idx) => {
+      groupHeader(wrap, e, group);
+      const row = document.createElement('div');
+      row.className = 'row preview' + (e._mergeStatus === 'new' ? ' newrow' : '');
+      row.dataset.id = e.id;
+      row.innerHTML = `<div class="handle">&#x283F;</div><div class="pos">${idx+1}</div>
+        <div class="rmain">
+          <div class="line1"><span class="rtitle">${esc(e.title)}</span><span class="badge">${esc(e.medium)}</span><span class="date">${esc(e.releaseDate||'')}</span>${mb(e)}</div>
+          <textarea class="reason" disabled>${esc(e.recommendedReason)}</textarea>
+        </div>`;
+      wrap.appendChild(row);
+    });
+  } else {
+    list.forEach((e, idx) => {
+      groupHeader(wrap, e, group);
+      const tp = targetPos.get(e.id);
+      // Ghost chip only for a researched suggestion (the release floor shows none): green
+      // when the entry already sits where the lens would place it, amber + Move-to-#N otherwise.
+      const chip = (lens.kind === 'release' || tp == null) ? ''
+        : tp === idx + 1
+          ? `<span class="ghost agree" title="already where ${esc(lens.label)} places it">&#10003; <span class="at">#${tp}</span></span>`
+          : `<span class="ghost">${esc(lens.label)} &rarr; <span class="at">#${tp}</span> <button class="move tiny" data-move="${tp}">Move to #${tp}</button></span>`;
+      const row = document.createElement('div'); row.className = 'row' + (e._mergeStatus === 'new' ? ' newrow' : ''); row.draggable = true; row.dataset.id = e.id;
+      row.innerHTML = `<div class="handle">&#x283F;</div><div class="pos">${idx+1}</div>
+        <div class="rmain">
+          <div class="line1"><span class="rtitle">${esc(e.title)}</span><span class="badge">${esc(e.medium)}</span><span class="date">${esc(e.releaseDate||'')}</span>${mb(e)}
+            ${chip}
+            <span class="nudge"><button data-up>&uarr;</button><button data-down>&darr;</button></span></div>
+          <textarea class="reason" placeholder="why consume it here…">${esc(e.recommendedReason)}</textarea>
+        </div>`;
+      row.querySelector('[data-up]').onclick = () => moveAdjacent(e, -1);
+      row.querySelector('[data-down]').onclick = () => moveAdjacent(e, 1);
+      const moveBtn = row.querySelector('[data-move]');
+      if (moveBtn) moveBtn.onclick = () => moveToPosition(e, +moveBtn.dataset.move);
+      row.querySelector('.reason').oninput = ev => { e.recommendedReason = ev.target.value; stage(); };
+      row.ondragstart = ev => { ev.dataTransfer.setData('text/plain', e.id); row.classList.add('dragging'); };
+      row.ondragend = () => { row.classList.remove('dragging'); wrap.querySelectorAll('.dropbefore').forEach(r => r.classList.remove('dropbefore')); };
+      row.ondragover = ev => { ev.preventDefault(); if (!row.classList.contains('dragging')) row.classList.add('dropbefore'); };
+      row.ondragleave = () => row.classList.remove('dropbefore');
+      row.ondrop = ev => { ev.preventDefault(); row.classList.remove('dropbefore'); dropBeforeOrder(ev.dataTransfer.getData('text/plain'), e.id); };
+      wrap.appendChild(row);
+    });
+  }
+
+  // Pills: switch the preview target while previewing (animated), else switch the compare lens.
+  main.querySelectorAll('[data-lens]').forEach(p => p.onclick = () => {
+    if (previewing) flipOrder(() => previewLens(+p.dataset.lens));
+    else { activeLensKey = p.dataset.lens; render(); }
   });
-  main.querySelectorAll('[data-lens]').forEach(p => p.onclick = () => { activeLensKey = p.dataset.lens; render(); });
+  const pv = document.getElementById('previewBtn');
+  if (pv) pv.onclick = () => flipOrder(() => previewLens(activeIdx));
+  const keep = document.getElementById('keepBtn');
+  if (keep) keep.onclick = () => keepPreview();          // same order, no movement to animate
+  const cancel = document.getElementById('cancelBtn');
+  if (cancel) cancel.onclick = () => flipOrder(() => cancelPreview());
+  const ua = document.getElementById('undoApply');
+  if (ua) ua.onclick = () => flipOrder(() => undoApply());
   const db = document.getElementById('dismissLens');
   if (db) db.onclick = () => { activeLensKey = '0'; render(); };   // 0 = release floor
 }
