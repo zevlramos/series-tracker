@@ -95,8 +95,8 @@ later phase's save never clobbers an earlier phase's edits.
 The Order phase helps the maintainer author `recommendedOrder` with **refusable suggestions**:
 no researched/fandom ordering is ever auto-applied — the release-order floor is the baseline
 (create seeds `recommendedOrder` from it before the wizard), and nothing writes to the order
-until an explicit per-entry accept, a drag, or a maintainer-initiated bulk **Apply as baseline**
-(#65, with one-level undo — see below).
+until an explicit per-entry accept, a drag, or a maintainer-initiated **Preview as baseline** that
+is then kept (#65, preview-then-commit with one-level undo — see below).
 
 - **Pre-baked, no live LLM.** Step 1.5 researches the framings once and writes them to the Draft
   as top-level `_orderResearch = { consensus, alternatives }` (each `order` is an array of entry
@@ -117,13 +117,16 @@ until an explicit per-entry accept, a drag, or a maintainer-initiated bulk **App
   ids keep release order among themselves). This keeps mid-timeline entries (e.g. RE Outbreak) at their
   real release slot instead of block-appending the remainder at the tail, so the per-entry **Move to #N**
   chips point at honest slots.
-- **Apply [lens] as baseline (#65).** Each lens (including the Release floor) has an **Apply** button
-  that reorders the included entries to that lens's normalized order, renumbers, and stages — reasons
-  preserved, fully editable afterward, identical on create + update (no `if(create)` branch). An
-  **airtight one-level undo** snapshots the exact pre-apply order and restores it verbatim; a second
-  apply replaces the snapshot. The snapshot is in-memory/session-bound (a page reload loses it); it is
-  never persisted, and `data.json` is untouched until the `parseSeries` publish gate, so an apply on an
-  update can always be reverted (ADR-0013 amendment).
+- **Preview a lens as baseline, then commit (#65).** A single **Preview as baseline** button (acting on
+  the active framing — the Release floor included) reorders the included entries **in place** into that
+  lens's normalized order so the maintainer sees exactly what they'd get, tinted and non-interactive,
+  **without committing**: the working order and the Draft are untouched until they click **Keep this
+  order** (which renumbers + stages) or **Cancel** (which leaves the preview with zero mutation).
+  Clicking another framing while previewing re-previews it. Identical on create + update (no `if(create)`
+  branch). After a Keep, an **airtight one-level undo** snapshots the exact pre-keep order and restores
+  it verbatim; a second keep replaces the snapshot. The snapshot is in-memory/session-bound (a page
+  reload loses it); it is never persisted, and `data.json` is untouched until the `parseSeries` publish
+  gate, so a kept apply on an update can always be reverted (ADR-0013 amendment).
 - **Scratch survival.** `_orderResearch` is `_`-prefixed and lives top-level on the Draft. The wizard's
   autosave (`draftDoc`) carries every top-level `_`-field verbatim so a later phase never drops it;
   `draftToSeriesData` strips it at publish (it rebuilds from `{slug,name,entries}` + the 16-field
