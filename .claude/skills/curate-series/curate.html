@@ -215,7 +215,8 @@ let orderPreview = null;
 // The working visible set for phases 2-6: neither swiped-away (_drop, a non-grouped
 // Tinder exclude) nor card-excluded (excluded:true, a reader-hidden group member,
 // ADR-0014). Both are kept out of ordering, the timeline, summaries and the tallies.
-const included = () => ENTRIES.filter(e => !e._drop && !e.excluded);
+const isIncluded = e => !e._drop && !e.excluded;   // the one included-set rule — reuse it, don't re-inline
+const included = () => ENTRIES.filter(isIncluded);
 const mb = e => `<span class="mb ${e._mergeStatus}">${e._mergeStatus}</span>`;
 
 // Append a "medium / branch" header to `wrap` when the group changes. `state.last`
@@ -516,16 +517,15 @@ function cancelPreview() { orderPreview = null; render(); }   // nothing was mut
 function keepPreview() {
   const { lenses } = orderLenses();
   const lens = lenses[orderPreview];
-  const inc = e => !e._drop && !e.excluded;
   const byId = new Map(ENTRIES.map(e => [e.id, e]));
   const ordered = lens.order.map(id => byId.get(id)).filter(Boolean);
   // shapeLenses guarantees lens.order is a permutation of the included set; bail rather than
   // corrupt ENTRIES if that ever fails to hold.
-  if (ordered.length !== ENTRIES.filter(inc).length) { orderPreview = null; render(); return; }
+  if (ordered.length !== included().length) { orderPreview = null; render(); return; }
   orderUndo = ENTRIES.slice();
   orderUndoLabel = lens.label;
   let k = 0;
-  ENTRIES = ENTRIES.map(e => inc(e) ? ordered[k++] : e);
+  ENTRIES = ENTRIES.map(e => isIncluded(e) ? ordered[k++] : e);
   activeLensKey = String(orderPreview);   // pin the applied lens so its ghost chips read all-green
   orderPreview = null;
   renumber(); stage(); render();
@@ -601,40 +601,36 @@ function renderOrder() {
   const wrap = document.getElementById('orderlist');
   const group = { last: '' };
 
-  if (previewing) {
-    // Preview rows: the included set rendered in the lens's order, tinted, NON-interactive
-    // (no drag/nudge/chips, reasons read-only) — it's a look, not a commit. Keep/Cancel decides.
-    const previewList = lens.order.map(id => list.find(e => e.id === id)).filter(Boolean);
-    previewList.forEach((e, idx) => {
-      groupHeader(wrap, e, group);
-      const row = document.createElement('div');
-      row.className = 'row preview' + (e._mergeStatus === 'new' ? ' newrow' : '');
-      row.dataset.id = e.id;
-      row.innerHTML = `<div class="handle">&#x283F;</div><div class="pos">${idx+1}</div>
-        <div class="rmain">
-          <div class="line1"><span class="rtitle">${esc(e.title)}</span><span class="badge">${esc(e.medium)}</span><span class="date">${esc(e.releaseDate||'')}</span>${mb(e)}</div>
-          <textarea class="reason" disabled>${esc(e.recommendedReason)}</textarea>
-        </div>`;
-      wrap.appendChild(row);
-    });
-  } else {
-    list.forEach((e, idx) => {
-      groupHeader(wrap, e, group);
-      const tp = targetPos.get(e.id);
-      // Ghost chip only for a researched suggestion (the release floor shows none): green
-      // when the entry already sits where the lens would place it, amber + Move-to-#N otherwise.
-      const chip = (lens.kind === 'release' || tp == null) ? ''
-        : tp === idx + 1
-          ? `<span class="ghost agree" title="already where ${esc(lens.label)} places it">&#10003; <span class="at">#${tp}</span></span>`
-          : `<span class="ghost">${esc(lens.label)} &rarr; <span class="at">#${tp}</span> <button class="move tiny" data-move="${tp}">Move to #${tp}</button></span>`;
-      const row = document.createElement('div'); row.className = 'row' + (e._mergeStatus === 'new' ? ' newrow' : ''); row.draggable = true; row.dataset.id = e.id;
-      row.innerHTML = `<div class="handle">&#x283F;</div><div class="pos">${idx+1}</div>
-        <div class="rmain">
-          <div class="line1"><span class="rtitle">${esc(e.title)}</span><span class="badge">${esc(e.medium)}</span><span class="date">${esc(e.releaseDate||'')}</span>${mb(e)}
+  // One row builder for both modes — the DOM skeleton (handle/pos/rmain/line1/reason) is shared
+  // so drag-drop and the FLIP animation, both keyed off .row/data-id, stay in lockstep. The only
+  // axis that varies is interactive vs. preview: the working list renders in place with the ghost
+  // chip + nudge and full drag/edit wiring; preview rows render the lens's order, tinted, inert
+  // (read-only reason, no chip/nudge/handlers) — a look, not a commit. Keep/Cancel decides.
+  const byId = new Map(list.map(e => [e.id, e]));
+  const rows = previewing ? lens.order.map(id => byId.get(id)).filter(Boolean) : list;
+  rows.forEach((e, idx) => {
+    groupHeader(wrap, e, group);
+    const tp = targetPos.get(e.id);
+    // Ghost chip only for a researched suggestion (the release floor shows none): green when the
+    // entry already sits where the lens would place it, amber + Move-to-#N otherwise. Interactive
+    // rows only — preview omits chip + nudge.
+    const chip = (lens.kind === 'release' || tp == null) ? ''
+      : tp === idx + 1
+        ? `<span class="ghost agree" title="already where ${esc(lens.label)} places it">&#10003; <span class="at">#${tp}</span></span>`
+        : `<span class="ghost">${esc(lens.label)} &rarr; <span class="at">#${tp}</span> <button class="move tiny" data-move="${tp}">Move to #${tp}</button></span>`;
+    const extras = previewing ? '' : `
             ${chip}
-            <span class="nudge"><button data-up>&uarr;</button><button data-down>&darr;</button></span></div>
-          <textarea class="reason" placeholder="why consume it here…">${esc(e.recommendedReason)}</textarea>
+            <span class="nudge"><button data-up>&uarr;</button><button data-down>&darr;</button></span>`;
+    const row = document.createElement('div');
+    row.className = 'row' + (previewing ? ' preview' : '') + (e._mergeStatus === 'new' ? ' newrow' : '');
+    if (!previewing) row.draggable = true;
+    row.dataset.id = e.id;
+    row.innerHTML = `<div class="handle">&#x283F;</div><div class="pos">${idx+1}</div>
+        <div class="rmain">
+          <div class="line1"><span class="rtitle">${esc(e.title)}</span><span class="badge">${esc(e.medium)}</span><span class="date">${esc(e.releaseDate||'')}</span>${mb(e)}${extras}</div>
+          <textarea class="reason" ${previewing ? 'disabled' : 'placeholder="why consume it here…"'}>${esc(e.recommendedReason)}</textarea>
         </div>`;
+    if (!previewing) {
       row.querySelector('[data-up]').onclick = () => moveAdjacent(e, -1);
       row.querySelector('[data-down]').onclick = () => moveAdjacent(e, 1);
       const moveBtn = row.querySelector('[data-move]');
@@ -645,9 +641,9 @@ function renderOrder() {
       row.ondragover = ev => { ev.preventDefault(); if (!row.classList.contains('dragging')) row.classList.add('dropbefore'); };
       row.ondragleave = () => row.classList.remove('dropbefore');
       row.ondrop = ev => { ev.preventDefault(); row.classList.remove('dropbefore'); dropBeforeOrder(ev.dataTransfer.getData('text/plain'), e.id); };
-      wrap.appendChild(row);
-    });
-  }
+    }
+    wrap.appendChild(row);
+  });
 
   // Pills: switch the preview target while previewing (animated), else switch the compare lens.
   main.querySelectorAll('[data-lens]').forEach(p => p.onclick = () => {
