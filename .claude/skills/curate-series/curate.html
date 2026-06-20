@@ -215,7 +215,8 @@ let orderPreview = null;
 // The working visible set for phases 2-6: neither swiped-away (_drop, a non-grouped
 // Tinder exclude) nor card-excluded (excluded:true, a reader-hidden group member,
 // ADR-0014). Both are kept out of ordering, the timeline, summaries and the tallies.
-const included = () => ENTRIES.filter(e => !e._drop && !e.excluded);
+const isIncluded = e => !e._drop && !e.excluded;   // the one included-set rule — reuse it, don't re-inline
+const included = () => ENTRIES.filter(isIncluded);
 const mb = e => `<span class="mb ${e._mergeStatus}">${e._mergeStatus}</span>`;
 
 // Append a "medium / branch" header to `wrap` when the group changes. `state.last`
@@ -516,16 +517,15 @@ function cancelPreview() { orderPreview = null; render(); }   // nothing was mut
 function keepPreview() {
   const { lenses } = orderLenses();
   const lens = lenses[orderPreview];
-  const inc = e => !e._drop && !e.excluded;
   const byId = new Map(ENTRIES.map(e => [e.id, e]));
   const ordered = lens.order.map(id => byId.get(id)).filter(Boolean);
   // shapeLenses guarantees lens.order is a permutation of the included set; bail rather than
   // corrupt ENTRIES if that ever fails to hold.
-  if (ordered.length !== ENTRIES.filter(inc).length) { orderPreview = null; render(); return; }
+  if (ordered.length !== included().length) { orderPreview = null; render(); return; }
   orderUndo = ENTRIES.slice();
   orderUndoLabel = lens.label;
   let k = 0;
-  ENTRIES = ENTRIES.map(e => inc(e) ? ordered[k++] : e);
+  ENTRIES = ENTRIES.map(e => isIncluded(e) ? ordered[k++] : e);
   activeLensKey = String(orderPreview);   // pin the applied lens so its ghost chips read all-green
   orderPreview = null;
   renumber(); stage(); render();
@@ -604,7 +604,8 @@ function renderOrder() {
   if (previewing) {
     // Preview rows: the included set rendered in the lens's order, tinted, NON-interactive
     // (no drag/nudge/chips, reasons read-only) — it's a look, not a commit. Keep/Cancel decides.
-    const previewList = lens.order.map(id => list.find(e => e.id === id)).filter(Boolean);
+    const byId = new Map(list.map(e => [e.id, e]));
+    const previewList = lens.order.map(id => byId.get(id)).filter(Boolean);
     previewList.forEach((e, idx) => {
       groupHeader(wrap, e, group);
       const row = document.createElement('div');
