@@ -151,13 +151,20 @@ describe('#52 excluded entries — default + normalize + backward-compat', () =>
       new URL('../series/resident-evil/data.json', import.meta.url), 'utf8'
     ));
 
-    it('still validates with no excluded field anywhere', () => {
+    it('still validates', () => {
       const result = parseSeries(JSON.stringify(reData));
-      assert.equal(result.ok, true, `shipped data.json must validate unchanged: ${result.error}`);
+      assert.equal(result.ok, true, `shipped data.json must validate: ${result.error}`);
     });
 
-    it('normalizes every entry to excluded:false', () => {
-      const result = parseSeries(JSON.stringify(reData));
+    it('normalizes entries that omit excluded to excluded:false', () => {
+      // Simulate pre-feature data: no entry excluded, field absent. The shipped file now
+      // legitimately excludes superseded versions (#41), and those carry recommendedOrder:null
+      // — which the gate permits ONLY for excluded entries, so drop them from this sample.
+      const stripped = {
+        ...reData,
+        entries: reData.entries.filter((e) => !e.excluded).map(({ excluded, ...e }) => e),
+      };
+      const result = parseSeries(JSON.stringify(stripped));
       assert.equal(result.ok, true, result.error);
       for (const entry of result.series.entries) {
         assert.equal(entry.excluded, false, `entry ${entry.id} should default excluded:false`);
