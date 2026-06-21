@@ -36,7 +36,7 @@ describe('draftToSeriesData', () => {
       ...validDraft,
       _orderResearch: { consensus: { label: 'Fan order', order: [], sources: ['x'] }, alternatives: [] },
       _pairings: [{ originalId: 'a', remakeId: 'b', note: 'remake' }],
-      entries: validDraft.entries.map(e => ({ ...e, _mergeStatus: 'new', _drop: false, _proposedSummary: 'x', _orderDriftDismissed: true })),
+      entries: validDraft.entries.map(e => ({ ...e, _mergeStatus: 'new', _drop: false, _proposedSummary: 'x', _proposedReason: 'thin honest one-liner', _orderDriftDismissed: true })),
     };
     const data = draftToSeriesData(draft);
     assert.equal('_orderResearch' in data, false);
@@ -44,7 +44,28 @@ describe('draftToSeriesData', () => {
     assert.equal(Object.keys(data).every(k => !k.startsWith('_')), true);
     for (const entry of data.entries) {
       assert.equal(Object.keys(entry).some(k => k.startsWith('_')), false, `entry ${entry.id} leaked a _ field`);
+      assert.equal('_proposedReason' in entry, false, `entry ${entry.id} leaked _proposedReason past Projection`);
     }
+  });
+
+  // ADR-0015 GATE-HONESTY: a _proposedReason is scratch, stripped by Projection BEFORE
+  // the publish gate runs, so it is structurally incapable of satisfying the gate. An
+  // entry with a blank recommendedReason + a proposal must still FAIL parseSeries — and
+  // fail specifically on recommendedReason, proving the proposal didn't sneak through.
+  it('a _proposedReason cannot satisfy the gate — blank recommendedReason still fails (GATE-BACKSTOP)', () => {
+    const badEntry = {
+      ...validDraft.entries[0],          // a known gate-valid entry shape
+      recommendedReason: '',             // blank authored reason
+      _proposedReason: 'something',      // scratch proposal — must NOT count
+    };
+    // First so parseSeries's first-error-wins returns this entry's reason error.
+    const draft = { ...validDraft, entries: [badEntry, ...validDraft.entries.slice(1)] };
+
+    const data = draftToSeriesData(draft);
+    const result = parseSeries(JSON.stringify(data));
+
+    assert.equal(result.ok, false, 'a blank reason must fail the gate even with a proposal present');
+    assert.match(result.error, /recommendedReason/, `expected a recommendedReason error, got: ${result.error}`);
   });
 
   it('preserves all 16 data.json fields per entry', () => {

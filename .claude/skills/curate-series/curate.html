@@ -184,6 +184,7 @@ import { parseLoreDate, formatLoreDate, compareLoreDate } from '/src/modules/lor
 import { shapeLenses } from '/src/modules/order-lens.js';
 import { deriveVersionGroups } from '/src/modules/version-pairing.js';
 import { buildVersionCard, reduceCardKey, projectExclusions, readerOutcome, selectPublishEntries } from '/src/modules/version-card.js';
+import { canUseProposed, planReasonFill } from '/src/modules/reason-fill.js';
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 // Primary-drift threshold: only flag recommended-vs-lore gaps this large (years),
@@ -208,6 +209,10 @@ let activeLensKey = null;
 // just before the most recent apply, plus the applied lens's label for the button text.
 // null when there's nothing to undo. A second apply replaces it; an undo consumes it.
 let orderUndo = null, orderUndoLabel = '';
+// One-level undo for the bulk "Fill empty reasons" (#64): the PRIOR recommendedReason of
+// each entry the most recent fill touched, [{ id, prior }]. null when nothing to undo. A
+// second fill replaces it; undo restores each prior verbatim and clears it.
+let reasonUndo = null;
 // Order phase preview/commit (#65): index of the lens currently being PREVIEWED in place
 // (list reordered, nothing committed) or null. Keep commits it; Cancel just clears it.
 let orderPreview = null;
@@ -236,7 +241,7 @@ async function boot() {
     chronologicalOrder: e.chronologicalOrder ?? null,     // preserves a real rank of 0
     _drop: e._drop ?? false,
     _origSummary: e._origSummary ?? e.summary,
-    _proposedSummary: e._proposedSummary ?? null,         // in-universe rewrite, if research supplied one
+    _proposedReason: e._proposedReason ?? null,           // research-time reason suggestion (#64), if any
     _summaryTouched: e._summaryTouched ?? false,
     _mergeStatus: e._mergeStatus ?? 'new',                // create → everything new
     _driftDismissed: e._driftDismissed ?? false,          // secondary (rank-vs-lore)
@@ -540,6 +545,31 @@ function undoApply() {
   renumber(); stage(); render();
   setStatus(`Undid apply${label ? ` of “${label}”` : ''} — order restored`);
 }
+// Bulk "Fill empty reasons" (#64 / ADR-0015): maintainer-initiated, blanks-only, reversible.
+// planReasonFill targets ONLY included entries whose recommendedReason is empty AND that carry
+// a _proposedReason — never an authored reason. Snapshot each touched entry's PRIOR value first
+// (one-level undo, verbatim), then land the proposals in the real recommendedReason. No-op when
+// nothing is fillable, so the gate keeps backstopping the genuinely-blank entries.
+function fillEmptyReasons() {
+  const plan = planReasonFill(included());
+  if (!plan.length) return;
+  const byId = new Map(ENTRIES.map(e => [e.id, e]));
+  reasonUndo = plan.map(p => ({ id: p.id, prior: byId.get(p.id).recommendedReason }));
+  plan.forEach(p => { byId.get(p.id).recommendedReason = p.value; });
+  stage(); render();
+  setStatus(`Filled ${plan.length} empty reason${plan.length === 1 ? '' : 's'} from suggestions`);
+}
+// Restore each entry's reason to the value snapshotted just before the most recent fill, verbatim,
+// then clear the snapshot.
+function undoFillReasons() {
+  if (!reasonUndo) return;
+  const byId = new Map(ENTRIES.map(e => [e.id, e]));
+  reasonUndo.forEach(({ id, prior }) => { const e = byId.get(id); if (e) e.recommendedReason = prior; });
+  const n = reasonUndo.length;
+  reasonUndo = null;
+  stage(); render();
+  setStatus(`Undid reason fill — ${n} restored`);
+}
 const HONESTY_COPY = {
   contested: n => ['Fans disagree', `${n} researched framings below — compare them and accept entry-by-entry, or author by hand. Nothing changes until you do.`],
   uncontested: () => ['One widely-agreed order', 'A single researched framing. Compare it, accept what you like, or dismiss to the release floor.'],
@@ -588,6 +618,15 @@ function renderOrder() {
     ? `<div class="preview-bar"><span class="pv-lbl">&#9655; Previewing &ldquo;${esc(lens.label)}&rdquo; &mdash; not applied yet</span><button class="pv-keep" id="keepBtn">Keep this order</button><button class="pv-cancel tiny" id="cancelBtn">Cancel</button></div>`
     : `<div class="apply-bar"><span class="lbl">Baseline</span><button class="apply-baseline" id="previewBtn" title="Preview ${esc(lens.label)} in place — keep it or cancel. Reversible, fully editable after.">&#9655; Preview &ldquo;${esc(lens.label)}&rdquo; as baseline</button>${applied}</div>`;
 
+  // Bulk reason fill (#64) — only outside preview. "Fill empty reasons" lands every blank+proposed
+  // reason at once (blanks only, never clobbers authored); disabled when nothing is fillable. After a
+  // fill, an "Undo fill" affordance restores the prior values verbatim. Authored reasons are untouched.
+  const fillCount = previewing ? 0 : planReasonFill(included()).length;
+  const reasonBar = previewing ? '' :
+    `<div class="apply-bar"><span class="lbl">Reasons</span>
+      <button class="apply-baseline" id="fillReasons" ${fillCount ? '' : 'disabled'} title="Fill every empty reason from its suggestion — blanks only, never overwrites one you wrote. Reversible.">&#9633; Fill ${fillCount} empty reason${fillCount === 1 ? '' : 's'}</button>
+      ${reasonUndo ? `<span class="applied-note">&#10003; Filled ${reasonUndo.length} reason${reasonUndo.length === 1 ? '' : 's'}</span><button class="undo-apply tiny" id="undoFill">Undo fill</button>` : ''}</div>`;
+
   const lensLbl = previewing ? 'Previewing' : 'Compare against';
   const hint = previewing
     ? `Previewing how <b>${esc(lens.label)}</b> would order the list — nothing is committed yet. <b>Keep this order</b> to make it your baseline, or <b>Cancel</b> to go back. Click another framing to preview it instead.`
@@ -597,6 +636,7 @@ function renderOrder() {
     <div class="honesty ${honesty}"><h3>${esc(hTitle)}</h3><p>${esc(hBody)}</p></div>
     <div class="lens-bar"><span class="lbl">${lensLbl}</span>${switcher}${dismiss}</div>
     ${actionBar}
+    ${reasonBar}
     <div id="orderlist"></div>`;
   const wrap = document.getElementById('orderlist');
   const group = { last: '' };
@@ -621,6 +661,14 @@ function renderOrder() {
     const extras = previewing ? '' : `
             ${chip}
             <span class="nudge"><button data-up>&uarr;</button><button data-down>&darr;</button></span>`;
+    // Ghost placeholder: when a proposal exists and the reason is still blank, show it greyed INSIDE
+    // the box (placeholder, never the value — recommendedReason stays empty until "Use this" or typing).
+    const reasonPh = (!previewing && canUseProposed(e)) ? esc(e._proposedReason) : 'why consume it here…';
+    // "Use this" copies the proposal into the real reason — shown ONLY while it's usable (a proposal
+    // exists AND no authored reason), so it disappears the moment a reason is authored.
+    const useCtrl = (!previewing && canUseProposed(e))
+      ? '<div class="sumctrls"><button class="tiny" data-use title="Use the suggested reason — you can edit it after">Use this suggested reason</button></div>'
+      : '';
     const row = document.createElement('div');
     row.className = 'row' + (previewing ? ' preview' : '') + (e._mergeStatus === 'new' ? ' newrow' : '');
     if (!previewing) row.draggable = true;
@@ -628,13 +676,16 @@ function renderOrder() {
     row.innerHTML = `<div class="handle">&#x283F;</div><div class="pos">${idx+1}</div>
         <div class="rmain">
           <div class="line1"><span class="rtitle">${esc(e.title)}</span><span class="badge">${esc(e.medium)}</span><span class="date">${esc(e.releaseDate||'')}</span>${mb(e)}${extras}</div>
-          <textarea class="reason" ${previewing ? 'disabled' : 'placeholder="why consume it here…"'}>${esc(e.recommendedReason)}</textarea>
+          <textarea class="reason" ${previewing ? 'disabled' : `placeholder="${reasonPh}"`}>${esc(e.recommendedReason)}</textarea>
+          ${useCtrl}
         </div>`;
     if (!previewing) {
       row.querySelector('[data-up]').onclick = () => moveAdjacent(e, -1);
       row.querySelector('[data-down]').onclick = () => moveAdjacent(e, 1);
       const moveBtn = row.querySelector('[data-move]');
       if (moveBtn) moveBtn.onclick = () => moveToPosition(e, +moveBtn.dataset.move);
+      const useBtn = row.querySelector('[data-use]');
+      if (useBtn) useBtn.onclick = () => { e.recommendedReason = e._proposedReason; stage(); render(); };
       row.querySelector('.reason').oninput = ev => { e.recommendedReason = ev.target.value; stage(); };
       row.ondragstart = ev => { ev.dataTransfer.setData('text/plain', e.id); row.classList.add('dragging'); };
       row.ondragend = () => { row.classList.remove('dragging'); wrap.querySelectorAll('.dropbefore').forEach(r => r.classList.remove('dropbefore')); };
@@ -658,6 +709,10 @@ function renderOrder() {
   if (cancel) cancel.onclick = () => flipOrder(() => cancelPreview());
   const ua = document.getElementById('undoApply');
   if (ua) ua.onclick = () => flipOrder(() => undoApply());
+  const fr = document.getElementById('fillReasons');
+  if (fr) fr.onclick = () => fillEmptyReasons();
+  const uf = document.getElementById('undoFill');
+  if (uf) uf.onclick = () => undoFillReasons();
   const db = document.getElementById('dismissLens');
   if (db) db.onclick = () => { activeLensKey = '0'; render(); };   // 0 = release floor
 }
@@ -832,14 +887,9 @@ function renderTimeline() {
 }
 
 // ---- phase 6: summaries ----
-function applyProposed() {
-  // Auto-fill the in-universe rewrite where the maintainer hasn't hand-edited.
-  included().forEach(e => { if (!e._summaryTouched && e._proposedSummary) e.summary = e._proposedSummary; });
-}
 function renderSummaries() {
-  applyProposed();
   const main = document.getElementById('main');
-  main.innerHTML = '<p class="hint">Story summary shown on each entry page. Pre-filled with the in-universe rewrite where research proposed one. "Factual" restores the original research text.</p><div id="sumlist"></div>';
+  main.innerHTML = '<p class="hint">Story summary shown on each entry page. Edit it freely; "Factual" restores the original research text.</p><div id="sumlist"></div>';
   const wrap = document.getElementById('sumlist');
   const group = { last: '' };
   included().forEach((e, idx) => {
@@ -850,13 +900,11 @@ function renderSummaries() {
         <div class="line1"><span class="rtitle">${esc(e.title)}</span><span class="badge">${esc(e.medium)}</span>${mb(e)}</div>
         <textarea class="summary-box">${esc(e.summary)}</textarea>
         <div class="sumctrls">
-          <button data-ai ${e._proposedSummary ? '' : 'disabled'}>AI rewrite</button>
           <button data-factual>Factual</button>
         </div>
       </div>`;
     const ta = row.querySelector('.summary-box');
     ta.oninput = () => { e.summary = ta.value; e._summaryTouched = true; stage(); };
-    row.querySelector('[data-ai]').onclick = () => { if (e._proposedSummary) { e.summary = e._proposedSummary; e._summaryTouched = true; ta.value = e._proposedSummary; stage(); } };
     row.querySelector('[data-factual]').onclick = () => { e.summary = e._origSummary; e._summaryTouched = true; ta.value = e._origSummary; stage(); };
     wrap.appendChild(row);
   });

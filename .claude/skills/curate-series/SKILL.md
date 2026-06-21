@@ -80,6 +80,32 @@ const { honesty } = shapeLenses({ includedEntries: draftEntries.filter(e => !e._
 If the subagent errors, write `{ consensus: null, alternatives: [] }` and tell the maintainer at
 handoff — the floor still works. `_orderResearch` is `_`-prefixed scratch, stripped at publish.
 
+### 1.6 Research the per-entry reason proposals (the Order-phase reason suggestion)
+
+The Order phase also offers **refusable per-Entry reason suggestions** (#64 / ADR-0015): the same
+`_`-scratch producer pattern as the order lenses, sibling to 1.5. The research pass writes a per-Entry
+`_proposedReason` into the Draft as **pre-baked** scratch — **no live model call in the wizard** — and the
+wizard surfaces it as ghost text the maintainer accepts, edits, or ignores. The accepted value lands in
+the real `recommendedReason`; the scratch is stripped at publish.
+
+Propose a reason **only for Entries lacking an authored `recommendedReason`.** `recommendedReason` is
+CURATION-preserved, so an update never clobbers an existing authored reason — the producer fills only the
+new (empty) Entries (the #41 wall). **SKIP Excluded entries** (`excluded:true`) — they are gate-exempt, so
+they need no reason.
+
+Honesty rules for the subagent (mirror 1.5's "invent no authority"):
+
+- **Thin-honest, descriptive only.** A one-liner grounded in the Entry's own summary plus its honest
+  placement basis — e.g. "A standalone side-story; slots here by release date."
+- **No fabricated editorial authority.** Banned: confident claims it has no source for ("an essential
+  prequel you must play first"). Readers act on these reasons, so a confident fabrication is strictly
+  worse than a thin truth.
+- **Blank as last resort.** When nothing truthful can be said, leave `_proposedReason` empty/absent; the
+  Entry still requires hand-authoring at the gate. This narrows the wall, it does not eliminate it.
+
+Write `_proposedReason` onto each merged Entry (per-Entry `_`-scratch, like `_origSummary`). It survives
+the wizard's autosave and is dropped by the publish projection.
+
 ### 2. Write the Draft (tag merge status, then persist)
 
 Tag each merged entry so the wizard can show new / preserved / changed, then write the
@@ -108,9 +134,9 @@ busy). They drive six phases, autosaving as they go:
 1. **Include** — keep/drop each Entry (Tinder card: → keep, ← drop). Entries that share a `versionGroup` slug (ADR-0014) collapse into one **merged version card** with a 3-way *Original only · Both · Remake only* choice (+ ✕ exclude both); default **Both** — nothing dropped until the maintainer picks.
 2. **Branch** — mainline / spinoff.
 3. **Consumed** — set `status`.
-4. **Order** — author the **recommended** order. A lens switcher offers the researched framings (release floor + fan-consensus + alternatives) as refusable suggestions; per-entry ghost chips show where the active lens would place each Entry, with a surgical **Move to #N** accept (green where it already agrees). For a one-click baseline, a single **Preview as baseline** button reorders the list in place into the active framing — nothing is committed until the maintainer clicks **Keep this order** (or **Cancel** backs out with zero change), with an airtight one-level **Undo apply** afterward. Drag or nudge freely; **dismiss** falls back to the release floor. Nothing writes to the order until the maintainer accepts, drags, or keeps a preview. Edit each one-line reason.
+4. **Order** — author the **recommended** order. A lens switcher offers the researched framings (release floor + fan-consensus + alternatives) as refusable suggestions; per-entry ghost chips show where the active lens would place each Entry, with a surgical **Move to #N** accept (green where it already agrees). For a one-click baseline, a single **Preview as baseline** button reorders the list in place into the active framing — nothing is committed until the maintainer clicks **Keep this order** (or **Cancel** backs out with zero change), with an airtight one-level **Undo apply** afterward. Drag or nudge freely; **dismiss** falls back to the release floor. Nothing writes to the order until the maintainer accepts, drags, or keeps a preview. Author each one-line **reason** here too — Entries lacking one show their researched suggestion as ghost text with a per-Entry **Use this suggested reason** accept, and a maintainer-initiated bulk **Fill empty reasons** (blanks only, never clobbers an authored reason, with a one-level undo). The suggestion never auto-fills: `recommendedReason` stays empty until the maintainer acts, so the gate keeps backstopping un-reviewed Entries.
 5. **Timeline** — set `loreDate` (any precision) and the **chronological rank**; drift advisories flag large gaps, dismissable.
-6. **Summaries** — edit the per-Entry summary (AI-rewrite ↔ factual).
+6. **Summaries** — edit the per-Entry summary; **Factual** restores the original research text.
 
 ### 4. Publish (maintainer clicks "Publish to site")
 
@@ -131,5 +157,5 @@ the Chronological sort appears once at least one Entry has a rank.
 - **Publish is the only write** — `/stage` autosave is ungated scratch; `/publish` is the `parseSeries` gate.
 - **Fail closed** — if the gate rejects the projection, nothing is written.
 - **UI fields never reach disk** — `draftToSeriesData` projects to the 14 schema fields.
-- **New Entries need a `recommendedReason`** — the gate requires it; the Order phase is where the maintainer writes it.
+- **New Entries need a `recommendedReason`** — the gate requires it; the Order phase is where the maintainer writes it. The research-time `_proposedReason` suggestion (1.6) assists via ghost text + "Use this" + bulk "Fill empty reasons", but the gate still requires a real `recommendedReason` — the suggestion is scratch and never counts as filled until the maintainer accepts it.
 - **Draft is gitignored scratch** — `.drafts/<slug>.json`, never committed.

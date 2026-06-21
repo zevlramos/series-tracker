@@ -132,6 +132,36 @@ is then kept (#65, preview-then-commit with one-level undo — see below).
   `draftToSeriesData` strips it at publish (it rebuilds from `{slug,name,entries}` + the 16-field
   whitelist, so top-level and per-entry `_`-fields both vanish).
 
+## Order-phase reason suggestions (`_proposedReason` scratch, #64 / ADR-0015)
+
+The Order phase also helps the maintainer author `recommendedReason` with the same **refusable
+`_proposed*` producer** shape as the order lenses — but a deliberately different apply-policy, because a
+reason is an *authored* field readers act on (the ADR-0015 spine: placement = bulk-previewable, reason =
+explicit/maintainer-initiated, summary = auto-fill).
+
+- **Pre-baked, no live LLM.** Step 1.6 researches a per-Entry reason once and writes it to each Entry as
+  `_proposedReason` scratch (per-Entry `_`-field, like `_origSummary`). Proposed **only for Entries lacking
+  an authored `recommendedReason`** (CURATION-preserved, so updates never clobber); Excluded entries are
+  skipped (gate-exempt). The wizard reads this; `curate-server.mjs` stays a dumb file-server.
+- **`src/modules/reason-fill.js`** is the single apply-policy core, imported by the wizard (served at
+  `/src/modules/reason-fill.js`): `hasProposedReason`, `hasAuthoredReason`, `canUseProposed`
+  (proposal exists AND no authored reason), and `planReasonFill(entries)` → `[{ id, value }]` for the
+  blanks-only fill, input order preserved. "Empty" is a FALSY test (no trim) matching the publish gate, so
+  a whitespace-only reason counts as authored and is never overwritten.
+- **GATE-HONESTY — the suggestion lives in the textarea `placeholder`, never the `value`.** When
+  `canUseProposed(e)`, the proposal shows greyed *inside* the reason box, but `recommendedReason` stays
+  empty until an explicit human act. Nothing auto-fills on phase entry, so the gate keeps backstopping
+  un-reviewed Entries (the proposal is scratch, structurally incapable of satisfying the gate).
+- **Surfacing.** Per-Entry **Use this suggested reason** (shown only while `canUseProposed`, so it vanishes
+  once a reason is authored) copies the proposal into the real field; typing replaces it. A maintainer-
+  initiated bulk **Fill empty reasons** runs `planReasonFill(included())` over the blanks only (never
+  clobbers an authored reason), with a one-level **Undo fill** that snapshots each touched Entry's prior
+  value and restores it verbatim. None of this appears during the order **Preview** (preview rows are inert,
+  read-only).
+- **Scratch survival.** `_proposedReason` is `_`-prefixed and rides per-Entry on the Draft; the wizard's
+  autosave carries it verbatim, and the same publish projection that drops `_orderResearch` strips it before
+  the `parseSeries` gate, so it can never reach `data.json`. See ADR-0015.
+
 ## Include-phase version card (`versionGroup` group-by, #47 / #55 / ADR-0014)
 
 When ≥2 Entries are alternative versions of one underlying work, the Include phase surfaces
