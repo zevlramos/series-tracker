@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { mergeCuration } from '../pipeline/mergeCuration.js';
 import { parseSeries } from '../src/modules/parse-series.js';
+import { planReasonFill } from '../src/modules/reason-fill.js';
 
 const mkEntry = (overrides) => ({
   id: 'resident-evil-2002',
@@ -114,6 +115,43 @@ describe('mergeCuration', () => {
 
     assert.equal(result[0].recommendedOrder, 7);
     assert.equal(result[0].recommendedReason, 'Custom placement.');
+  });
+
+  // ADR-0015: the reason producer over a MERGED set. mergeCuration PRESERVES authored
+  // reasons on existing entries and leaves new entries' reasons as authored-or-blank.
+  // A research pass then attaches _proposedReason scratch. planReasonFill must target
+  // ONLY the entries whose recommendedReason is empty (new/blank) — NEVER the authored
+  // ones mergeCuration preserved. This is the never-clobber property over a real merge.
+  describe('planReasonFill over a merged set (ADR-0015 producer)', () => {
+    it('targets only blank reasons, never the authored ones mergeCuration preserved', () => {
+      const existing = [mkEntry({ id: 'kept', recommendedReason: 'Maintainer wrote this.' })];
+      const newEntry = {
+        id: 'fresh',
+        title: 'Resident Evil 5',
+        medium: 'game',
+        branch: 'mainline',
+        releaseDate: '2009-03-05',
+        recommendedOrder: 2,
+        recommendedReason: '',                 // new entry — blank reason (the #41 wall)
+        chronologicalOrder: null,
+        summary: 'Chris and Sheva fight bioterrorism in Africa.',
+        image: null,
+        imageUrl: null,
+        status: false,
+        sources: ['https://en.wikipedia.org/wiki/Resident_Evil_5'],
+      };
+      const diff = { new: [newEntry], changed: [], unchanged: ['kept'] };
+
+      const merged = mergeCuration(existing, diff);
+
+      // Simulate the research pass attaching scratch proposals to every entry.
+      const researched = merged.map(e => ({ ...e, _proposedReason: 'thin honest one-liner' }));
+
+      const plan = planReasonFill(researched);
+
+      assert.deepEqual(plan, [{ id: 'fresh', value: 'thin honest one-liner' }]);
+      assert.equal(plan.some(p => p.id === 'kept'), false, 'planReasonFill must not target the preserved authored reason');
+    });
   });
 
   it('places approved new entries at their specified position', () => {
