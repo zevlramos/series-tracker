@@ -57,6 +57,10 @@ _Avoid_: View, Sort (those name the Shell's rendering of a reader-facing Lens, n
 The curated "order you should generally consume this Series in," with a per-Entry reason for its placement. The headline of each Series and the Timeline's default. It is **authored, never derived** — it may intentionally diverge from both release and in-universe order (e.g. playing an original before its prequel so a later reveal still lands). See [[0011-curated-chronological-rank-lore-date-enrichment]].
 _Avoid_: treating it as the in-universe timeline — the recommended path need not match **Chronological order**.
 
+**Recommended reason**:
+The per-Entry editorial justification for *why* an Entry sits where it does in the **Recommended order** ("play this before X so the reveal lands") — surfaced to the reader, and required by the **Publish gate** on every visible Entry. **Authored, never derived**, like the order itself: a tool may *suggest* a reason, but only a value a human accepted or wrote may publish — readers act on these, so an honest thin reason beats a confident fabricated one. See [[0015-refusable-reason-suggestions-proposed-producer]], [[0011-curated-chronological-rank-lore-date-enrichment]].
+_Avoid_: description, blurb (that's the **Summary** — a researched fact about the Entry, not an authored placement justification).
+
 **Chronological order**:
 The order a Series' Entries occur **in-universe** — the canon timeline, independent of when each shipped. A distinct lens from the **Recommended order**: a Series may deliberately be experienced out of in-universe order. Carried as an explicit per-Entry rank so it works even for a Series that has a clear in-universe order but no known in-universe dates (an Entry can have a known position without a known date). Seeded by **Lore date** where dates exist, then curated. See [[0011-curated-chronological-rank-lore-date-enrichment]].
 
@@ -73,6 +77,14 @@ The flat, reviewable intermediate that `create-series`/`update-series` produce f
 **Curation wizard**:
 The interactive surface where the maintainer vets a Draft pass by pass — keep/drop, branch, consumed, recommended order + reasons, in-universe timeline (lore dates and chronological rank), and summaries — rather than approving auto-decided choices in bulk. The shared curation stage for both `create-series` and `update-series`: it edits a starting set of Entries that is empty for a create and the curation-preserved merge for an update, so the wizard itself never needs to know which it is. See [[0012-unified-curation-pipeline]].
 _Avoid_: Editor, Form (it's a guided multi-pass review, not a single form).
+
+**Publish gate**:
+The fixed set of schema rules a **Draft** must pass to become a published Series (`data.json`). All-or-nothing: any single failing Entry rejects the *entire* publish and nothing is written. Its sharpest rule is that every **visible** (non-**Excluded**) Entry must carry a non-empty **Recommended order** rank *and* a non-empty reason — so an empty reason is a hard publish-blocker, not an advisory blank. The same rules run at two points — at publish and while staging the Draft — sharing code so they can never disagree (no "passed the wizard, failed publish" trap). Distinct from advisory warnings (e.g. timeline-gap hints), which never block. Runs *after* **Projection** strips all scratch, so a scratch suggestion can never satisfy it.
+_Avoid_: validator, schema check (too generic); whitelist (that's Projection's keep-list).
+
+**Projection** (publish projection):
+The publish step that reduces a curated Draft to only its publishable fields, dropping every transient scratch field (the `_`-prefixed working data the wizard uses but never ships). A `_proposed*` suggestion is therefore *scratch by design*: structurally unpublishable, so only its accepted value — copied into a real field — can reach the site. Runs before the **Publish gate**.
+_Avoid_: whitelist, filter (it's a shape-down to the durable schema).
 
 ## Example dialogue
 
