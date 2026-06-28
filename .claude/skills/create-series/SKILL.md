@@ -95,9 +95,22 @@ Edit → write → refresh preview. Continue until approved.
 
 Do not silently bake structural asks into `theme.css`. The classification must be an explicit, surfaced decision at this checkpoint.
 
+## Override / fail-safe (direct interaction)
+
+The wizard is the **default** control surface, but it is UI-shaped. When a maintainer ask
+can't be expressed in it — a global/relational ordering rule, a bulk edit across many
+Entries, or a constraint spanning Entries a lens can't reach — drop to the **direct-interaction
+override**: pause the wizard, edit the **Draft** directly (or dispatch a focused subagent for
+heavy deterministic work and audit its result before applying), reload `localhost:8123` to
+rejoin, and Publish through the same `parseSeries` gate. The override only ever touches the
+Draft, so it is *more* control, never *less* validation. Canonical protocol + hazards live in
+[curate-series → Override / fail-safe](../curate-series/SKILL.md#override--fail-safe-direct-interaction)
+and [ADR-0016](../../../docs/adr/0016-direct-interaction-override-failsafe.md).
+
 ## Constraints
 
 - **Publish belongs to curate-series** — the wizard's fail-closed `parseSeries` write is the only path that creates `data.json`; never write it from this skill
+- **Override edits the Draft, never `data.json`** — for asks the wizard can't express, drop to the direct-interaction override (above): edit the Draft, reload to rejoin, Publish through the gate (ADR-0016)
 - **Stable ids** — `deriveEntryId`, never positional (ADR-0009)
 - **Draft is gitignored** — `.drafts/` is scratch, never committed
 - **No schema changes** — output conforms to existing `data.json` / `theme.json`

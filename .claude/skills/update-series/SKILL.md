@@ -149,9 +149,24 @@ designed out.
 Open `/series/<slug>/` in the Shell and confirm the updated entries render correctly, and
 that the Chronological lens reflects any rank edits.
 
+## Override / fail-safe (direct interaction)
+
+The wizard is the **default** control surface, but it is UI-shaped. When a maintainer ask
+can't be expressed in it — a global/relational ordering rule (the #41 case: "interleave all
+games + main-cast films in lore order, then everything else"), a bulk edit across many
+Entries, or a constraint spanning Entries a lens can't reach — drop to the **direct-interaction
+override**: pause the wizard, edit the **Draft** directly (or dispatch a focused subagent for
+heavy deterministic work and audit its result before applying), reload `localhost:8123` to
+rejoin, and Publish through the same `parseSeries` gate. The override only ever touches the
+Draft, so it preserves curation and is *more* control, never *less* validation. Canonical
+protocol + hazards live in
+[curate-series → Override / fail-safe](../curate-series/SKILL.md#override--fail-safe-direct-interaction)
+and [ADR-0016](../../../docs/adr/0016-direct-interaction-override-failsafe.md).
+
 ## Constraints
 
 - **Curation is never auto-overwritten** — the `CURATION_FIELDS` (status, recommendedOrder, recommendedReason, chronologicalOrder, excluded, versionGroup) are preserved by the merge (ADR-0009, ADR-0014)
+- **Override edits the Draft, never `data.json`** — for asks the wizard can't express, drop to the direct-interaction override (above): edit the Draft, reload to rejoin, Publish through the gate; it touches only the Draft so curation is preserved (ADR-0016)
 - **Merge runs once, before the wizard** — never re-merge after; it would clobber Order/Timeline edits
 - **Publish belongs to curate-series** — its projected, fail-closed `parseSeries` write is the only path that touches `data.json`
 - **Semantic alignment, not string matching** — ids carried forward on matches, minted only for genuinely new Entries

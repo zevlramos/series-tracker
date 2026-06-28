@@ -151,6 +151,47 @@ wizard's status line.
 Open `/series/<slug>/` in the Shell. Confirm the TOC and Entry pages render, and that
 the Chronological sort appears once at least one Entry has a rank.
 
+## Override / fail-safe (direct interaction)
+
+The wizard is the **default** surface, but it is UI-shaped — it expresses placement,
+inclusion, reasons, and ranks one Entry (or one previewable permutation) at a time. Some
+maintainer asks don't fit that shape: a **global/relational ordering rule** ("interleave
+all games + main-cast films in lore order, then everything else"), a **bulk edit across
+many Entries**, or a **constraint spanning Entries a lens can't reach** (e.g. a spinoff
+absent from every researched lens). For those, drop to a **direct-interaction override** —
+a maintainer-chosen detour that does the work against the **Draft** and rejoins the wizard
+at the same `parseSeries` gate. It is *more* control, never *less* validation (ADR-0016).
+
+**When to offer it:** recognize the friction and *offer* the override — the maintainer
+always chooses to drop. Never silently bypass the wizard.
+
+**The protocol (forced by the autosave model).** The wizard autosaves the full working set
+*down* to `.drafts/<slug>.json` on every edit, and the **browser's in-memory copy is the
+source of truth while the tab is open** — `curate-server.mjs` only re-reads the Draft on a
+page load's `GET /data`. So:
+
+1. **Pause** — the maintainer stops touching the wizard (no pending `/stage` autosave can
+   race the edit).
+2. **State the ask** in chat.
+3. **Edit the Draft** — directly, or dispatch a **focused subagent** for heavy deterministic
+   work (e.g. computing a full Recommended order from the stated rule across all Entries) and
+   **audit its result for quality before applying** it to `.drafts/<slug>.json`.
+4. **Reload `localhost:8123`** — the page re-`GET`s `/data` and pulls the edited Draft into
+   the browser. **This reload is the rejoin point and is mandatory.**
+5. **Continue and Publish** in the wizard as normal — `/publish` projects through
+   `draftToSeriesData` + the fail-closed `parseSeries` gate. The override only ever touches
+   the Draft, so it cannot skip validation.
+
+**Hazard — the autosave race.** If the maintainer keeps editing in the browser while a Draft
+edit is in flight, the stale in-memory copy clobbers it on the next `/stage`. "Pause, then
+reload to rejoin" is the rule that defuses it — never apply an override silently under a live,
+still-being-edited tab.
+
+**Headless fallback (wizard server not running).** Re-enter the gate without the browser by
+calling `draftToSeriesData(draft)` then `parseSeries(...)` directly and writing
+`series/<slug>/data.json` **only on `ok`** — the *same gate function*. Never hand-write
+`data.json`; direct-to-published is forbidden under either path.
+
 ## Constraints
 
 - **Merge before the wizard, never after** — re-merging reverts Order/Timeline edits.
@@ -159,3 +200,4 @@ the Chronological sort appears once at least one Entry has a rank.
 - **UI fields never reach disk** — `draftToSeriesData` projects to the 14 schema fields.
 - **New Entries need a `recommendedReason`** — the gate requires it; the Order phase is where the maintainer writes it. The research-time `_proposedReason` suggestion (1.6) assists via ghost text + "Use this" + bulk "Fill empty reasons", but the gate still requires a real `recommendedReason` — the suggestion is scratch and never counts as filled until the maintainer accepts it.
 - **Draft is gitignored scratch** — `.drafts/<slug>.json`, never committed.
+- **Override edits the Draft, never `data.json`** — when an ask can't be expressed in the wizard, drop to the direct-interaction override (above): edit the Draft, reload to rejoin, Publish through the gate. The override is *more* control, never *less* validation (ADR-0016).
